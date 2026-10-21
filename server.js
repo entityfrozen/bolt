@@ -5,6 +5,7 @@ import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
 import express from "express";
 import { bootstrap } from "@mercuryworkshop/proxy-bootstrap";
+import { attachLightningLive } from "./live.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const port = Number(process.env.PORT || 3030);
@@ -24,7 +25,6 @@ const freshState = () => ({
     features: {
       proxy: true,
       music: true,
-      video: true,
       ai: true
     }
   }
@@ -594,7 +594,7 @@ app.delete("/api/admin/passes/:id", mustBeAdmin, sameOrigin, (req, res) => {
 app.patch("/api/admin/settings", mustBeAdmin, sameOrigin, (req, res) => {
   if (typeof req.body.maintenance === "boolean") state.settings.maintenance = req.body.maintenance;
   if (req.body.features && typeof req.body.features === "object") {
-    for (const key of ["proxy", "music", "video", "ai"]) {
+    for (const key of ["proxy", "music", "ai"]) {
       if (typeof req.body.features[key] === "boolean") state.settings.features[key] = req.body.features[key];
     }
   }
@@ -631,6 +631,9 @@ app.use((req, res, next) => {
   if (routeRequest(req, res)) return;
   next();
 });
+
+app.get("/vendor/marked.js", mustBeSignedIn, (req,res)=>res.sendFile(path.join(here,"node_modules","marked","lib","marked.umd.js")));
+app.get("/vendor/purify.js", mustBeSignedIn, (req,res)=>res.sendFile(path.join(here,"node_modules","dompurify","dist","purify.min.js")));
 
 app.use("/assets", express.static(path.join(here, "public", "assets"), {
   etag: true,
@@ -672,6 +675,7 @@ app.use((req, res) => {
 const server = http.createServer(app);
 
 server.on("upgrade", (req, socket, head) => {
+  if (req.url?.startsWith("/live")) return;
   const found = sessionFromHeaders(req.headers);
   const allowed = found && (found.identity.role === "admin" || (!state.settings.maintenance && state.settings.features.proxy));
   if (!allowed) {
@@ -681,6 +685,8 @@ server.on("upgrade", (req, socket, head) => {
   }
   routeUpgrade(req, socket, head);
 });
+
+attachLightningLive({server,sessionFromHeaders,dataDir});
 
 server.listen(port, () => {
   console.log(`Lightning listening on http://localhost:${port}`);
