@@ -53,6 +53,7 @@ const engineUrls={
 };
 
 const accents={
+  dusk:["#b6a3ff","182,163,255"],
   amber:["#f2c861","242,200,97"],
   ice:["#9ec8df","158,200,223"],
   rose:["#e69aa6","230,154,166"],
@@ -63,9 +64,11 @@ let prefs={
   engine:"google",
   restore:true,
   compact:false,
-  accent:"amber",
+  accent:"dusk",
   ...store.get("bolt.prefs",{})
 };
+
+if(prefs.accent==="amber")prefs.accent="dusk";
 
 let config=null;
 let me=null;
@@ -782,7 +785,7 @@ function renderSettingsPanel(){
     <section class="panel-section">
       <h3>Interface</h3>
       ${settingSwitch("compact","Compact chrome","Tighter tabs, rail and toolbar",prefs.compact)}
-      <div class="field"><span>Accent</span><div class="button-row" id="accentRow"><button class="button" data-accent="amber">Amber</button><button class="button" data-accent="ice">Ice</button><button class="button" data-accent="rose">Rose</button><button class="button" data-accent="silver">Silver</button></div></div>
+      <div class="field"><span>Accent</span><div class="button-row" id="accentRow"><button class="button" data-accent="dusk">Dusk</button> <button class="button" data-accent="amber">Amber</button><button class="button" data-accent="ice">Ice</button><button class="button" data-accent="rose">Rose</button><button class="button" data-accent="silver">Silver</button></div></div>
     </section>
     <section class="panel-section">
       <h3>Session</h3>
