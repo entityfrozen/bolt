@@ -237,14 +237,18 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir}){
   if(origin&&expected!==req.headers.host){socket.write("HTTP/1.1 403 Forbidden\r\n\r\n");socket.destroy();return}
   const auth=sessionFromHeaders(req.headers);
   if(!auth){socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n");socket.destroy();return}
-  wss.handleUpgrade(req,socket,head,ws=>wss.emit("connection",ws,auth));
+  wss.handleUpgrade(req,socket,head,ws=>wss.emit("connection",ws,auth,req));
  });
- wss.on("connection",(ws,auth)=>{
+ wss.on("connection",(ws,auth,req)=>{
   const id=auth.identity.id,u={ws,id,name:nameOf(auth.identity),last:0,world:false};
   clients.set(ws,u);
   safeSend(ws,{type:"hello",id,name:u.name,channels:CHANNELS,history,online:usersOnline().map(id=>({id,name:clientOf(id)[0]?.[1]?.name||id})),summary:summary()});
   presence();
   ws.on("message",raw=>{
+   const current=sessionFromHeaders(req.headers);
+   if(!current||current.identity.id!==u.id){
+     ws.close(4003,"Session expired");return;
+   }
    let data;try{data=JSON.parse(raw.toString())}catch{return}
    if(!data||typeof data!=="object")return;
    if(!validateSend(ws,data))return;
