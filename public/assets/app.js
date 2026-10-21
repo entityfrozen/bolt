@@ -164,10 +164,13 @@ function activeTab(){
 function renderTabs(){
   dom.tabs.replaceChildren();
   tabs.forEach(tab=>{
-    const button=document.createElement("button");
-    button.type="button";
-    button.className=`tab${tab.id===activeId?" active":""}`;
+    const button=document.createElement("div");
+    button.className="tab"+(tab.id===activeId?" active":"");
     button.dataset.tabId=tab.id;
+    button.tabIndex=0;
+    button.setAttribute("role","tab");
+    button.setAttribute("aria-selected",String(tab.id===activeId));
+    button.draggable=true;
 
     const favicon=document.createElement("span");
     favicon.className="tab-favicon";
@@ -188,6 +191,7 @@ function renderTabs(){
     const close=document.createElement("button");
     close.type="button";
     close.className="tab-close";
+    close.setAttribute("aria-label","Close "+(tab.title||"tab"));
     close.innerHTML=svg("i-x");
     close.addEventListener("click",event=>{
       event.stopPropagation();
@@ -196,10 +200,36 @@ function renderTabs(){
 
     button.append(favicon,title,close);
     button.addEventListener("click",()=>activateTab(tab.id));
+    button.addEventListener("keydown",event=>{
+      if(event.target!==button)return;
+      if(event.key==="Enter"||event.key===" "){event.preventDefault();activateTab(tab.id)}
+      if(event.key==="Delete"||event.key==="Backspace"){event.preventDefault();closeTab(tab.id)}
+    });
+    button.addEventListener("auxclick",event=>{
+      if(event.button===1){event.preventDefault();closeTab(tab.id)}
+    });
+    button.addEventListener("dragstart",event=>{
+      event.dataTransfer.setData("text/plain",tab.id);
+      event.dataTransfer.effectAllowed="move";
+    });
+    button.addEventListener("dragover",event=>{
+      event.preventDefault();
+      event.dataTransfer.dropEffect="move";
+    });
+    button.addEventListener("drop",event=>{
+      event.preventDefault();
+      const fromId=event.dataTransfer.getData("text/plain");
+      const from=tabs.findIndex(item=>item.id===fromId);
+      const to=tabs.findIndex(item=>item.id===tab.id);
+      if(from<0||to<0||from===to)return;
+      const moved=tabs.splice(from,1)[0];
+      tabs.splice(to,0,moved);
+      persistTabs();
+      renderTabs();
+    });
     dom.tabs.append(button);
   });
 }
-
 function activateTab(id){
   const tab=tabs.find(item=>item.id===id);
   if(!tab)return;
@@ -981,6 +1011,7 @@ function renderAdminControls(data){
       ${adminSwitch("proxy","Web browsing","Scramjet + Wisp access",data.settings.features.proxy)}
       ${adminSwitch("music","Music","SoundCloud and local player",data.settings.features.music)}
       ${adminSwitch("video","Video","Quick YouTube player",data.settings.features.video)}
+      ${adminSwitch("ai","Bolt AI","Floating assistant",data.settings.features.ai)}
     </section>
     <section class="panel-section"><h3>Sessions</h3><p class="panel-copy">Sign every regular user out immediately. Admin sessions stay alive.</p><button class="button danger" id="revokeUsers" type="button">Revoke all user sessions</button></section>`;
   $$('[data-admin-switch]').forEach(button=>button.addEventListener("click",()=>toggleAdminControl(button.dataset.adminSwitch,button)));
