@@ -172,7 +172,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 }
 .newtab-inner{
   width:min(750px,calc(100% - 76px));max-width:100%;
-  position:relative;z-index:1;padding:50px 0 58px;text-align:center;min-width:0;
+  position:relative;z-index:1;padding:50px 0 58px;text-align:center;min-width:0;overflow:visible;
 }
 .hero-seal{
   margin:0 auto 17px;display:grid;place-items:center;
@@ -200,7 +200,8 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
   margin:0;
   display:flex;justify-content:center;align-items:baseline;gap:0;
   font-family:var(--display);font-weight:600;font-size:clamp(74px,10vw,119px);
-  line-height:.87;letter-spacing:-.064em;
+  line-height:1.14;letter-spacing:-.064em;
+  padding:.025em .07em .145em;overflow:visible;
   color:#edd6a5;
   background:linear-gradient(180deg,#fff5d8 5%,#e6c58a 36%,#b98e49 75%,#e0ba77 100%);
   -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
@@ -467,3 +468,274 @@ body.compact .tab{height:33px;margin:0}
 body.compact .toolbar{padding-top:6px;padding-bottom:6px}
 body.compact .rail-button{height:38px;width:38px}
 @media(max-width:680px){.lightning-shortcuts{gap:5px}.lightning-quick{padding:0 10px;font-size:10px}.auth-brand{min-height:205px}.auth-signature{margin-top:15px}}
+
+
+/* A compact companion, not a second application window. */
+.bolt-shell{
+  width:100%;
+  transition:none;
+}
+body.bolt-ai-open .bolt-shell{
+  width:100%;
+  max-width:100%;
+}
+.bolt-ai-panel{
+  position:fixed;
+  inset:auto 23px 89px auto;
+  width:min(368px,calc(100vw - 30px));
+  height:min(536px,calc(100vh - 115px));
+  height:min(536px,calc(100dvh - 115px));
+  min-height:0;
+  max-height:calc(100dvh - 92px);
+  background:linear-gradient(165deg,#201b14 0%,#171510 46%,#15130f 100%);
+  border:1px solid #736042;
+  border-radius:21px;
+  overflow:hidden;
+  box-shadow:
+    0 28px 78px rgba(0,0,0,.72),
+    0 5px 19px rgba(0,0,0,.34),
+    inset 0 1px 0 rgba(255,235,181,.11);
+  z-index:180;
+  transform-origin:bottom right;
+}
+body.bolt-ai-open .bolt-ai-panel{
+  display:flex;
+  animation:lightning-drawer-in .2s cubic-bezier(.2,.85,.2,1) both;
+}
+@keyframes lightning-drawer-in{
+  from{opacity:0;transform:translateY(12px) scale(.975)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+.bolt-aux-head{
+  flex:0 0 66px;
+  height:66px;
+  min-height:66px;
+  padding:0 16px;
+  border-bottom:1px solid #453929;
+  background:linear-gradient(180deg,rgba(255,217,148,.035),transparent);
+  gap:11px;
+}
+.bolt-aux-brand{
+  width:34px;
+  height:34px;
+  flex:none;
+  border:1px solid #967344;
+  border-radius:11px;
+  background:linear-gradient(140deg,#4f3a20,#2a2116);
+}
+.bolt-aux-brand svg{width:20px;height:20px}
+.bolt-aux-title{font-size:13px;font-weight:690;letter-spacing:-.025em}
+.bolt-aux-subtitle{font-size:10px;margin-top:3px;color:#a99a82}
+.bolt-aux-btn{
+  padding:7px 8px;
+  border-radius:9px;
+  font-size:10px;
+  white-space:nowrap;
+}
+#boltAiClose{
+  border:1px solid #433726;
+  width:30px;height:30px;
+  display:grid;place-items:center;
+  padding:0;color:#c3b18e;
+  font-size:16px;
+}
+#boltAiClose:hover{border-color:#836b43;color:#f8dfb4}
+.bolt-ai-messages{
+  flex:1 1 auto;
+  min-height:0;
+  padding:19px 17px 14px;
+  gap:12px;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  scrollbar-width:thin;
+  scrollbar-color:#50422d transparent;
+}
+.bolt-ai-empty{
+  margin:0;
+  max-width:none;
+  width:100%;
+  color:inherit;
+  text-align:left;
+  line-height:1.5;
+}
+.bolt-ai-intro{
+  border:1px solid #55432e;
+  border-radius:15px;
+  padding:19px 17px 17px;
+  background:
+    radial-gradient(circle at 87% 0%,rgba(222,175,93,.11),transparent 58%),
+    linear-gradient(160deg,#2e261b,#201c16 70%);
+  box-shadow:inset 0 1px 0 #ffdead0a;
+}
+.bolt-ai-kicker{
+  display:block;
+  margin-bottom:13px;
+  font:600 9px var(--mono);
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:#c9a36c;
+}
+.bolt-ai-intro strong{
+  display:block;
+  margin:0;
+  font:600 28px/1.02 var(--display);
+  letter-spacing:-.035em;
+  color:#f2dab0;
+}
+.bolt-ai-intro p{
+  margin:12px 0 0;
+  max-width:258px;
+  font-size:11.5px;
+  line-height:1.6;
+  color:#bcad97;
+}
+.bolt-ai-suggest-label{
+  margin:19px 0 9px;
+  color:#9f937e;
+  font:600 9px var(--mono);
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+.bolt-ai-suggestions{display:grid;gap:7px}
+.bolt-ai-suggestion{
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:9px;
+  min-height:39px;
+  padding:9px 12px;
+  text-align:left;
+  cursor:pointer;
+  background:#221e17;
+  border:1px solid #443827;
+  border-radius:11px;
+  color:#dccab0;
+  font-size:11.5px;
+  transition:border-color .15s,background .15s,color .15s;
+}
+.bolt-ai-suggestion:after{content:"↗";color:#b18b53;font-size:15px}
+.bolt-ai-suggestion:hover{
+  border-color:#80653f;
+  background:#30271b;
+  color:#f9e5c4;
+}
+.bolt-ai-msg{
+  max-width:91%;
+  font-size:12px;
+  line-height:1.6;
+  overflow-wrap:anywhere;
+}
+.bolt-ai-compose{
+  flex:0 0 auto;
+  border-top:1px solid #4a3c2b;
+  background:#1b1812;
+  padding:11px 13px 12px;
+  gap:8px;
+}
+.bolt-ai-shortcuts{gap:7px;flex-wrap:wrap}
+.bolt-ai-shortcuts button{
+  padding:6px 9px;
+  border-radius:8px;
+  border:1px solid #4c3c29;
+  background:#272118;
+  color:#baa78a;
+  font-size:10px;
+}
+.bolt-ai-compose textarea.bolt-ai-textarea{
+  display:block;
+  box-sizing:border-box;
+  width:100%;
+  min-height:69px;
+  max-height:114px;
+  resize:vertical;
+  padding:12px;
+  border:1px solid #5b4a32;
+  border-radius:11px;
+  background:#12110d;
+  color:#f4e6d0;
+  font:400 12px/1.5 var(--font);
+  box-shadow:inset 0 2px 6px #0004;
+}
+.bolt-ai-compose textarea.bolt-ai-textarea:focus{
+  border-color:#c8a169;
+  outline:none;
+  box-shadow:0 0 0 3px #cba26215;
+}
+.bolt-ai-compose textarea.bolt-ai-textarea::placeholder{color:#8f826f}
+.bolt-ai-actions{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  min-height:29px;
+}
+.bolt-ai-hint{font:500 9px var(--mono);color:#817764}
+.bolt-ai-send{
+  height:34px;
+  min-width:70px;
+  padding:0 13px;
+  border:1px solid #eacf98;
+  border-radius:9px;
+  font-size:11px;
+  align-self:auto;
+}
+.bolt-ai-send:disabled{opacity:.65}
+.bolt-ai-error{font-size:10px;min-height:0;color:#efa99f;line-height:1.4}
+.bolt-ai-error:empty{display:none}
+body.bolt-ai-open .bolt-devdock{right:0}
+body.bolt-dev-open .bolt-ai-panel{
+  bottom:calc(266px + 16px);
+  height:min(480px,calc(100dvh - 305px));
+  max-height:calc(100dvh - 305px);
+}
+.bolt-bubble:focus-visible{outline:2px solid #f3d69d;outline-offset:4px}
+
+/* Quiet hierarchy across the browser chrome. */
+.bolt-brand .brand-name{font-weight:680;letter-spacing:-.052em}
+.tabbar{box-shadow:inset 0 1px 0 rgba(255,238,202,.018)}
+.tab.active{border-color:#766042;box-shadow:0 5px 18px #0003,inset 0 1px 0 #ffeed512}
+.tab.active .tab-title{color:#fff1d4}
+.tab-close{transition:background .15s,color .15s,opacity .15s}
+.tab-new{transition:background .15s,color .15s}
+.address-form{transition:border-color .15s,box-shadow .15s}
+.newtab-wordmark{
+  line-height:1.14;
+  padding:.025em .07em .145em;
+  overflow:visible;
+}
+.newtab-inner{overflow:visible}
+@media(max-width:680px){
+  .bolt-ai-panel{
+    inset:auto 10px 10px 10px;
+    width:auto;
+    height:min(555px,calc(100dvh - 20px));
+    max-height:calc(100dvh - 20px);
+    border-radius:19px;
+  }
+  .bolt-aux-head{height:61px;min-height:61px;flex-basis:61px;padding:0 13px}
+  .bolt-ai-messages{padding:13px}
+  .bolt-ai-intro{padding:16px}
+  .bolt-ai-intro strong{font-size:26px}
+  .bolt-ai-compose{padding:10px}
+  body.bolt-dev-open .bolt-ai-panel{
+    bottom:10px;
+    height:min(555px,calc(100dvh - 20px));
+    max-height:calc(100dvh - 20px);
+  }
+}
+@media(max-height:550px) and (min-width:681px){
+  .bolt-ai-panel{
+    bottom:10px;
+    height:calc(100dvh - 20px);
+    max-height:calc(100dvh - 20px);
+  }
+  body.bolt-dev-open .bolt-ai-panel{
+    bottom:10px;
+    height:calc(100dvh - 20px);
+    max-height:calc(100dvh - 20px);
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  body.bolt-ai-open .bolt-ai-panel{animation:none}
+}
