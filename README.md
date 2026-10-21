@@ -4,12 +4,12 @@ Lightning is a luxury-gold browser workspace with account gating, admin controls
 
 ## Lightning AI (NVIDIA)
 
-The preview service uses `meta/llama-3.1-8b-instruct` for quick everyday responses.
+The preview service uses `openai/gpt-oss-20b` with low reasoning effort for fast everyday responses. NVIDIA currently lists a hosted Free Endpoint for this model.
 
 Set these on your Railway **Lightning preview service → Variables**:
 
 ```text
-NVIDIA_MODEL=meta/llama-3.1-8b-instruct
+NVIDIA_MODEL=openai/gpt-oss-20b
 NVIDIA_API_KEY=<your own NVIDIA API Catalog key>
 ```
 
