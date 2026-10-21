@@ -23,6 +23,9 @@ class Hub{
    if(action)this.act(action.dataset.act,action);
   });
   window.addEventListener("resize",()=>{if(this.view==="world")this.draw()});
+  document.addEventListener("pointerdown",event=>{
+    if(this.active&&!this.root.contains(event.target)&&!event.target.closest("[data-hub]")&&!event.target.closest("#lightningSuggestionButton"))this.close();
+  });
  }
  $(q){return this.root.querySelector(q)}
  $$(q){return [...this.root.querySelectorAll(q)]}
@@ -36,7 +39,7 @@ class Hub{
   const target=new URL("/live",location.href);
   target.protocol=location.protocol==="https:"?"wss:":"ws:";
   const ws=new WebSocket(target);this.socket=ws;
-  ws.addEventListener("open",()=>{this.$("#hubConnection").textContent="Connected";});
+  ws.addEventListener("open",()=>{this.$("#hubConnection").textContent="Connected";if(this.view==="world")this.send({type:"worldJoin"});});
   ws.addEventListener("message",e=>{try{this.onMessage(JSON.parse(e.data))}catch(err){console.warn("Hub:",err)}});
   ws.addEventListener("close",()=>{if(this.socket!==ws)return;this.$("#hubConnection").textContent="Offline";if(this.active)setTimeout(()=>this.connect(),2300)});
  }
@@ -104,7 +107,7 @@ class Hub{
  }
  members(){
   const el=this.$("#hubMembers");if(!el)return;
-  el.innerHTML=this.users.map(u=>'<div class="hub-member" title="Player ID: '+E(u.id)+'"><span class="hub-statusdot"></span>'+E(u.name)+'</div>').join("")||'<p class="hub-footer">Connecting…</p>';
+  el.innerHTML=this.users.map(u=>'<div class="hub-member"><span class="hub-statusdot"></span>'+E(u.name)+'<button class="hub-member-copy" type="button" title="Copy player ID" data-act="copyUser" data-id="'+E(u.id)+'">⧉</button></div>').join("")||'<p class="hub-footer">Connecting…</p>';
  }
  games(){
   this.header("Games","Live multiplayer arcade");
@@ -148,14 +151,15 @@ class Hub{
  worldScreen(){
   this.header("WorldPvP","Realtime territory conquest · Alpha");
   this.$("#hubContent").innerHTML="";
-  this.$("#hubWorld").innerHTML='<div class="hub-world-top"><div class="hub-world-stat"><span>LAND</span><b id="hubLand">0%</b></div><div class="hub-world-stat"><span>TROOPS</span><b id="hubTroops">0</b></div><div class="hub-world-stat"><span>GOLD</span><b id="hubGold">0</b></div><div class="hub-world-stat"><span>NATIONS</span><b id="hubNations">0</b></div><span class="hub-spacer"></span><button class="hub-btn" data-act="worldJoin">Join</button><button class="hub-btn" data-act="back">← Arcade</button></div><div class="hub-world-stage"><canvas id="hubWorldCanvas"></canvas><div id="hubWorldInfo" class="hub-world-tooltip"><b>WorldPvP</b><small>Choose a territory to scout.</small></div><div id="hubWorldLegend" class="hub-world-legend">NATIONS</div><div class="hub-tip">Claim connected land. Build up troops and use the action bar to expand.</div><div class="hub-world-bottom"><span class="hub-label">COMMIT</span><select id="hubRatio" aria-label="Army commitment"><option value=".1">10%</option><option value=".25" selected>25%</option><option value=".5">50%</option><option value=".75">75%</option></select><button class="hub-btn primary" data-act="attack">⚔ Attack</button><button class="hub-btn" data-act="build" data-kind="city">⌂ City</button><button class="hub-btn" data-act="build" data-kind="factory">⚒ Factory</button><button class="hub-btn" data-act="build" data-kind="port">⚓ Port</button><button class="hub-btn" data-act="build" data-kind="fort">⬟ Fort</button><button class="hub-btn" data-act="nuke">☢ Nuke</button></div></div>';
+  this.$("#hubWorld").innerHTML='<div class="hub-world-top"><div class="hub-world-stat"><span>LAND</span><b id="hubLand">0%</b></div><div class="hub-world-stat"><span>TROOPS</span><b id="hubTroops">0</b></div><div class="hub-world-stat"><span>GOLD</span><b id="hubGold">0</b></div><div class="hub-world-stat"><span>NATIONS</span><b id="hubNations">0</b></div><span class="hub-spacer"></span><button class="hub-btn" data-act="worldJoin">Join</button><button class="hub-btn" data-act="back">← Arcade</button></div><div class="hub-world-stage"><canvas id="hubWorldCanvas"></canvas><div id="hubWorldInfo" class="hub-world-tooltip"><b>WorldPvP</b><small>Choose a territory to scout.</small></div><div id="hubWorldLegend" class="hub-world-legend">NATIONS</div><div class="hub-tip">Claim connected land. Build up troops and use the action bar to expand.</div><div class="hub-world-bottom"><span class="hub-label">COMMIT</span><select id="hubRatio" aria-label="Army commitment"><option value=".1">10%</option><option value=".25" selected>25%</option><option value=".5">50%</option><option value=".75">75%</option></select><button class="hub-btn primary" data-act="attack">⚔ Attack</button><button class="hub-btn" data-act="build" data-kind="city">⌂ City</button><button class="hub-btn" data-act="build" data-kind="factory">⚒ Factory</button><button class="hub-btn" data-act="build" data-kind="port">⚓ Port</button><button class="hub-btn" data-act="build" data-kind="fort">⬟ Fort</button><button class="hub-btn" data-act="ally">🤝 Ally</button><button class="hub-btn" data-act="nuke">☢ Nuke</button></div></div>';
   const canvas=this.$("#hubWorldCanvas");
   canvas.addEventListener("click",e=>{
    const r=canvas.getBoundingClientRect();
    this.tile={x:Math.max(0,Math.min(63,Math.floor((e.clientX-r.left)/r.width*64))),y:Math.max(0,Math.min(31,Math.floor((e.clientY-r.top)/r.height*32)))};
    this.worldInfo();this.draw();
   });
-  this.send({type:"worldJoin"});this.worldUpdate();
+  if(this.socket?.readyState===WebSocket.OPEN)this.send({type:"worldJoin"});
+  this.worldUpdate();
  }
  worldInfo(){
   const el=this.$("#hubWorldInfo");if(!el)return;
@@ -212,6 +216,11 @@ class Hub{
  }
  act(action,button){
   if(action==="close")return this.close();
+  if(action==="copyUser"){
+    if(navigator.clipboard?.writeText)navigator.clipboard.writeText(button.dataset.id).then(()=>this.flash("Player ID copied")).catch(()=>this.flash("Copy isn't available"));
+    else this.flash("Your browser doesn't allow copying here.");
+    return;
+  }
   if(action==="back")return this.show("games");
   if(action==="chessView"){this.chess=null;return this.show("chess")}
   if(action==="rpsView"){this.rps=null;return this.show("rps")}
@@ -228,10 +237,11 @@ class Hub{
   }
   if(action==="rpsPick")return this.send({type:"rpsChoice",id:this.rps?.id,choice:button.dataset.choice});
   if(action==="worldJoin")return this.send({type:"worldJoin"});
-  if(["attack","build","nuke"].includes(action)){
+  if(["attack","build","nuke","ally"].includes(action)){
    if(!this.tile)return this.flash("Select a territory on the map first.");
    const {x,y}=this.tile;
-   return this.send({type:"worldAction",action:action==="attack"?"attack":action==="nuke"?"nuke":"build",x,y,kind:button.dataset.kind,ratio:Number(this.$("#hubRatio")?.value)||.25});
+   const owner=this.world?.cells[y*64+x];
+   return this.send({type:"worldAction",action:action==="attack"?"attack":action==="nuke"?"nuke":action==="ally"?"alliance":"build",x,y,kind:button.dataset.kind,target:owner,ratio:Number(this.$("#hubRatio")?.value)||.25});
   }
  }
 }
