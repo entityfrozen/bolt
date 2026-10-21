@@ -2,6 +2,23 @@
 
 Lightning is a luxury-gold browser workspace with account gating, admin controls, Scramjet browsing, a stripped-down video player, SoundCloud/local music, and an optional local about:blank launcher.
 
+## Lightning AI (NVIDIA)
+
+The preview service uses `meta/llama-3.1-8b-instruct` for quick everyday responses.
+
+Set these on your Railway **Lightning preview service → Variables**:
+
+```text
+NVIDIA_MODEL=meta/llama-3.1-8b-instruct
+NVIDIA_API_KEY=<your own NVIDIA API Catalog key>
+```
+
+Generate your key at https://build.nvidia.com and paste it into Railway, not a chat message or the repository. The app reads the secret server-side. AI replies are disabled until a valid key is present.
+
+## Hosted About:Blank launcher
+
+Visit `/launch` (also stored as `public/launch.html`). The page attempts to open a new `about:blank` tab containing the Lightning site in an iframe. Chromium may block the popup or the embedded session. Use **Open Lightning** or **Open directly** if necessary. The local downloadable launcher can work independently of the hosted route.
+
 ## Run locally
 
 ```bash
