@@ -468,7 +468,6 @@ function openPanel(name){
   dom.panel.setAttribute("aria-hidden","false");
   $$(".rail-button[data-panel]").forEach(button=>button.classList.toggle("active",button.dataset.panel===name));
   if(name==="history")renderHistoryPanel();
-  if(name==="video")renderVideoPanel();
   if(name==="music")renderMusicPanel();
   if(name==="settings")renderSettingsPanel();
   if(name==="admin")renderAdminPanel();
@@ -516,54 +515,6 @@ function renderHistoryPanel(){
   });
 }
 
-function youtubeId(value){
-  try{
-    const url=new URL(/^https?:\/\//i.test(value)?value:`https://${value}`);
-    const host=url.hostname.replace(/^www\./,"");
-    if(host==="youtu.be")return url.pathname.split("/").filter(Boolean)[0]||"";
-    if(host.endsWith("youtube.com")){
-      if(url.pathname==="/watch")return url.searchParams.get("v")||"";
-      const parts=url.pathname.split("/").filter(Boolean);
-      if(["shorts","live","embed"].includes(parts[0]))return parts[1]||"";
-    }
-  }catch{}
-  return "";
-}
-
-function renderVideoPanel(){
-  panelHead("PLAYER","Video");
-  if(!config.features.video&&me.role!=="admin"){
-    dom.panelBody.innerHTML='<div class="empty-row">Video is disabled.</div>';
-    return;
-  }
-  dom.panelBody.innerHTML=`
-    <section class="panel-section">
-      <h3>Quick player</h3>
-      <p class="panel-copy">Paste a YouTube link. Lightning opens the player here.</p>
-      <div class="field"><span>Video URL</span><input class="input" id="videoUrl" placeholder="youtube.com/watch?v=..."></div>
-      <div class="button-row"><button class="button primary" id="videoPlay" type="button">Play</button><button class="button ghost" id="videoBrowse" type="button">Open on web</button></div>
-    </section>
-    <section class="panel-section">
-      <div class="video-stage" id="videoStage"><div class="video-empty">${svg("i-video")}Paste a video link above.</div></div>
-    </section>`;
-  const input=$("#videoUrl");
-  const last=store.get("bolt.lastVideo","");
-  if(last)input.value=last;
-  $("#videoPlay").addEventListener("click",()=>{
-    const value=input.value.trim();
-    const id=youtubeId(value);
-    if(!id)return toast("That doesn't look like a YouTube video");
-    store.set("bolt.lastVideo",value);
-    $("#videoStage").innerHTML=`<iframe src="https://www.youtube.com/embed/${encodeURIComponent(id)}?autoplay=1&rel=0" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>`;
-  });
-  $("#videoBrowse").addEventListener("click",()=>{
-    const value=input.value.trim();
-    if(!value)return;
-    navigate(value);
-    closePanel();
-  });
-}
-
 function parseTrackName(name){
   const clean=String(name||"").replace(/\.[a-z0-9]{2,5}$/i,"").replace(/_/g," ").trim();
   const parts=clean.split(/\s+-\s+/);
@@ -573,6 +524,10 @@ function parseTrackName(name){
 
 function renderMusicPanel(){
   panelHead("AUDIO","Music");
+  if(!window.SC?.Widget&&!document.getElementById("lightningSC")) {
+    const sdk=document.createElement("script");
+    sdk.id="lightningSC";sdk.src="https://w.soundcloud.com/player/api.js";sdk.async=true;document.head.append(sdk);
+  }
   if(!config.features.music&&me.role!=="admin"){
     dom.panelBody.innerHTML='<div class="empty-row">Music is disabled.</div>';
     return;
@@ -1011,7 +966,6 @@ function renderAdminControls(data){
       ${adminSwitch("maintenance","Maintenance mode","Blocks regular users from Lightning",data.settings.maintenance)}
       ${adminSwitch("proxy","Web browsing","Scramjet + Wisp access",data.settings.features.proxy)}
       ${adminSwitch("music","Music","SoundCloud and local player",data.settings.features.music)}
-      ${adminSwitch("video","Video","Quick YouTube player",data.settings.features.video)}
       ${adminSwitch("ai","Lightning AI","Floating assistant",data.settings.features.ai)}
     </section>
     <section class="panel-section"><h3>Sessions</h3><p class="panel-copy">Sign every regular user out immediately. Admin sessions stay alive.</p><button class="button danger" id="revokeUsers" type="button">Revoke all user sessions</button></section>`;
@@ -1093,8 +1047,15 @@ async function logout(){
   location.replace("/login");
 }
 
+function openLightningHub(view){
+  closePanel();
+  import("/assets/hub.js?v=1").then(hub=>hub.openHub(view)).catch(()=>toast("Could not open the Lightning hub."));
+}
+
 function bindUi(){
   dom.newTabBtn.addEventListener("click",()=>newTab());
+  $("[data-hub]").forEach(button=>button.addEventListener("click",()=>openLightningHub(button.dataset.hub)));
+  $("#lightningSuggestionButton")?.addEventListener("click",()=>openLightningHub("suggestions"));
   document.querySelectorAll(".lightning-quick").forEach(button=>button.addEventListener("click",()=>navigate(button.dataset.lightningQuick)));
   dom.homeMark.addEventListener("click",()=>newTab());
   dom.addressForm.addEventListener("submit",event=>{event.preventDefault();navigate(dom.address.value)});
