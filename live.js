@@ -65,7 +65,7 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir}){
  const clientOf=id=>[...clients.entries()].filter(([,u])=>u.id===id);
  const sendUser=(id,evt)=>{for(const [socket] of clientOf(id))safeSend(socket,evt)};
  const summary=()=>({users:usersOnline().length,queue:{chess:queues.chess.length,rps:queues.rps.length},tournaments:[...tournaments.values()].filter(t=>!t.done).map(t=>({id:t.id,players:t.ids.length,max:4,status:t.status})),games:{chess:chessGames.size,rps:rpsGames.size}});
- const presence=()=>sendAll({type:"presence",...summary()});
+ const presence=()=>sendAll({type:"presence",...summary(),online:usersOnline().map(id=>({id,name:clientOf(id)[0]?.[1]?.name||id}))});
  const validateSend=(ws,msg)=>{
   const u=clients.get(ws);
   if(!u)return false;
@@ -202,14 +202,16 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir}){
   if(!["chess","rps"].includes(kind))return;
   const existing=kind==="chess"?[...chessGames.values()].some(g=>!g.over&&g.ids.includes(u.id)):[...rpsGames.values()].some(g=>g.ids.includes(u.id));
   if(existing)return safeSend(u.ws,{type:"error",message:"Finish your current game first."});
-  const line=queues[kind];for(const k of ["chess","rps"])queues[k]=queues[k].filter(id=>id!==u.id);
+  for(const k of ["chess","rps"])queues[k]=queues[k].filter(id=>id!==u.id);
+  const line=queues[kind];
   if(other){
    const id=trimText(other,36),partner=clientOf(id)[0];
    if(!partner||id===u.id)return safeSend(u.ws,{type:"error",message:"That player isn't online."});
    if(kind==="chess")newChess([u.id,id]);else newRPS([u.id,id]);
    return;
   }
-  const opponent=line.shift();
+  let opponent=line.shift();
+  while(opponent&&!clientOf(opponent).length)opponent=line.shift();
   if(opponent&&opponent!==u.id){kind==="chess"?newChess([opponent,u.id]):newRPS([opponent,u.id])}
   else {queues[kind].push(u.id);safeSend(u.ws,{type:"queued",game:kind});}
   presence();
