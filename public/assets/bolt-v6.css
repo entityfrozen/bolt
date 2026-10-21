@@ -752,3 +752,27 @@ body.bolt-dev-open .bolt-ai-panel{
 #hubMount{contain:layout style}
 .rail-button[data-hub] svg{width:19px;height:19px}
 @media(max-width:700px){.newtab-eyebrow.lightning-suggest-button{font-size:9px;letter-spacing:.1em}}
+
+/* AI reply typography — Markdown, code, multilingual text */
+.bolt-ai-msg.assistant{white-space:normal;max-width:97%;min-width:0;padding:13px}
+.bolt-ai-rich{line-height:1.65;overflow-wrap:anywhere;word-break:normal;color:#e8ddcb;font-size:12.5px;unicode-bidi:plaintext}
+.bolt-ai-rich>:first-child{margin-top:0}
+.bolt-ai-rich>:last-child{margin-bottom:0}
+.bolt-ai-rich p{margin:8px 0}
+.bolt-ai-rich strong,.bolt-ai-rich b{color:#f6dfb7;font-weight:700}
+.bolt-ai-rich em{color:#eed6b0}
+.bolt-ai-rich h1,.bolt-ai-rich h2,.bolt-ai-rich h3,.bolt-ai-rich h4{font-weight:680;letter-spacing:-.025em;color:#f3dcaa;line-height:1.3;margin:16px 0 7px}
+.bolt-ai-rich h1{font-size:19px}.bolt-ai-rich h2{font-size:16px}.bolt-ai-rich h3{font-size:14px}
+.bolt-ai-rich ul,.bolt-ai-rich ol{padding-inline-start:24px;margin:9px 0}
+.bolt-ai-rich li{margin:3px 0}
+.bolt-ai-rich a{color:#f4c776;text-decoration:underline;text-underline-offset:3px}
+.bolt-ai-rich blockquote{padding:5px 10px;margin:10px 0;border-inline-start:3px solid #987744;color:#bbac91;background:#30251966}
+.bolt-ai-rich :not(pre)>code{padding:2px 5px;background:#3c3223;border-radius:5px;font:11px/1.5 ui-monospace,monospace;color:#e9d196;unicode-bidi:plaintext}
+.bolt-ai-rich pre{max-width:100%;overflow:auto;padding:12px;margin:10px 0;border-radius:10px;background:#0c0e10;border:1px solid #57432b;scrollbar-color:#655235 transparent;direction:ltr;text-align:left}
+.bolt-ai-rich pre code{white-space:pre;word-break:normal;overflow-wrap:normal;font:11px/1.55 ui-monospace,monospace;color:#d7e2db}
+.bolt-ai-rich table{border-collapse:collapse;display:block;overflow-x:auto;font-size:11px;max-width:100%}
+.bolt-ai-rich th,.bolt-ai-rich td{border:1px solid #50402d;padding:6px 8px;text-align:start}
+.bolt-ai-rich th{color:#e6c997;background:#2b241a}
+.bolt-ai-rich hr{border:0;border-top:1px solid #54432b;margin:16px 0}
+.bolt-ai-copy{display:inline-flex;align-items:center;min-height:26px;gap:5px;margin-top:11px;padding:4px 8px;border:1px solid #4c3c2b;background:#29221a;color:#bea57f;border-radius:7px;cursor:pointer;font:600 10px var(--font)}
+.bolt-ai-copy:hover{color:#f4d5a0;border-color:#85673b}
