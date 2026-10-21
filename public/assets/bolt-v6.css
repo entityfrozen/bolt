@@ -197,6 +197,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 }
 .newtab-eyebrow:after{transform:rotate(180deg)}
 .newtab-wordmark{
+  margin:0;
   display:flex;justify-content:center;align-items:baseline;gap:0;
   font-family:var(--display);font-weight:600;font-size:clamp(74px,10vw,119px);
   line-height:.87;letter-spacing:-.064em;
@@ -376,6 +377,7 @@ body.bolt-ai-open .bolt-devdock{right:min(405px,calc(100vw - 60px))}
   box-shadow:0 28px 85px #000a,inset 0 1px 0 #fff3cf10
 }
 .auth-brand{
+  flex-direction:column;
   position:relative;isolation:isolate;overflow:hidden;
   padding:58px;border-right:1px solid #483c2b;
   background:radial-gradient(ellipse at 25% 23%,#352914 0%,transparent 66%),#17150f;
@@ -460,3 +462,8 @@ body.bolt-ai-open .bolt-devdock{right:min(405px,calc(100vw - 60px))}
 @media(prefers-reduced-motion:reduce){
   *,*:before,*:after{transition:none!important;animation:none!important;scroll-behavior:auto!important}
 }
+
+body.compact .tab{height:33px;margin:0}
+body.compact .toolbar{padding-top:6px;padding-bottom:6px}
+body.compact .rail-button{height:38px;width:38px}
+@media(max-width:680px){.lightning-shortcuts{gap:5px}.lightning-quick{padding:0 10px;font-size:10px}.auth-brand{min-height:205px}.auth-signature{margin-top:15px}}
