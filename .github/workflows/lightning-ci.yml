@@ -1,0 +1,35 @@
+name: Lightning multiplayer checks
+on:
+  push:
+    branches:
+      - bolt-hosted-v5
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout Lightning
+        uses: actions/checkout@v6
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+          package-manager-cache: false
+      - name: Install dependencies
+        run: npm install --omit=dev --no-audit --no-fund
+      - name: Check app and live scripts
+        run: |
+          node --check server.js
+          node --check live.js
+          node --check public/assets/app.js
+          node --check public/assets/bolt-tools.js
+          node --check public/assets/hub.js
+          test -f node_modules/marked/lib/marked.umd.js
+          test -f node_modules/dompurify/dist/purify.min.js
+      - name: Test Lightning Live
+        run: node --test test/live.test.mjs
