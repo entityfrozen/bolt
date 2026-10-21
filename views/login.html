@@ -3,24 +3,25 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0b0c0e">
-<title>Bolt</title>
+<meta name="theme-color" content="#14120f">
+<title>Lightning — Sign in</title>
 <link rel="icon" href="/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Sans:wdth,wght@90..100,400..700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Sans:wdth,wght@90..100,400..700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/bolt.css">
-<link rel="stylesheet" href="/assets/bolt-v6.css?v=6">
+<link rel="stylesheet" href="/assets/bolt-v6.css?v=7">
 <script defer src="/assets/login.js"></script>
 </head>
 <body class="auth-page">
   <main class="auth-shell">
     <section class="auth-brand">
-      <div class="auth-logo"><svg viewBox="0 0 64 64"><path d="M35 7 15 35h14l-3 22 23-32H35Z"/></svg></div>
+      <div class="auth-logo"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M37 5 14 35h17l-3 24L52 26H36Z"/><path d="M30 20h12l-5 6H25Z" fill="#16130e" opacity=".65"/></svg></div>
       <div>
-        <div class="auth-name">Bolt</div>
-        <p>Your corner of the internet. A simpler way to browse, listen, and explore.</p>
+        <div class="auth-name">Lightning</div>
+        <p>Every great idea starts somewhere. Welcome to a browser built around yours.</p>
       </div>
+      <div class="auth-signature">LIGHTNING / PRIVATE WORKSPACE</div>
     </section>
     <section class="auth-form-wrap">
       <div class="auth-tabs">
@@ -30,7 +31,7 @@
       <form class="auth-form active" id="accountForm" data-auth-form="account">
         <label>Username<input id="loginUsername" autocomplete="username" required></label>
         <label>Password<input id="loginPassword" type="password" autocomplete="current-password" required></label>
-        <button class="auth-submit" type="submit">Sign in</button>
+        <button class="auth-submit" type="submit">Enter Lightning →</button>
       </form>
       <form class="auth-form" id="passForm" data-auth-form="pass">
         <label>Code<input id="accessCode" autocomplete="one-time-code" placeholder="BOLT-..." required></label>
