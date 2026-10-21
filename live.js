@@ -167,7 +167,11 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir}){
   const color=game.ids[0]===u.id?"w":"b";
   if(game.engine.turn()!==color)return safeSend(u.ws,{type:"error",message:"It's not your turn."});
   let move=null;
-  try{move=game.engine.move({from:data.from,to:data.to,promotion:"q"})}catch{}
+  try{
+    const piece=game.engine.get(data.from);
+    const promotion=piece?.type==="p"&&["1","8"].includes(String(data.to||"")[1]);
+    move=game.engine.move(promotion?{from:data.from,to:data.to,promotion:"q"}:{from:data.from,to:data.to});
+  }catch{}
   if(!move)return safeSend(u.ws,{type:"error",message:"Illegal chess move."});
   game.over=game.engine.isGameOver();
   const snapshot={type:"chessState",id:game.id,fen:game.engine.fen(),last:move.san,turn:game.engine.turn(),over:game.over,
