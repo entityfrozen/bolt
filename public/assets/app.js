@@ -1095,7 +1095,7 @@ async function logout(){
 
 function bindUi(){
   dom.newTabBtn.addEventListener("click",()=>newTab());
-  $(".lightning-quick").forEach(button=>button.addEventListener("click",()=>navigate(button.dataset.lightningQuick)));
+  document.querySelectorAll(".lightning-quick").forEach(button=>button.addEventListener("click",()=>navigate(button.dataset.lightningQuick)));
   dom.homeMark.addEventListener("click",()=>newTab());
   dom.addressForm.addEventListener("submit",event=>{event.preventDefault();navigate(dom.address.value)});
   dom.newtabForm.addEventListener("submit",event=>{event.preventDefault();navigate(dom.newtabInput.value);dom.newtabInput.value=""});
