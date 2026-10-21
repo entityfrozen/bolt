@@ -53,22 +53,20 @@ const engineUrls={
 };
 
 const accents={
-  dusk:["#b6a3ff","182,163,255"],
-  amber:["#f2c861","242,200,97"],
-  ice:["#9ec8df","158,200,223"],
-  rose:["#e69aa6","230,154,166"],
-  silver:["#c6c8cb","198,200,203"]
+  champagne:["#e2bb75","226,187,117"],
+  gold:["#f1c460","241,196,96"],
+  bronze:["#c99a58","201,154,88"]
 };
 
 let prefs={
   engine:"google",
   restore:true,
   compact:false,
-  accent:"dusk",
+  accent:"champagne",
   ...store.get("bolt.prefs",{})
 };
 
-if(prefs.accent==="amber")prefs.accent="dusk";
+if(!accents[prefs.accent])prefs.accent="champagne";
 
 let config=null;
 let me=null;
@@ -99,7 +97,7 @@ function savePrefs(){
 
 function applyPrefs(){
   document.body.classList.toggle("compact",!!prefs.compact);
-  const [color,rgb]=accents[prefs.accent]||accents.amber;
+  const [color,rgb]=accents[prefs.accent]||accents.champagne;
   document.documentElement.style.setProperty("--accent",color);
   document.documentElement.style.setProperty("--accent-rgb",rgb);
 }
@@ -393,7 +391,7 @@ async function navigateTab(tab,value){
     tab.iframe=null;
     activateTab(tab.id);
     const framed=window.top!==window;
-    showStatus(framed?"Embedded browsing was blocked. Open Bolt directly once, then try again.":error.message,5200);
+    showStatus(framed?"Embedded browsing was blocked. Open Lightning directly once, then try again.":error.message,5200);
   }
   persistTabs();
 }
@@ -541,7 +539,7 @@ function renderVideoPanel(){
   dom.panelBody.innerHTML=`
     <section class="panel-section">
       <h3>Quick player</h3>
-      <p class="panel-copy">Paste a YouTube link. Bolt only shows the player.</p>
+      <p class="panel-copy">Paste a YouTube link. Lightning opens the player here.</p>
       <div class="field"><span>Video URL</span><input class="input" id="videoUrl" placeholder="youtube.com/watch?v=..."></div>
       <div class="button-row"><button class="button primary" id="videoPlay" type="button">Play</button><button class="button ghost" id="videoBrowse" type="button">Open on web</button></div>
     </section>
@@ -775,17 +773,17 @@ function updateLyricClass(){
 }
 
 function renderSettingsPanel(){
-  panelHead("BOLT","Settings");
+  panelHead("LIGHTNING","Settings");
   dom.panelBody.innerHTML=`
     <section class="panel-section">
       <h3>Browsing</h3>
       <div class="field"><span>Search engine</span><select class="select" id="settingEngine"><option value="google">Google</option><option value="duckduckgo">DuckDuckGo</option><option value="bing">Bing</option></select></div>
-      ${settingSwitch("restore","Restore tabs","Open the last session when Bolt starts",prefs.restore)}
+      ${settingSwitch("restore","Restore tabs","Open the last session when Lightning starts",prefs.restore)}
     </section>
     <section class="panel-section">
       <h3>Interface</h3>
       ${settingSwitch("compact","Compact chrome","Tighter tabs, rail and toolbar",prefs.compact)}
-      <div class="field"><span>Accent</span><div class="button-row" id="accentRow"><button class="button" data-accent="dusk">Dusk</button> <button class="button" data-accent="amber">Amber</button><button class="button" data-accent="ice">Ice</button><button class="button" data-accent="rose">Rose</button><button class="button" data-accent="silver">Silver</button></div></div>
+      <div class="field"><span>Accent</span><div class="button-row" id="accentRow"><button class="button" data-accent="champagne">Champagne</button><button class="button" data-accent="gold">Gold</button><button class="button" data-accent="bronze">Bronze</button></div></div>
     </section>
     <section class="panel-section">
       <h3>Session</h3>
@@ -1010,11 +1008,11 @@ function renderAdminControls(data){
   view.innerHTML=`
     <section class="panel-section">
       <h3>Global controls</h3>
-      ${adminSwitch("maintenance","Maintenance mode","Blocks regular users from Bolt",data.settings.maintenance)}
+      ${adminSwitch("maintenance","Maintenance mode","Blocks regular users from Lightning",data.settings.maintenance)}
       ${adminSwitch("proxy","Web browsing","Scramjet + Wisp access",data.settings.features.proxy)}
       ${adminSwitch("music","Music","SoundCloud and local player",data.settings.features.music)}
       ${adminSwitch("video","Video","Quick YouTube player",data.settings.features.video)}
-      ${adminSwitch("ai","Bolt AI","Floating assistant",data.settings.features.ai)}
+      ${adminSwitch("ai","Lightning AI","Floating assistant",data.settings.features.ai)}
     </section>
     <section class="panel-section"><h3>Sessions</h3><p class="panel-copy">Sign every regular user out immediately. Admin sessions stay alive.</p><button class="button danger" id="revokeUsers" type="button">Revoke all user sessions</button></section>`;
   $$('[data-admin-switch]').forEach(button=>button.addEventListener("click",()=>toggleAdminControl(button.dataset.adminSwitch,button)));
@@ -1097,6 +1095,7 @@ async function logout(){
 
 function bindUi(){
   dom.newTabBtn.addEventListener("click",()=>newTab());
+  $(".lightning-quick").forEach(button=>button.addEventListener("click",()=>navigate(button.dataset.lightningQuick)));
   dom.homeMark.addEventListener("click",()=>newTab());
   dom.addressForm.addEventListener("submit",event=>{event.preventDefault();navigate(dom.address.value)});
   dom.newtabForm.addEventListener("submit",event=>{event.preventDefault();navigate(dom.newtabInput.value);dom.newtabInput.value=""});
