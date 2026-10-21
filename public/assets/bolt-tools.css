@@ -1,0 +1,61 @@
+
+html,body,.bolt-shell,.workarea,.browser-stage{max-width:100%;min-width:0}
+html,body,.app-page{overflow-x:hidden}
+.newtab{overflow-x:hidden;overflow-y:auto;overscroll-behavior-x:none;scrollbar-gutter:stable}
+.newtab-inner{max-width:calc(100% - 20px);min-width:0}
+.newtab::before,.newtab::after{pointer-events:none}
+.tabs{scrollbar-width:none;overscroll-behavior-x:contain}
+.tabs::-webkit-scrollbar,.newtab::-webkit-scrollbar:horizontal{width:0;height:0;display:none}
+.bolt-bubble,.bolt-ai-panel,.bolt-devdock{font-family:var(--font,"Instrument Sans",system-ui,sans-serif);box-sizing:border-box}
+.bolt-bubble{position:fixed;z-index:150;right:18px;top:45vh;display:flex;align-items:center;justify-content:center;width:47px;height:47px;border:1px solid #777052;border-radius:14px;background:#181818;color:#f2c861;box-shadow:0 10px 38px #0008;cursor:grab;touch-action:none;user-select:none;font-size:22px;transition:background .14s,box-shadow .14s}
+.bolt-bubble:hover{background:#242321;box-shadow:0 10px 42px #000b}
+.bolt-bubble:active{cursor:grabbing}
+.bolt-ai-panel{position:fixed;right:0;top:0;bottom:0;width:min(380px,calc(100vw - 60px));z-index:145;background:#101113;border-left:1px solid #343539;color:#e9e9e7;display:none;flex-direction:column;box-shadow:-15px 0 35px #0005}
+body.bolt-ai-open .bolt-ai-panel{display:flex}
+body.bolt-ai-open .bolt-shell{width:calc(100% - min(380px,calc(100vw - 60px)))}
+body.bolt-ai-open .bolt-bubble{display:none}
+.bolt-aux-head{height:57px;min-height:57px;padding:0 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #292b30}
+.bolt-aux-brand{width:28px;height:28px;display:grid;place-items:center;border-radius:7px;background:#29271e;color:#f2c861;font-size:18px}
+.bolt-aux-title{font-size:13px;font-weight:650;letter-spacing:-.01em}
+.bolt-aux-subtitle{font-size:10px;color:#8b8f96;margin-top:2px}
+.bolt-aux-spacer{flex:1}
+.bolt-aux-btn{border:1px solid transparent;background:transparent;color:#a1a5ab;cursor:pointer;padding:6px 9px;border-radius:6px;font-size:12px}
+.bolt-aux-btn:hover{background:#222429;color:#eee}
+.bolt-ai-messages{flex:1;overflow-y:auto;min-height:0;padding:18px 14px;display:flex;flex-direction:column;gap:14px;scrollbar-width:thin}
+.bolt-ai-empty{margin:auto;color:#8e9297;line-height:1.65;font-size:13px;text-align:center;max-width:245px}
+.bolt-ai-empty strong{display:block;color:#e5e6e2;font-size:16px;margin-bottom:5px}
+.bolt-ai-msg{max-width:95%;line-height:1.55;font-size:12.5px;white-space:pre-wrap;overflow-wrap:anywhere}
+.bolt-ai-msg.user{align-self:flex-end;background:#29281f;color:#f3e9c8;border:1px solid #4b4634;padding:10px 12px;border-radius:10px 10px 2px 10px}
+.bolt-ai-msg.assistant{align-self:flex-start;background:#17191c;border:1px solid #2a2d31;padding:11px 12px;border-radius:2px 10px 10px 10px}
+.bolt-ai-compose{border-top:1px solid #2a2b30;padding:12px;display:flex;flex-direction:column;gap:8px}
+.bolt-ai-shortcuts{display:flex;gap:8px}
+.bolt-ai-shortcuts button{border:1px solid #2e3035;color:#aeb0b3;background:#191a1d;border-radius:5px;padding:6px 9px;cursor:pointer;font-size:10px}
+.bolt-ai-shortcuts button:hover{color:#f2c861}
+.bolt-ai-textarea{width:100%;min-height:76px;max-height:170px;resize:vertical;background:#181a1d;border:1px solid #34373c;border-radius:7px;color:#f0efed;padding:10px;font:12px/1.5 inherit;outline:none}
+.bolt-ai-textarea:focus{border-color:#70654d}
+.bolt-ai-send{align-self:flex-end;min-width:68px;background:#f2c861;color:#121212;border:0;border-radius:6px;padding:8px 12px;font-size:11px;font-weight:650;cursor:pointer}
+.bolt-ai-send:disabled{opacity:.5;cursor:default}
+.bolt-ai-error{color:#e9a6ab;font-size:11px;min-height:14px}
+.bolt-devdock{position:fixed;bottom:0;left:0;right:0;height:266px;z-index:135;display:none;flex-direction:column;background:#111214;color:#e6e7e5;border-top:1px solid #3a3c40;box-shadow:0 -8px 30px #0006}
+body.bolt-dev-open .bolt-devdock{display:flex}
+body.bolt-dev-open .bolt-shell{height:calc(100% - 266px)}
+body.bolt-dev-open .bolt-ai-panel{bottom:266px}
+body.bolt-ai-open .bolt-devdock{right:min(380px,calc(100vw - 60px))}
+.bolt-dev-tabs{height:35px;display:flex;align-items:stretch;border-bottom:1px solid #292b2f;padding-left:10px;gap:4px}
+.bolt-dev-tabs button{border:0;background:transparent;color:#999ca4;padding:0 12px;font-size:11px;cursor:pointer;border-bottom:2px solid transparent}
+.bolt-dev-tabs button.on{color:#f2c861;border-bottom-color:#f2c861}
+.bolt-dev-tabs .bolt-aux-spacer{flex:1}
+.bolt-dev-body{flex:1;min-height:0;overflow:auto;padding:12px 14px;color:#b8bdc4;font:11px/1.55 var(--mono,monospace);white-space:pre-wrap;overflow-wrap:anywhere}
+.bolt-dev-line{display:block;width:100%;border:0;border-bottom:1px solid #202226;padding:5px 0;background:transparent;text-align:left;font:inherit;color:#9cafb9;cursor:pointer}
+.bolt-dev-line:hover{color:#fff;background:#1a1b20}
+.bolt-dev-line:focus-visible{outline:1px solid #f2c861}
+.bolt-dev-expression{display:flex;border-top:1px solid #31343b;padding:7px 10px;gap:8px;align-items:center}
+.bolt-dev-expression input{background:transparent;border:0;outline:0;color:#e7e7e7;font:12px var(--mono,monospace);flex:1;min-width:0}
+.bolt-dev-expression button{padding:5px 9px;background:#26272b;color:#d7d7d7;border:1px solid #36383b;border-radius:4px;cursor:pointer}
+@media(max-width:720px){
+body.bolt-ai-open .bolt-shell{width:100%}
+.bolt-ai-panel{width:min(420px,100vw);z-index:175}
+body.bolt-dev-open .bolt-ai-panel{bottom:0}
+body.bolt-ai-open .bolt-devdock{right:0}
+.bolt-bubble{width:43px;height:43px}
+}
