@@ -4,13 +4,13 @@
 
   const root = document.createElement("div");
   root.id = "boltTools";
-  root.innerHTML = '<button type="button" class="bolt-bubble" id="boltBubble" aria-label="Open Bolt AI" title="Bolt AI · drag to move">↯</button>' +
-    '<aside class="bolt-ai-panel" id="boltAiPanel" aria-label="Bolt AI">' +
-      '<header class="bolt-aux-head"><span class="bolt-aux-brand">↯</span><div><div class="bolt-aux-title">Bolt AI</div><div class="bolt-aux-subtitle">Your browsing companion</div></div><span class="bolt-aux-spacer"></span><button class="bolt-aux-btn" id="boltAiClear" title="New chat">New chat</button><button class="bolt-aux-btn" id="boltAiClose" title="Close AI">✕</button></header>' +
+  root.innerHTML = '<button type="button" class="bolt-bubble" id="boltBubble" aria-label="Open Lightning AI" title="Lightning AI · drag to move"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M37 5 14 35h17l-3 24L52 26H36Z"/><path d="M30 20h12l-5 6H25Z" fill="#16130e" opacity=".65"/></svg></button>' +
+    '<aside class="bolt-ai-panel" id="boltAiPanel" aria-label="Lightning AI">' +
+      '<header class="bolt-aux-head"><span class="bolt-aux-brand"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M37 5 14 35h17l-3 24L52 26H36Z"/><path d="M30 20h12l-5 6H25Z" fill="#16130e" opacity=".65"/></svg></span><div><div class="bolt-aux-title">Lightning AI</div><div class="bolt-aux-subtitle">Your browsing companion</div></div><span class="bolt-aux-spacer"></span><button class="bolt-aux-btn" id="boltAiClear" title="New chat">New chat</button><button class="bolt-aux-btn" id="boltAiClose" title="Close AI">✕</button></header>' +
       '<div class="bolt-ai-messages" id="boltAiMessages" aria-live="polite"></div>' +
       '<form class="bolt-ai-compose" id="boltAiForm"><div class="bolt-ai-shortcuts"><button type="button" id="boltUseSelection">Use selected text</button><button type="button" id="boltUsePage">Add page link</button></div>' +
-      '<textarea class="bolt-ai-textarea" id="boltAiInput" maxlength="9000" placeholder="Ask Bolt anything..."></textarea><div class="bolt-ai-error" id="boltAiError"></div><button class="bolt-ai-send" id="boltAiSend" type="submit">Send ↗</button></form></aside>' +
-    '<section class="bolt-devdock" id="boltDevDock" aria-label="Bolt DevTools">' +
+      '<textarea class="bolt-ai-textarea" id="boltAiInput" maxlength="9000" placeholder="Ask Lightning anything..."></textarea><div class="bolt-ai-error" id="boltAiError"></div><button class="bolt-ai-send" id="boltAiSend" type="submit">Send ↗</button></form></aside>' +
+    '<section class="bolt-devdock" id="boltDevDock" aria-label="Lightning DevTools">' +
       '<nav class="bolt-dev-tabs"><button type="button" data-bolt-devtab="elements" class="on">Elements</button><button type="button" data-bolt-devtab="console">Console</button><button type="button" data-bolt-devtab="network">Network</button><button type="button" id="boltDevPick">Pick element</button><span class="bolt-aux-spacer"></span><button type="button" id="boltDevClose" title="Close DevTools">✕</button></nav>' +
       '<div class="bolt-dev-body" id="boltDevBody"></div><form class="bolt-dev-expression" id="boltDevExpr"><span>›</span><input id="boltDevInput" spellcheck="false" autocomplete="off" placeholder="JavaScript expression in active page"><button type="submit">Run</button></form>' +
     '</section>';
@@ -53,7 +53,7 @@
     if (!messages.length) {
       const empty = document.createElement("div");
       empty.className = "bolt-ai-empty";
-      empty.innerHTML = "<strong>Ask Bolt.</strong>Questions, explanations, rewrites, and a little help with whatever you're browsing.";
+      empty.innerHTML = "<strong>Ask Lightning.</strong>Questions, explanations, rewrites, and a little help with whatever you're browsing.";
       messageView.append(empty);
     }
     for (const message of messages) {
@@ -190,7 +190,7 @@
     }
     const page=activePage();
     if (!page) {
-      devBody.textContent="This tab does not expose its document to Bolt. Use Chromium's native DevTools for cross-origin frames.";
+      devBody.textContent="This tab does not expose its document to Lightning. Use Chromium's native DevTools for cross-origin frames.";
       return;
     }
     if (devtab === "network") {
