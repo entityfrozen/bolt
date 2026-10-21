@@ -103,3 +103,11 @@
 .hub-toast[hidden]{display:none}
 @media(max-width:1050px){.hub-members{display:none}.hub-game-grid{grid-template-columns:repeat(2,minmax(160px,1fr))}.hub-rail{width:180px;min-width:180px}.hub-world-stat{min-width:80px;padding:0 8px}}
 @media(max-width:700px){.hub-rail{width:58px;min-width:58px}.hub-logo{padding:17px 7px}.hub-logo strong,.hub-logo small,.hub-nav-title,.hub-link span,.hub-user div:not(.hub-avatar){display:none}.hub-nav{padding:10px 5px}.hub-link{padding:0;justify-content:center}.hub-link i{font-size:20px}.hub-head{padding:0 13px;height:59px}.hub-head h2{font-size:14px}.hub-chat-stream{padding:15px}.hub-composer{padding:10px}.hub-games{padding:23px 16px}.hub-game-grid{grid-template-columns:1fr}.hub-game-card{min-height:190px}.hub-world-top{height:auto;min-height:63px;padding:7px}.hub-world-stat{min-width:65px;padding:0 5px}.hub-world-stat b{font-size:14px}.hub-world-stat span{font-size:8px}.hub-world-legend{display:none}.hub-world-bottom{bottom:7px}.hub-world-bottom .hub-btn{min-height:31px;padding:0 8px;font-size:10px}.hub-tip{bottom:114px;max-width:200px}}
+
+#hubWorld[hidden]{display:none!important}
+.hub-member{justify-content:flex-start}
+.hub-member-copy{margin-left:auto;border:1px solid #55442e;border-radius:7px;background:#292219;color:#bfaa85;cursor:pointer;font-size:12px;min-width:26px;min-height:25px}
+.hub-member-copy:hover{color:#f1d8a3;background:#43311e}
+.hub-world-bottom{overflow-x:auto;flex-wrap:nowrap;white-space:nowrap;scrollbar-width:thin}
+.hub-world-bottom .hub-btn{flex:none}
+@media(max-width:700px){.hub-world-bottom{justify-content:flex-start;width:calc(100% - 12px)}}
