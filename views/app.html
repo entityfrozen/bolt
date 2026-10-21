@@ -12,11 +12,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Sans:wdth,wght@90..100,400..700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/bolt.css">
 <link rel="stylesheet" href="/assets/bolt-tools.css?v=5">
-<link rel="stylesheet" href="/assets/bolt-v6.css?v=8">
+<link rel="stylesheet" href="/assets/bolt-v6.css?v=9">
 <script src="/bootstrap-init.js"></script>
-<script src="https://w.soundcloud.com/player/api.js"></script>
-<script defer src="/assets/app.js?v=8"></script>
-<script defer src="/assets/bolt-tools.js?v=8"></script>
+
+<script defer src="/assets/app.js?v=9"></script>
+<script defer src="/assets/bolt-tools.js?v=9"></script>
 </head>
 <body class="app-page">
 <svg class="icon-sprite" aria-hidden="true">
@@ -30,6 +30,8 @@
   <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></symbol>
   <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2-5.6-3-5.6 3 1.1-6.2L3 9.6l6.2-.9Z"/></symbol>
   <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 5h16v12H9l-5 4V5ZM8 9h8M8 13h5"/></symbol>
+  <symbol id="i-games" viewBox="0 0 24 24"><path d="M7 8H5a3 3 0 0 0-3 3l-1 6a3 3 0 0 0 5 3l4-4h4l4 4a3 3 0 0 0 5-3l-1-6a3 3 0 0 0-3-3h-2M7 8l2-3h6l2 3M6 12h5M8.5 9.5v5M16 12h2M18 15h1"/></symbol>
   <symbol id="i-music" viewBox="0 0 24 24"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></symbol>
   <symbol id="i-video" viewBox="0 0 24 24"><rect x="3" y="5" width="14" height="14" rx="2"/><path d="m17 10 4-2v8l-4-2Z"/></symbol>
   <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.4 1A7 7 0 0 0 14.4 5L14 2h-4l-.4 3a7 7 0 0 0-2.1 1.9l-2.4-1-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.4-1a7 7 0 0 0 2.1 1.9l.4 3h4l.4-3a7 7 0 0 0 2.1-1.9l2.4 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2Z"/></symbol>
@@ -77,7 +79,9 @@
       <button class="rail-button active" data-action="newtab" type="button" title="Home"><svg><use href="#i-home"/></svg></button>
       <button class="rail-button" data-panel="history" type="button" title="History"><svg><use href="#i-clock"/></svg></button>
       <div class="rail-spacer"></div>
-      <button class="rail-button" data-panel="video" type="button" title="Video"><svg><use href="#i-video"/></svg></button>
+      <button class="rail-button" data-hub="chat" type="button" title="Community chat"><svg><use href="#i-chat"/></svg></button>
+      <button class="rail-button" data-hub="games" type="button" title="Multiplayer games"><svg><use href="#i-games"/></svg></button>
+      <button class="rail-button" data-hub="updates" type="button" title="Update log"><svg><use href="#i-clock"/></svg></button>
       <button class="rail-button" data-panel="music" type="button" title="Music"><svg><use href="#i-music"/></svg></button>
       <button class="rail-button" data-panel="settings" type="button" title="Settings"><svg><use href="#i-settings"/></svg></button>
       <button class="rail-button admin-only" data-panel="admin" type="button" title="Admin"><svg><use href="#i-users"/></svg></button>
@@ -87,7 +91,7 @@
       <section class="newtab" id="newtabView">
         <div class="newtab-inner">
           <div class="hero-seal"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M37 5 14 35h17l-3 24L52 26H36Z"/><path d="M30 20h12l-5 6H25Z" fill="#16130e" opacity=".65"/></svg></div>
-          <div class="newtab-eyebrow"> GoGuardian Bypasser</div>
+          <button class="newtab-eyebrow lightning-suggest-button" id="lightningSuggestionButton" type="button" title="Suggest a feature">✦ SUGGEST AN IDEA</button>
           <h1 class="newtab-wordmark">Lightning</h1>
           <p class="newtab-subtitle">An upgrade, to quiet to lightning.</p>
           <form class="newtab-search" id="newtabForm">
@@ -108,6 +112,7 @@
         </div>
       </section>
       <div class="frame-stack" id="frameStack"></div>
+      <div id="hubMount" hidden></div>
       <div class="stage-status" id="stageStatus"></div>
     </main>
 
