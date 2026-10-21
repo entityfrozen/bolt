@@ -739,3 +739,16 @@ body.bolt-dev-open .bolt-ai-panel{
 @media(prefers-reduced-motion:reduce){
   body.bolt-ai-open .bolt-ai-panel{animation:none}
 }
+
+/* 2.0 · native social entry points */
+.lightning-suggest-button{
+  appearance:none;background:transparent;border:0;cursor:pointer;
+  width:max-content;max-width:100%;padding:7px 15px;margin:0 auto 13px;
+  border-radius:999px;transition:background .17s,color .17s,box-shadow .17s;
+}
+.lightning-suggest-button:before,.lightning-suggest-button:after{pointer-events:none}
+.lightning-suggest-button:hover{background:#4b351c;color:#f4daa7;box-shadow:0 0 0 1px #775a32}
+#hubMount[hidden]{display:none!important}
+#hubMount{contain:layout style}
+.rail-button[data-hub] svg{width:19px;height:19px}
+@media(max-width:700px){.newtab-eyebrow.lightning-suggest-button{font-size:9px;letter-spacing:.1em}}
