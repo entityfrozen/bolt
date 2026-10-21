@@ -4,12 +4,12 @@
 
   const root = document.createElement("div");
   root.id = "boltTools";
-  root.innerHTML = '<button type="button" class="bolt-bubble" id="boltBubble" aria-label="Open Lightning AI" title="Lightning AI · drag to move"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M37 5 14 35h17l-3 24L52 26H36Z"/><path d="M30 20h12l-5 6H25Z" fill="#16130e" opacity=".65"/></svg></button>' +
-    '<aside class="bolt-ai-panel" id="boltAiPanel" aria-label="Lightning AI">' +
-      '<header class="bolt-aux-head"><span class="bolt-aux-brand"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M37 5 14 35h17l-3 24L52 26H36Z"/><path d="M30 20h12l-5 6H25Z" fill="#16130e" opacity=".65"/></svg></span><div><div class="bolt-aux-title">Lightning AI</div><div class="bolt-aux-subtitle">Your browsing companion</div></div><span class="bolt-aux-spacer"></span><button class="bolt-aux-btn" id="boltAiClear" title="New chat">New chat</button><button class="bolt-aux-btn" id="boltAiClose" title="Close AI">✕</button></header>' +
+  root.innerHTML = '<button type="button" class="bolt-bubble" id="boltBubble" aria-label="Open Lightning AI" aria-expanded="false" aria-controls="boltAiPanel" title="Lightning AI · drag to move"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M37 5 14 35h17l-3 24L52 26H36Z"/><path d="M30 20h12l-5 6H25Z" fill="#16130e" opacity=".65"/></svg></button>' +
+    '<aside class="bolt-ai-panel" id="boltAiPanel" role="dialog" aria-label="Lightning AI" aria-modal="false" aria-hidden="true">' +
+      '<header class="bolt-aux-head"><span class="bolt-aux-brand"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M37 5 14 35h17l-3 24L52 26H36Z"/><path d="M30 20h12l-5 6H25Z" fill="#16130e" opacity=".65"/></svg></span><div><div class="bolt-aux-title">Lightning AI</div><div class="bolt-aux-subtitle">Your browsing companion</div></div><span class="bolt-aux-spacer"></span><button class="bolt-aux-btn" id="boltAiClear" title="New chat">New chat</button><button class="bolt-aux-btn" id="boltAiClose" type="button" aria-label="Close AI" title="Close AI">×</button></header>' +
       '<div class="bolt-ai-messages" id="boltAiMessages" aria-live="polite"></div>' +
       '<form class="bolt-ai-compose" id="boltAiForm"><div class="bolt-ai-shortcuts"><button type="button" id="boltUseSelection">Use selected text</button><button type="button" id="boltUsePage">Add page link</button></div>' +
-      '<textarea class="bolt-ai-textarea" id="boltAiInput" maxlength="9000" placeholder="Ask Lightning anything..."></textarea><div class="bolt-ai-error" id="boltAiError"></div><button class="bolt-ai-send" id="boltAiSend" type="submit">Send ↗</button></form></aside>' +
+      '<textarea class="bolt-ai-textarea" id="boltAiInput" maxlength="9000" placeholder="Ask Lightning anything..."></textarea><div class="bolt-ai-error" id="boltAiError" role="status"></div><div class="bolt-ai-actions"><span class="bolt-ai-hint">↵ send &nbsp; · &nbsp; shift ↵ newline</span><button class="bolt-ai-send" id="boltAiSend" type="submit">Send ↗</button></div></form></aside>' +
     '<section class="bolt-devdock" id="boltDevDock" aria-label="Lightning DevTools">' +
       '<nav class="bolt-dev-tabs"><button type="button" data-bolt-devtab="elements" class="on">Elements</button><button type="button" data-bolt-devtab="console">Console</button><button type="button" data-bolt-devtab="network">Network</button><button type="button" id="boltDevPick">Pick element</button><span class="bolt-aux-spacer"></span><button type="button" id="boltDevClose" title="Close DevTools">✕</button></nav>' +
       '<div class="bolt-dev-body" id="boltDevBody"></div><form class="bolt-dev-expression" id="boltDevExpr"><span>›</span><input id="boltDevInput" spellcheck="false" autocomplete="off" placeholder="JavaScript expression in active page"><button type="submit">Run</button></form>' +
@@ -41,7 +41,9 @@
   }
   function openAI(open = !document.body.classList.contains("bolt-ai-open")) {
     document.body.classList.toggle("bolt-ai-open", open);
-    if (open) { renderChat(); input.focus(); }
+    bubble.setAttribute("aria-expanded", String(open));
+    el("boltAiPanel").setAttribute("aria-hidden", String(!open));
+    if (open) { renderChat(); input.focus({preventScroll: true}); }
   }
   function openDev(open = !document.body.classList.contains("bolt-dev-open")) {
     document.body.classList.toggle("bolt-dev-open", open);
@@ -53,7 +55,20 @@
     if (!messages.length) {
       const empty = document.createElement("div");
       empty.className = "bolt-ai-empty";
-      empty.innerHTML = "<strong>Ask Lightning.</strong>Questions, explanations, rewrites, and a little help with whatever you're browsing.";
+      empty.innerHTML =
+        '<div class="bolt-ai-intro"><span class="bolt-ai-kicker">A hand when you need one</span>' +
+        '<strong>What can I help with?</strong><p>Get unstuck, find the right words, or untangle something complicated.</p></div>' +
+        '<div class="bolt-ai-suggest-label">A place to start</div>' +
+        '<div class="bolt-ai-suggestions">' +
+        '<button class="bolt-ai-suggestion" type="button" data-ai-suggestion="Can you help me improve a paragraph I wrote?">Polish my writing</button>' +
+        '<button class="bolt-ai-suggestion" type="button" data-ai-suggestion="Explain something complicated to me in simple terms.">Explain something simply</button>' +
+        '</div>';
+      empty.querySelectorAll("[data-ai-suggestion]").forEach(button =>
+        button.addEventListener("click", () => {
+          input.value = button.dataset.aiSuggestion;
+          input.focus({preventScroll: true});
+        })
+      );
       messageView.append(empty);
     }
     for (const message of messages) {
@@ -102,7 +117,7 @@
   }
   el("boltAiForm").addEventListener("submit", sendMessage);
   input.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); el("boltAiForm").requestSubmit(); }});
-  el("boltAiClose").addEventListener("click", () => openAI(false));
+  el("boltAiClose").addEventListener("click", () => { openAI(false); bubble.focus({preventScroll: true}); });
   el("boltAiClear").addEventListener("click", () => { messages=[];saveChat();setError("");renderChat();input.focus(); });
 
   function activePage() {
@@ -168,7 +183,7 @@
     try {localStorage.setItem("bolt.ai.position",JSON.stringify({x:parseFloat(bubble.style.left),y:parseFloat(bubble.style.top)}));} catch {}
   });
   bubble.addEventListener("pointercancel", () => {drag=null;});
-  bubble.addEventListener("click", e => {e.preventDefault();});
+  bubble.addEventListener("click", e => {e.preventDefault(); if (e.detail === 0) openAI(true);});
 
   function logConsole(type, text) {
     consoleLines.push({type,text:String(text).slice(0,6000),at:new Date().toLocaleTimeString()});
@@ -278,6 +293,9 @@
     };
   });
   document.addEventListener("keydown", e => {
+    if (e.key === "Escape" && document.body.classList.contains("bolt-ai-open")) {
+      e.preventDefault();openAI(false);bubble.focus({preventScroll: true});return;
+    }
     if (e.altKey&&e.shiftKey&&e.key.toLowerCase()==="a") {e.preventDefault();openAI();return;}
     if (e.altKey&&e.shiftKey&&e.key.toLowerCase()==="d") {e.preventDefault();openDev();return;}
     if(e.key==="Escape"&&pickerCleanup)stopPicker();
