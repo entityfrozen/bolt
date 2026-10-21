@@ -43,13 +43,49 @@
     document.body.classList.toggle("bolt-ai-open", open);
     bubble.setAttribute("aria-expanded", String(open));
     el("boltAiPanel").setAttribute("aria-hidden", String(!open));
-    if (open) { renderChat(); input.focus({preventScroll: true}); }
+    if (open) { renderChat(); void loadMarkdown(); input.focus({preventScroll: true}); }
   }
   function openDev(open = !document.body.classList.contains("bolt-dev-open")) {
     document.body.classList.toggle("bolt-dev-open", open);
     if (open) renderDev();
     else stopPicker();
   }
+  let markdownPromise = null;
+  function loadMarkdown() {
+    if (window.marked?.parse && window.DOMPurify?.sanitize) return Promise.resolve();
+    if (markdownPromise) return markdownPromise;
+    const load = src => new Promise((resolve,reject) => {
+      const tag = document.createElement("script");
+      tag.src = src;
+      tag.async = true;
+      tag.onload = resolve;
+      tag.onerror = reject;
+      document.head.append(tag);
+    });
+    markdownPromise = load("/vendor/marked.js").then(() => load("/vendor/purify.js"))
+      .then(() => { if (window.marked?.setOptions) window.marked.setOptions({gfm:true,breaks:true}); renderChat(); })
+      .catch(() => { markdownPromise=null; /* plain text remains usable */ });
+    return markdownPromise;
+  }
+
+  function setRichText(target, raw) {
+    if (window.marked?.parse && window.DOMPurify?.sanitize) {
+      try {
+        target.innerHTML = window.DOMPurify.sanitize(window.marked.parse(raw), {USE_PROFILES:{html:true}});
+        target.querySelectorAll("a").forEach(a => {
+          const url = a.getAttribute("href") || "";
+          try {
+            const parsed = new URL(url, location.origin);
+            if (!["http:","https:","mailto:"].includes(parsed.protocol)) a.removeAttribute("href");
+            else {a.target="_blank";a.rel="noopener noreferrer";}
+          } catch {a.removeAttribute("href");}
+        });
+        return;
+      } catch {}
+    }
+    target.textContent=raw;
+  }
+
   function renderChat() {
     messageView.replaceChildren();
     if (!messages.length) {
@@ -74,7 +110,33 @@
     for (const message of messages) {
       const node = document.createElement("div");
       node.className = "bolt-ai-msg " + message.role;
-      node.textContent = message.content;
+      if (message.role === "assistant") {
+        const body = document.createElement("div");
+        body.className = "bolt-ai-rich";
+        body.dir = "auto";
+        setRichText(body,message.content);
+        node.append(body);
+        const copy = document.createElement("button");
+        copy.className = "bolt-ai-copy";
+        copy.type = "button";
+        copy.textContent = "⧉ Copy";
+        copy.title = "Copy reply";
+        copy.addEventListener("click", async () => {
+          try {await navigator.clipboard.writeText(message.content);copy.textContent="✓ Copied";}
+          catch {
+            const box=document.createElement("textarea");
+            box.value=message.content;
+            document.body.append(box);box.select();
+            try { document.execCommand("copy");copy.textContent="✓ Copied"; }
+            catch {copy.textContent="Copy unavailable";}
+            box.remove();
+          }
+        });
+        node.append(copy);
+      } else {
+        node.textContent = message.content;
+        node.dir = "auto";
+      }
       messageView.append(node);
     }
     messageView.scrollTop = messageView.scrollHeight;
