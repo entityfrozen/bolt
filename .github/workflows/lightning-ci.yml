@@ -33,11 +33,13 @@ jobs:
           test -f node_modules/dompurify/dist/purify.min.js
       - name: Test Lightning Live
         run: node --test test/live.test.mjs
+      - name: Test click layers and overlays
+        run: node --test test/ui-layer.test.mjs
       - name: Verify hosted Lightning preview
         run: |
-          url="https://bolt-v5-preview-production.up.railway.app/assets/hub.js?ci=${GITHUB_SHA}"
+          url="https://bolt-v5-preview-production.up.railway.app/assets/bolt-v6.css?ci=${GITHUB_SHA}"
           for attempt in $(seq 1 15); do
-            if curl --fail --silent --show-error --max-time 10 "$url" | grep -q 'class Hub'; then
+            if curl --fail --silent --show-error --max-time 10 "$url" | grep -q 'frame-stack{pointer-events:none}'; then
               echo "Hosted preview is serving Lightning multiplayer client."
               exit 0
             fi
