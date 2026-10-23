@@ -128,7 +128,7 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir}){
   safeSend(u.ws,worldSnapshot());presence();
   if(instant&&world.phase==="waiting")startWorld();
   else if(world.phase==="waiting"&&worldQueue.length>=2)startWorld();
-  else if(!worldQueueTimer&&world.phase==="waiting"){worldQueueTimer=setTimeout(startWorld,11000);worldQueueTimer.unref()}
+  else if(!worldQueueTimer&&world.phase==="waiting"){worldQueueTimer=setTimeout(startWorld,6500);worldQueueTimer.unref()}
  }
  function worldCancel(u){
   worldQueue=worldQueue.filter(id=>id!==u.id);
