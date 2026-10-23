@@ -114,7 +114,7 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir}){
   for(const [ws,u] of clients)if(people.includes(u.id)){u.world=true;safeSend(ws,{type:"worldMatch",matchId:world.matchId})}
   sendWorld();presence();
  }
- function worldQueueJoin(u){
+ function worldQueueJoin(u,instant=false){
   if(world.phase==="playing"&&world.players[u.id]){
    u.world=true;safeSend(u.ws,{type:"worldMatch",matchId:world.matchId});safeSend(u.ws,worldSnapshot());return;
   }
@@ -126,12 +126,24 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir}){
   u.world=true;
   sendUser(u.id,{type:"worldQueued",position:worldQueue.indexOf(u.id)+1,players:worldQueue.length});
   safeSend(u.ws,worldSnapshot());presence();
-  if(world.phase==="waiting"&&worldQueue.length>=2)startWorld();
-  else if(!worldQueueTimer&&world.phase==="waiting"){worldQueueTimer=setTimeout(startWorld,4500);worldQueueTimer.unref()}
+  if(instant&&world.phase==="waiting")startWorld();
+  else if(world.phase==="waiting"&&worldQueue.length>=2)startWorld();
+  else if(!worldQueueTimer&&world.phase==="waiting"){worldQueueTimer=setTimeout(startWorld,11000);worldQueueTimer.unref()}
  }
  function worldCancel(u){
   worldQueue=worldQueue.filter(id=>id!==u.id);
+  if(worldQueue.length===0&&worldQueueTimer){clearTimeout(worldQueueTimer);worldQueueTimer=null}
   u.world=false;sendUser(u.id,{type:"worldQueueCancelled"});presence();
+ }
+ function worldSync(u){
+  if(world.phase==="playing"&&world.players[u.id]){
+   u.world=true;
+   safeSend(u.ws,{type:"worldMatch",matchId:world.matchId});
+  }else if(worldQueue.includes(u.id)){
+   u.world=true;
+   safeSend(u.ws,{type:"worldQueued",position:worldQueue.indexOf(u.id)+1,players:worldQueue.length});
+  }
+  safeSend(u.ws,worldSnapshot());
  }
  // Across continuous landmasses, expeditions may target distant land. Crossing
  // open ocean requires owning a coastal tile and landing on a coastal tile.
@@ -237,7 +249,7 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir}){
  }
  function chessMove(u,data){
   const game=chessGames.get(data.id);
-  if(!game||game.over||!game.ids.includes(u.id))return;
+  if(!game||game.over||!game.ids.includes(u.id))return safeSend(u.ws,{type:"error",message:"Chess match unavailable. Refresh or start a new game."});
   const color=game.ids[0]===u.id?"w":"b";
   if(game.engine.turn()!==color)return safeSend(u.ws,{type:"error",message:"It's not your turn."});
   let move=null;
@@ -260,6 +272,17 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir}){
    },700);
    timer.unref();
   }
+ }
+ function chessSync(u,data){
+  const game=(data.id?chessGames.get(String(data.id)):null)||[...chessGames.values()].find(g=>g.ids.includes(u.id)&&!g.over);
+  if(!game||!game.ids.includes(u.id)){
+   return safeSend(u.ws,{type:"error",message:"That chess match is no longer active. Start a new game."});
+  }
+  const index=game.ids.indexOf(u.id),last=game.engine.history().at(-1)||"";
+  safeSend(u.ws,{type:"chessStart",id:game.id,color:index===0?"w":"b",
+   players:game.ids.map(id=>id==="npc:chess"?"Lightning Bot":clientOf(id)[0]?.[1]?.name||id),
+   fen:game.engine.fen(),turn:game.engine.turn(),legal:game.over?[]:chessLegal(game.engine),
+   over:game.over,result:game.engine.isCheckmate()?"Checkmate":game.engine.isDraw()?"Draw":"",last});
  }
  function newRPS(ids,tournament=null){
   const id=uid(),game={id,ids,choices:{},tournament,bot:ids.includes("npc:rps")};
@@ -342,6 +365,10 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir}){
     history[channel].push(entry);history[channel]=history[channel].slice(-120);save();
     sendAll({type:"chat",entry});return;
    }
+   if(data.type==="chessSync")return chessSync(u,data);
+   if(data.type==="worldSync")return worldSync(u);
+   if(data.type==="worldPractice")return worldQueueJoin(u,true);
+   if(data.type==="worldLeave")return worldCancel(u);
    if(data.type==="queue")return queue(u,data.game);
    if(data.type==="duel")return queue(u,data.game,data.target);
    if(data.type==="chessMove")return chessMove(u,data);
@@ -383,6 +410,17 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir}){
    p.troops=Math.min(90000,p.troops+Math.min(280,territory.length*.4+18+cities*7));
    p.gold=Math.min(30000,p.gold+Math.min(120,territory.length*.24+9+factories*8+ports*3));
    if(!p.bot||p.troops<100)continue;
+   // NPC armies build a real economy and strategically expand along the front.
+   if(p.gold>=230&&world.tick%6===0){
+    const site=territory.find(i=>!world.cells[i].kind);
+    if(site!==undefined){world.cells[site].kind="factory";p.gold-=230}
+   }else if(p.gold>=170&&world.tick%8===0){
+    const site=territory.find(i=>!world.cells[i].kind);
+    if(site!==undefined){world.cells[site].kind="city";p.gold-=170}
+   }else if(p.gold>=160&&world.tick%10===0){
+    const site=territory.find(i=>coast[i]&&!world.cells[i].kind);
+    if(site!==undefined){world.cells[site].kind="port";p.gold-=160}
+   }
    // Bot generals expand from real front lines, or launch coastal invasions.
    let target=-1;
    for(let attempt=0;attempt<45;attempt++){
