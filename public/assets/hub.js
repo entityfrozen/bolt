@@ -147,13 +147,15 @@ class Hub{
   host.innerHTML='<section class="hub-chess-layout"><div class="hub-chess-panel"><div class="hub-chess-status"><span class="hub-label">MATCH · '+E(g.id.slice(0,7).toUpperCase())+'</span><strong>'+(g.over?"GAME OVER":myTurn?"YOUR TURN":"OPPONENT'S TURN")+'</strong></div><div class="hub-chess-board"><div class="hub-chess">'+squares+'</div></div></div><aside class="hub-chess-sidebar"><span class="hub-label">YOUR MATCH</span><h2>Chess.</h2><p>You play <b>'+(g.color==="w"?"White ♙":"Black ♟")+'</b></p><p class="hub-chess-hint">'+hint+'</p><div class="hub-chess-card">Latest move <strong>'+E(g.last||"Opening position")+'</strong></div><div class="hub-chess-card">Legal moves <strong>'+legal.length+'</strong></div><button class="hub-btn" data-act="back">← Arcade</button></aside></section>';
  }
  rpsScreen(){
-  this.header("Rock Paper Scissors","Quick rounds & tournaments");
+  this.header("Rock Paper Scissors","Lightning Arena · Fast rounds");
   const g=this.rps,host=this.$("#hubContent");
   if(!g){
-   host.innerHTML='<section class="hub-game-area"><span class="hub-label">QUICK MATCH</span><h2>Rock. Paper. Scissors.</h2><p>Choose secretly, then reveal at the same time.</p><div class="hub-actions"><button class="hub-btn primary" data-act="rpsQueue">Find opponent</button><button class="hub-btn" data-act="tournament">Join 4-player tournament</button></div><div class="hub-actions"><input id="hubDuelId" placeholder="Opponent user ID"><button class="hub-btn" data-act="rpsDuel">Duel player</button></div><button class="hub-btn" data-act="back">← All games</button></section>';return
+   host.innerHTML='<section class="hub-rps-lobby"><div class="hub-rps-huge">✊ <span>✋</span> ✌</div><div class="hub-label">THE LIGHTNING ARENA</div><h1>Rock. Paper.<br><em>Scissors.</em></h1><p>Quick duels, real players, hidden choices. A round takes seconds. A rivalry might last all night.</p><div class="hub-rps-buttons"><button class="hub-btn primary" data-act="rpsQueue">⚔ Find an opponent</button><button class="hub-btn" data-act="rpsBot">✊ Practice with bot</button><button class="hub-btn" data-act="tournament">🏆 4-player tournament</button></div><div class="hub-actions"><input id="hubDuelId" placeholder="Online player ID"><button class="hub-btn" data-act="rpsDuel">Challenge</button></div><button class="hub-btn hub-back" data-act="back">← Arcade</button></section>';return;
   }
-  const result=g.result;
-  host.innerHTML='<section class="hub-game-area"><span class="hub-label">MATCH · '+E(g.id)+'</span><h2>'+(result?result.tie?"Tie round":result.winner===this.id?"You win":"You lose":"Choose your move")+'</h2><p>'+(result?E(Object.entries(result.choices).map(([k,v])=>(k===this.id?"You":"Opponent")+": "+v).join(" • ")):g.waiting?"Waiting for your opponent…":"Both players select a move in secret.")+'</p><div class="hub-rps-choices">'+["rock","paper","scissors"].map((v,i)=>'<button class="hub-btn '+(!g.waiting&&!result?"primary":"")+'" data-act="rpsPick" data-choice="'+v+'" '+(g.waiting||result?"disabled":"")+'> '+["✊","✋","✌️"][i]+" "+v+'</button>').join("")+'</div><div class="hub-actions"><button class="hub-btn" data-act="back">← All games</button></div></section>';
+  const result=g.result,mine=result?.choices?.[this.id],other=result?Object.entries(result.choices||{}).find(([id])=>id!==this.id)?.[1]:null;
+  const heading=result?(result.tie?"DRAW ROUND":result.winner===this.id?"VICTORY":"DEFEAT"):g.waiting?"AWAITING OPPONENT":"CHOOSE YOUR MOVE";
+  const symbol={rock:"✊",paper:"✋",scissors:"✌️"};
+  host.innerHTML='<section class="hub-rps-match"><div class="hub-label">LIGHTNING ARENA · '+E(g.id.slice(0,7).toUpperCase())+'</div><h1>'+heading+'</h1><p>'+ (result?result.tie?"Both players picked the same move.":result.winner===this.id?"You read their move perfectly.":"The opponent took this round.":g.waiting?"Your choice is locked. Waiting for the other player…":"Every move is hidden until both sides have chosen.")+'</p><div class="hub-rps-versus"><div class="hub-rps-fighter"><span>YOU</span><strong>'+(mine?symbol[mine]:"?")+'</strong><small>'+E(mine||"Secret move")+'</small></div><div class="hub-rps-vs">VS</div><div class="hub-rps-fighter"><span>'+E(g.players?.[1]||"OPPONENT")+'</span><strong>'+(other?symbol[other]:"?")+'</strong><small>'+E(other||"Secret move")+'</small></div></div>'+(result?'<div class="hub-rps-buttons"><button class="hub-btn primary" data-act="'+(g.bot?"rpsBot":"rpsQueue")+'">Play again ↗</button></div>':'<div class="hub-rps-choices">'+["rock","paper","scissors"].map((v,i)=>'<button class="hub-rps-choice" data-act="rpsPick" data-choice="'+v+'" '+(g.waiting?"disabled":"")+'><span>'+["✊","✋","✌️"][i]+'</span><b>'+v+'</b></button>').join("")+'</div>')+'<div class="hub-actions"><button class="hub-btn" data-act="back">← All games</button></div></section>';
  }
  worldScreen(){
   this.header("WorldPvP","Global conquest · Live nations");
@@ -337,10 +339,11 @@ class Hub{
     return;
   }
   if(action==="back")return this.show("games");
-  if(action==="chessView"){this.chess=null;return this.show("chess")}
-  if(action==="rpsView"){this.rps=null;return this.show("rps")}
+  if(action==="chessView"){if(!this.chess?.over)this.chess=this.chess||null;else this.chess=null;return this.show("chess")}
+  if(action==="rpsView"){if(!this.rps?.result)this.rps=this.rps||null;else this.rps=null;return this.show("rps")}
   if(action==="worldView"){this.worldActive=false;this.worldQueueing=false;this.world=null;this.camera={zoom:1,x:0,y:0};return this.show("world")};
   if(action==="chessBot"){this.chess=null;return this.send({type:"chessBot"})}
+  if(action==="rpsBot"){this.rps=null;return this.send({type:"rpsBot"})}
   if(action==="chessQueue"||action==="rpsQueue")return this.send({type:"queue",game:action==="chessQueue"?"chess":"rps"});
   if(action==="tournament")return this.send({type:"tournamentJoin"});
   if(action==="chessDuel"||action==="rpsDuel"){const target=this.$("#hubDuelId")?.value.trim();if(!target)return this.flash("Enter an opponent user ID.");return this.send({type:"duel",game:action==="chessDuel"?"chess":"rps",target})}
@@ -375,7 +378,7 @@ class Hub{
 export function openHub(view="chat"){
  const root=document.getElementById("hubMount");if(!root)return;
  if(!document.getElementById("lightningHubCss")){
-  const css=document.createElement("link");css.id="lightningHubCss";css.rel="stylesheet";css.href="/assets/hub.css?v=2";document.head.append(css);
+  const css=document.createElement("link");css.id="lightningHubCss";css.rel="stylesheet";css.href="/assets/hub.css?v=3";document.head.append(css);
  }
  if(!INSTANCE)INSTANCE=new Hub(root);
  INSTANCE.open(view);
