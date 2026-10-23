@@ -330,6 +330,23 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir}){
    timer.unref();
   }
  }
+ function chessResign(u,data){
+  const game=chessGames.get(String(data.id||""));
+  if(!game||game.over||!game.ids.includes(u.id))return safeSend(u.ws,{type:"error",message:"Chess match is no longer active."});
+  game.over=true;
+  const opponent=game.ids.find(id=>id!==u.id);
+  const winner=opponent==="npc:chess"?"Lightning Bot":(clientOf(opponent)[0]?.[1]?.name||"Opponent");
+  const result=u.name+" resigned · "+winner+" wins";
+  const state={type:"chessState",id:game.id,fen:game.engine.fen(),last:game.engine.history().at(-1)||"",turn:game.engine.turn(),over:true,legal:[],result};
+  for(const id of game.ids)if(id!=="npc:chess")sendUser(id,state);
+  const timer=setTimeout(()=>chessGames.delete(game.id),60000);timer.unref();
+ }
+ function chessCancelQueue(u){
+  const before=queues.chess.length;
+  queues.chess=queues.chess.filter(id=>id!==u.id);
+  safeSend(u.ws,{type:"chessQueueCancelled",removed:before!==queues.chess.length});
+  presence();
+ }
  function chessSync(u,data){
   const game=(data.id?chessGames.get(String(data.id)):null)||[...chessGames.values()].find(g=>g.ids.includes(u.id)&&!g.over);
   if(!game||!game.ids.includes(u.id)){
@@ -422,6 +439,8 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir}){
     history[channel].push(entry);history[channel]=history[channel].slice(-120);save();
     sendAll({type:"chat",entry});return;
    }
+   if(data.type==="chessResign")return chessResign(u,data);
+   if(data.type==="chessCancelQueue")return chessCancelQueue(u);
    if(data.type==="chessSync")return chessSync(u,data);
    if(data.type==="worldSync")return worldSync(u);
    if(data.type==="worldPractice")return worldQueueJoin(u,true);
