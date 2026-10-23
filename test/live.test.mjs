@@ -108,7 +108,10 @@ test("RPS keeps choices hidden until both players throw", async t => {
   await env.until(() => env.messages.get(alice).some(m=>m.type==="queued"));
   bob.send(JSON.stringify({type:"queue",game:"rps"}));
   const start = await env.until(() => env.messages.get(alice).find(m=>m.type==="rpsStart"));
-  await env.until(() => env.messages.get(bob).find(m=>m.type==="rpsStart"));
+  const bobStart = await env.until(() => env.messages.get(bob).find(m=>m.type==="rpsStart"));
+  assert.deepEqual(start.ids, ["alice","bob"]);
+  assert.deepEqual(bobStart.ids, start.ids, "both clients must know their own seat");
+  assert.deepEqual(start.players, ["alice","bob"]);
   await delay(620);
   alice.send(JSON.stringify({type:"rpsChoice",id:start.id,choice:"rock"}));
   await env.until(() => env.messages.get(alice).find(m=>m.type==="rpsWaiting"));
