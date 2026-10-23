@@ -262,9 +262,10 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir}){
   }
  }
  function newRPS(ids,tournament=null){
-  const id=uid(),game={id,ids,choices:{},tournament};
+  const id=uid(),game={id,ids,choices:{},tournament,bot:ids.includes("npc:rps")};
+  if(game.bot)game.choices["npc:rps"]=["rock","paper","scissors"][Math.floor(Math.random()*3)];
   rpsGames.set(id,game);
-  for(const user of ids)sendUser(user,{type:"rpsStart",id,players:ids.map(z=>clientOf(z)[0]?.[1]?.name||z),tournament});
+  for(const user of ids)if(user!=="npc:rps")sendUser(user,{type:"rpsStart",id,players:ids.map(z=>z==="npc:rps"?"Lightning Bot":clientOf(z)[0]?.[1]?.name||z),tournament,bot:game.bot});
   return game;
  }
  function rpsChoice(u,data){
@@ -349,11 +350,15 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir}){
    if(data.type==="worldQueue"||data.type==="worldJoin")return worldQueueJoin(u);
    if(data.type==="worldCancel")return worldCancel(u);
    if(data.type==="chessBot")return newChess([u.id,"npc:chess"]);
+    if(data.type==="rpsBot")return newRPS([u.id,"npc:rps"]);
    if(data.type==="worldAction")return worldAction(u,data);
   });
   ws.on("close",()=>{
    clients.delete(ws);
-   for(const kind of ["chess","rps"])queues[kind]=queues[kind].filter(id=>id!==u.id);
+   if(!clientOf(u.id).length){
+    for(const kind of ["chess","rps"])queues[kind]=queues[kind].filter(id=>id!==u.id);
+    worldQueue=worldQueue.filter(id=>id!==u.id);
+   }
    presence();
   });
  });
