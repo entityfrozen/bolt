@@ -26,6 +26,9 @@ RUN npm ci --ignore-scripts
 ARG GIT_COMMIT=standalone
 ENV GIT_COMMIT=${GIT_COMMIT}
 RUN npm run build-prod
+# The name bridge is inserted into the built HTML (not the game engine).
+COPY openfront-name-bridge.html /tmp/lightning-name-bridge.html
+RUN node -e 'const fs=require("node:fs"); const file="static/index.html"; const html=fs.readFileSync(file,"utf8"); if(!html.includes("</head>"))throw Error("OpenFront head missing"); fs.writeFileSync(file,html.replace("</head>",fs.readFileSync("/tmp/lightning-name-bridge.html","utf8")+"</head>"))'
 
 FROM node-base AS production-dependencies
 ENV HUSKY=0 NPM_CONFIG_IGNORE_SCRIPTS=1
