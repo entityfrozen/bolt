@@ -748,7 +748,11 @@ body.bolt-dev-open .bolt-ai-panel{
 }
 .lightning-suggest-button:before,.lightning-suggest-button:after{pointer-events:none}
 .lightning-suggest-button:hover{background:#4b351c;color:#f4daa7;box-shadow:0 0 0 1px #775a32}
-#hubMount[hidden]{display:none!important}
+/* New-tab and web iframes share a stage. The empty frame stack must NEVER
+   intercept clicks destined for home search, suggestions or shortcuts. */
+.frame-stack{pointer-events:none}
+.frame-stack>.proxy-frame.active{pointer-events:auto}
+#hubMount[hidden],#hubWorld[hidden]{display:none!important}
 #hubMount{contain:layout style}
 .rail-button[data-hub] svg{width:19px;height:19px}
 @media(max-width:700px){.newtab-eyebrow.lightning-suggest-button{font-size:9px;letter-spacing:.1em}}
