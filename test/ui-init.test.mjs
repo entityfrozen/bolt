@@ -52,5 +52,5 @@ test("Lightning binds home search, Games and Chat without crashing on startup",a
 
 test("single-element selectors are never used as collections",()=>{
  assert.doesNotMatch(source,/(?<!\$)\$\([^)\n]+\)\.forEach\s*\(/);
- assert.match(source,/\$\$\("\[data-hub\]"\)\.forEach/);
+ assert.match(source,/document\.querySelectorAll\("\[data-hub\]"\)\.forEach/);
 });
