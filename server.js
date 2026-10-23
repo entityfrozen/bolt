@@ -108,6 +108,7 @@ function publicUser(user) {
     username: user.username,
     role: user.role,
     enabled: user.enabled,
+    approved: user.approved !== false,
     temporary: !!user.temporary,
     expiresAt: user.expiresAt || null,
     createdAt: user.createdAt
@@ -133,7 +134,7 @@ function sessionTokenFromHeaders(headers) {
 }
 
 function activeUser(user) {
-  if (!user || !user.enabled) return false;
+  if (!user || !user.enabled || user.approved === false) return false;
   if (user.expiresAt && user.expiresAt <= now()) return false;
   return true;
 }
@@ -145,20 +146,6 @@ function identityForSession(session) {
     const user = state.users.find(item => item.id === session.userId);
     if (!activeUser(user)) return null;
     return { ...publicUser(user), sessionId: session.id, passId: null };
-  }
-
-  if (session.passId) {
-    return {
-      id: `pass:${session.passId}`,
-      username: session.passLabel || "guest",
-      role: "user",
-      enabled: true,
-      temporary: true,
-      expiresAt: session.expiresAt,
-      createdAt: session.createdAt,
-      sessionId: session.id,
-      passId: session.passId
-    };
   }
 
   return null;
@@ -181,7 +168,7 @@ function sessionFromRequest(req) {
 function cleanup() {
   const time = now();
   state.sessions = state.sessions.filter(session => session.expiresAt > time && identityForSession(session));
-  state.passes = state.passes.filter(pass => !pass.deleteAfter || pass.deleteAfter > time);
+  state.passes = []; // Access codes were retired; previously issued codes never authorize sessions.
   if (state.audit.length > 600) state.audit = state.audit.slice(-600);
 }
 
@@ -271,6 +258,7 @@ function ensureFirstAdmin() {
     passwordHash: hashPassword(password),
     role: "admin",
     enabled: true,
+    approved: true,
     temporary: false,
     expiresAt: null,
     createdAt: now()
@@ -309,43 +297,58 @@ app.get("/api/me", (req, res) => {
   });
 });
 
-app.post("/api/login", sameOrigin, (req, res) => {
-  const username = normalizeUsername(req.body.username);
-  const password = String(req.body.password || "");
-  const user = state.users.find(item => item.username === username);
-
-  if (!user || !activeUser(user) || !user.passwordHash || !verifyPassword(password, user.passwordHash)) {
-    return res.status(401).json({ error: "Wrong username or password" });
+// Lightweight abuse controls: bounded rolling counters by client IP, plus login identity.
+const authAttempts = new Map();
+function authLimit(req, res, next) {
+  const key = req.ip || "unknown";
+  const time = now();
+  for (const [id, value] of authAttempts) if (value.until <= time) authAttempts.delete(id);
+  const kind = req.path === "/api/register" ? "register" : "login";
+  const handle = kind === "login" ? normalizeUsername(req.body?.username).slice(0,32) : "";
+  const id = kind + ":" + key + ":" + handle;
+  const entry = authAttempts.get(id) || { count: 0, until: time + (kind === "register" ? 3600000 : 900000) };
+  if (entry.count >= (kind === "register" ? 5 : 12)) {
+    res.set("Retry-After", String(Math.ceil((entry.until - time) / 1000)));
+    return res.status(429).json({ error: "Too many attempts. Try again later." });
   }
+  entry.count++;
+  authAttempts.set(id, entry);
+  next();
+}
+
+app.post("/api/register", sameOrigin, authLimit, (req, res) => {
+  const username = normalizeUsername(req.body?.username);
+  const password = req.body?.password;
+  if (!validUsername(username)) return res.status(400).json({ error: "Username must be 3–32 letters, numbers, periods, dashes or underscores." });
+  if (typeof password !== "string" || password.length < 10 || password.length > 128)
+    return res.status(400).json({ error: "Use a password between 10 and 128 characters." });
+  if (state.users.some(user => user.username === username)) return res.status(409).json({ error: "Username already taken." });
+  if (state.users.length >= 5000) return res.status(503).json({ error: "Registration is temporarily unavailable." });
+
+  const user = { id: id("usr"), username, passwordHash: hashPassword(password),
+    role: "user", enabled: true, approved: false, temporary: false,
+    expiresAt: null, createdAt: now() };
+  state.users.push(user);
+  audit(null, "user.registration_pending", username);
+  saveState();
+  res.status(201).json({ ok: true, status: "pending", username });
+});
+
+app.post("/api/login", sameOrigin, authLimit, (req, res) => {
+  const username = normalizeUsername(req.body?.username);
+  const password = typeof req.body?.password === "string" ? req.body.password : "";
+  const user = state.users.find(item => item.username === username);
+  if (!user || !user.passwordHash || !verifyPassword(password, user.passwordHash)) {
+    return res.status(401).json({ error: "Wrong username or password." });
+  }
+  if (user.approved === false) return res.status(403).json({ error: "Your account is waiting for admin approval.", status: "pending" });
+  if (!activeUser(user)) return res.status(403).json({ error: "Account disabled. Contact an admin." });
 
   const created = createSession({ userId: user.id, expiresAt: user.expiresAt || 0, req });
   setSessionCookies(req, res, created.raw, created.session.expiresAt);
   audit(publicUser(user), "session.login", created.session.id, req.ip || "");
   saveState();
   res.json({ ok: true, user: publicUser(user) });
-});
-
-app.post("/api/access/redeem", sameOrigin, (req, res) => {
-  const code = String(req.body.code || "").trim().toUpperCase();
-  const hash = digest(code);
-  const pass = state.passes.find(item => item.codeHash === hash);
-  const time = now();
-
-  if (!pass || !pass.enabled || pass.expiresAt <= time || pass.uses >= pass.maxUses) {
-    return res.status(401).json({ error: "That access code is not active" });
-  }
-
-  pass.uses += 1;
-  const created = createSession({
-    passId: pass.id,
-    passLabel: pass.label || "guest",
-    expiresAt: pass.expiresAt,
-    req
-  });
-  setSessionCookies(req, res, created.raw, created.session.expiresAt);
-  audit({ username: pass.label || "guest" }, "pass.redeemed", pass.id, `${pass.uses}/${pass.maxUses}`);
-  saveState();
-  res.json({ ok: true });
 });
 
 app.post("/api/logout", sameOrigin, (req, res) => {
@@ -439,15 +442,6 @@ app.get("/api/admin/state", mustBeAdmin, (req, res) => {
   cleanup();
   res.json({
     users: state.users.map(publicUser),
-    passes: state.passes.map(pass => ({
-      id: pass.id,
-      label: pass.label,
-      enabled: pass.enabled,
-      createdAt: pass.createdAt,
-      expiresAt: pass.expiresAt,
-      maxUses: pass.maxUses,
-      uses: pass.uses
-    })),
     sessions: state.sessions.map(session => {
       const identity = identityForSession(session);
       return {
@@ -484,6 +478,7 @@ app.post("/api/admin/users", mustBeAdmin, sameOrigin, (req, res) => {
     passwordHash: hashPassword(password),
     role,
     enabled: true,
+    approved: true,
     temporary: !!expiresAt,
     expiresAt,
     createdAt: now()
@@ -502,8 +497,10 @@ app.patch("/api/admin/users/:id", mustBeAdmin, sameOrigin, (req, res) => {
   const lastAdmin = user.role === "admin" && adminCount <= 1;
   if (lastAdmin && req.body.role === "user") return res.status(400).json({ error: "Create another admin first" });
   if (lastAdmin && req.body.enabled === false) return res.status(400).json({ error: "Create another admin first" });
+  if (lastAdmin && req.body.approved === false) return res.status(400).json({ error: "The last admin must remain approved" });
   if (lastAdmin && Object.prototype.hasOwnProperty.call(req.body, "expiresAt") && Number(req.body.expiresAt || 0) > 0) return res.status(400).json({ error: "The last admin cannot expire" });
 
+  if (typeof req.body.approved === "boolean") user.approved = req.body.approved;
   if (typeof req.body.enabled === "boolean") user.enabled = req.body.enabled;
   if (req.body.role === "admin" || req.body.role === "user") user.role = req.body.role;
   if (Object.prototype.hasOwnProperty.call(req.body, "expiresAt")) {
@@ -516,11 +513,11 @@ app.patch("/api/admin/users/:id", mustBeAdmin, sameOrigin, (req, res) => {
     user.passwordHash = hashPassword(req.body.password);
   }
 
-  if (!user.enabled || (user.expiresAt && user.expiresAt <= now())) {
+  if (!activeUser(user)) {
     state.sessions = state.sessions.filter(session => session.userId !== user.id);
   }
 
-  audit(req.auth.identity, "user.updated", user.username, JSON.stringify({ enabled: user.enabled, role: user.role, expiresAt: user.expiresAt }));
+  audit(req.auth.identity, "user.updated", user.username, JSON.stringify({ enabled: user.enabled, approved: user.approved !== false, role: user.role, expiresAt: user.expiresAt }));
   saveState();
   res.json({ user: publicUser(user) });
 });
@@ -546,47 +543,6 @@ app.post("/api/admin/users/:id/revoke", mustBeAdmin, sameOrigin, (req, res) => {
   const before = state.sessions.length;
   state.sessions = state.sessions.filter(session => session.userId !== user.id);
   audit(req.auth.identity, "user.sessions_revoked", user.username, String(before - state.sessions.length));
-  saveState();
-  res.json({ ok: true });
-});
-
-app.post("/api/admin/passes", mustBeAdmin, sameOrigin, (req, res) => {
-  const label = String(req.body.label || "guest").trim().slice(0, 40) || "guest";
-  const minutes = Math.min(43200, Math.max(5, Number(req.body.minutes || 60)));
-  const maxUses = Math.min(100, Math.max(1, Number(req.body.maxUses || 1)));
-  const code = `BOLT-${token(6).toUpperCase()}`;
-  const pass = {
-    id: id("pass"),
-    codeHash: digest(code),
-    label,
-    enabled: true,
-    createdAt: now(),
-    expiresAt: now() + minutes * 60 * 1000,
-    maxUses,
-    uses: 0
-  };
-  state.passes.push(pass);
-  audit(req.auth.identity, "pass.created", label, `${minutes}m/${maxUses}`);
-  saveState();
-  res.status(201).json({
-    pass: {
-      id: pass.id,
-      code,
-      label,
-      expiresAt: pass.expiresAt,
-      maxUses,
-      uses: 0,
-      enabled: true
-    }
-  });
-});
-
-app.delete("/api/admin/passes/:id", mustBeAdmin, sameOrigin, (req, res) => {
-  const pass = state.passes.find(item => item.id === req.params.id);
-  if (!pass) return res.status(404).json({ error: "Pass not found" });
-  state.passes = state.passes.filter(item => item.id !== pass.id);
-  state.sessions = state.sessions.filter(session => session.passId !== pass.id);
-  audit(req.auth.identity, "pass.deleted", pass.label);
   saveState();
   res.json({ ok: true });
 });
