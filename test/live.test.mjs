@@ -295,3 +295,30 @@ test("Chess waiting room queue can be cancelled",async t=>{
  await env.until(()=>env.messages.get(bob).find(m=>m.type==="queued"));
  assert.equal(env.messages.get(alice).some(m=>m.type==="chessStart"),false);
 });
+
+
+test("chat supports replying, reactions, edits and secure deletion",async t=>{
+  const env=await setup(t),alice=await env.connect("alice"),bob=await env.connect("bob");
+  alice.send(JSON.stringify({type:"chat",channel:"general",message:"Hello from the team"}));
+  const first=await env.until(()=>env.messages.get(bob).find(m=>m.type==="chat"));
+  assert.equal(first.entry.userId,"alice");
+  await delay(180);
+  bob.send(JSON.stringify({type:"chat",channel:"general",message:"Got it!",replyTo:first.entry.id}));
+  const reply=await env.until(()=>env.messages.get(alice).find(m=>m.type==="chat"&&m.entry.replyTo===first.entry.id));
+  assert.equal(reply.entry.replyTo,first.entry.id);
+  await delay(180);
+  bob.send(JSON.stringify({type:"chatEdit",channel:"general",id:first.entry.id,message:"tampered"}));
+  await env.until(()=>env.messages.get(bob).find(m=>m.type==="error"&&/edit/i.test(m.message)));
+  await delay(180);
+  alice.send(JSON.stringify({type:"chatReact",channel:"general",id:first.entry.id,emoji:"🔥"}));
+  const reaction=await env.until(()=>env.messages.get(bob).find(m=>m.type==="chatUpdate"&&m.entry.reactions?.["🔥"]?.includes("alice")));
+  assert.equal(reaction.entry.reactions["🔥"].length,1);
+  await delay(180);
+  alice.send(JSON.stringify({type:"chatEdit",channel:"general",id:first.entry.id,message:"Edited by owner"}));
+  const updated=await env.until(()=>env.messages.get(bob).find(m=>m.type==="chatUpdate"&&m.entry.message==="Edited by owner"));
+  assert.ok(updated.entry.editedAt);
+  await delay(180);
+  alice.send(JSON.stringify({type:"chatDelete",channel:"general",id:first.entry.id}));
+  const deleted=await env.until(()=>env.messages.get(bob).find(m=>m.type==="chatUpdate"&&m.entry.deleted));
+  assert.equal(deleted.entry.message,"");
+});
