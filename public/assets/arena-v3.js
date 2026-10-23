@@ -401,7 +401,7 @@ export function installArenaPolish(Hub){
         ]
       },
       {
-        sign:"−",kind:"removed",title:"Removed",
+        sign:"-",kind:"removed",title:"Removed",
         items:[
           "The old custom WorldPvP prototype from the playable arcade."
         ]
@@ -437,7 +437,7 @@ export function installArenaPolish(Hub){
           '<div class="lc-header">'+
             '<span class="lc-eyebrow"><span class="lc-pulse"></span> LIGHTNING / CHANGELOG</span>'+
             '<div class="lc-heading"><h1>Update log<span class="lc-dot">.</span></h1><span class="lc-version">VERSION 2.4.0 <i>•</i> OCT 2026</span></div>'+
-            '<p>What changed in Lightning. No walls of text.</p>'+
+            '<p>Everything added, removed, improved, and fixed.</p>'+
           '</div>'+
           '<div class="lc-sections">'+sections+'</div>'+
           '<footer class="lc-footer">LIGHTNING <span>—</span> BUILD 2.4.0</footer>'+
