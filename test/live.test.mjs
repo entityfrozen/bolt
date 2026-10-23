@@ -175,7 +175,9 @@ test("WorldPvP permits distant land campaigns but rejects inland water jumps", a
  assert.ok(distant>=0,"have reachable neutral land outside immediate border");
  await delay(190);
  alice.send(JSON.stringify({type:"worldAction",action:"attack",x:distant%W,y:Math.floor(distant/W),ratio:.9}));
- const launchInfo=await env.until(()=>env.messages.get(alice).find(m=>m.type==="worldInfo"));
+ await delay(900);
+ const launchInfo=env.messages.get(alice).find(m=>m.type==="worldInfo");
+ assert.ok(launchInfo,"No launch response. Events: "+JSON.stringify(env.messages.get(alice).slice(-4).map(m=>({type:m.type,message:m.message,info:m.text,phase:m.phase,active:m.attacks?.length}))));
  assert.match(launchInfo.text,/campaign launched|Landing fleet dispatched/i,"launch error: "+launchInfo.text);
  const attack=await env.until(()=>env.messages.get(alice).find(m=>m.type==="world"&&m.attacks?.some(a=>a.by==="alice"&&a.target===distant)));
  assert.ok(attack.attacks[0].limit>0,"troop commitment should determine an attack's expansion cap");
