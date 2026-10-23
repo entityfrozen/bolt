@@ -64,86 +64,160 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir}){
   u.last=Date.now();return true;
  };
  function worldSnapshot(){
-  const players=Object.values(world.players);
-  const territories={};
-  for(const p of players) territories[p.id]=0;
+  const players=Object.values(world.players),territories={};
+  for(const p of players)territories[p.id]=0;
   for(const c of world.cells)if(c.owner&&c.owner!=="sea")territories[c.owner]=(territories[c.owner]||0)+1;
-  return {type:"world",cells:world.cells.map(c=>c.owner==="sea"?-1:c.owner||""),structures:world.cells.map((c,i)=>c.kind?{i,kind:c.kind}:null).filter(Boolean),
-    players:players.map(p=>({id:p.id,name:p.name,color:p.color,troops:Math.floor(p.troops),gold:Math.floor(p.gold),land:territories[p.id]||0,allies:p.allies})),
-    tick:world.tick||0,winner:world.winner,landTotal:world.cells.filter(c=>c.owner!=="sea").length};
+  return {type:"world",width:WORLD_W,height:WORLD_H,matchId:world.matchId,phase:world.phase,queued:worldQueue.length,
+   cells:world.cells.map(c=>c.owner==="sea"?-1:c.owner||""),
+   structures:world.cells.map((c,i)=>c.kind?{i,kind:c.kind}:null).filter(Boolean),
+   players:players.map(p=>({id:p.id,name:p.name,color:p.color,bot:!!p.bot,troops:Math.floor(p.troops),gold:Math.floor(p.gold),land:territories[p.id]||0,allies:p.allies})),
+   tick:world.tick||0,winner:world.winner,landTotal:landIndices.length};
  }
- function sendWorld(){sendAll(worldSnapshot())}
- function owned(player){return world.cells.reduce((n,c)=>n+(c.owner===player.id?1:0),0)}
- function worldJoin(u){
-  if(world.winner){safeSend(u.ws,{type:"error",message:"Match finished. Next round is starting."});return}
-  let p=world.players[u.id];
-  if(!p){
-   const taken=Object.keys(world.players).length;
-   if(taken>=24)return safeSend(u.ws,{type:"error",message:"The WorldPvP match is full."});
-   const available=world.cells.map((c,i)=>c.owner===null?i:-1).filter(i=>i!==-1);
-   let spawn=-1;
-   for(let tries=0;tries<100;tries++){
-    const ix=available[Math.floor(Math.random()*available.length)];
-    if(ix===undefined)break;
-    if(!Object.values(world.players).some(q=>Math.abs(q.spawn%64-ix%64)+Math.abs(Math.floor(q.spawn/64)-Math.floor(ix/64))<7)){spawn=ix;break}
-   }
-   if(spawn===-1)spawn=available[Math.floor(Math.random()*available.length)];
-   if(spawn===undefined)return safeSend(u.ws,{type:"error",message:"No land left to spawn."});
-   p={id:u.id,name:u.name,spawn,color:colors[taken%colors.length],gold:260,troops:240,allies:[],lastAttack:0};
-   world.players[u.id]=p;
-   world.cells[spawn].owner=u.id;
-   for(const d of [-1,1,-64,64]){const n=spawn+d;if(n>=0&&n<world.cells.length&&adj(spawn,n)&&world.cells[n].owner===null)world.cells[n].owner=u.id}
+ function sendWorld(){const snap=worldSnapshot();for(const [ws,u] of clients)if(u.world)safeSend(ws,snap)}
+ function owned(p){let n=0;for(const c of world.cells)if(c.owner===p.id)n++;return n}
+ const botNames=["Ash Dominion","Iron Coast","Cobalt Union","Ember Pact","Verdant Order","Crimson Crown","Polar Legion","Violet Realm","Solar Republic","Obsidian Guard","Azure Empire","Silver League"];
+ function spawnNation(id,name,bot=false){
+  if(world.players[id])return world.players[id];
+  const taken=Object.keys(world.players).length;
+  if(taken>=24)return null;
+  let spawn=-1;
+  for(let attempts=0;attempts<450;attempts++){
+   const next=landIndices[Math.floor(Math.random()*landIndices.length)];
+   if(world.cells[next].owner!==null)continue;
+   if(Object.values(world.players).some(p=>Math.abs(p.spawn%WORLD_W-next%WORLD_W)+Math.abs(Math.floor(p.spawn/WORLD_W)-Math.floor(next/WORLD_W))<14))continue;
+   if(neighbor(next).filter(n=>isLand(n)).length>=3){spawn=next;break}
   }
-  u.world=true;safeSend(u.ws,worldSnapshot());sendWorld();
+  if(spawn<0)spawn=landIndices.find(i=>world.cells[i].owner===null);
+  if(spawn===undefined)return null;
+  const p={id,name:trimText(name,32),bot,spawn,color:colors[taken%colors.length]||"hsl("+((taken*79)%360)+" 56% 65%)",
+   gold:390,troops:950,allies:[],lastAttack:0};
+  world.players[id]=p;
+  const x=spawn%WORLD_W,y=Math.floor(spawn/WORLD_W);
+  for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){
+   if(Math.abs(dx)+Math.abs(dy)>3)continue;
+   const i=at(x+dx,y+dy);
+   if(i>=0&&world.cells[i].owner===null&&region[i]===region[spawn])world.cells[i].owner=id;
+  }
+  world.cells[spawn].owner=id;
+  return p;
+ }
+ function startWorld(){
+  if(world.phase==="playing")return;
+  if(worldQueueTimer){clearTimeout(worldQueueTimer);worldQueueTimer=null}
+  const people=worldQueue.filter(id=>clientOf(id).length).slice(0,12);
+  worldQueue=[];
+  if(!people.length){presence();return}
+  world.cells=makeMap();world.players={};world.winner=null;world.tick=0;
+  world.phase="playing";world.matchId=uid();world.start=Date.now();
+  for(const id of people)spawnNation(id,clientOf(id)[0][1].name);
+  for(let b=0;b<Math.max(7,12-people.length);b++)spawnNation("npc:"+b,botNames[b%botNames.length],true);
+  for(const [ws,u] of clients)if(people.includes(u.id)){u.world=true;safeSend(ws,{type:"worldMatch",matchId:world.matchId})}
+  sendWorld();presence();
+ }
+ function worldQueueJoin(u){
+  if(world.phase==="playing"&&world.players[u.id]){
+   u.world=true;safeSend(u.ws,{type:"worldMatch",matchId:world.matchId});safeSend(u.ws,worldSnapshot());return;
+  }
+  if(world.phase==="playing"&&!world.winner){
+   const p=spawnNation(u.id,u.name);
+   if(p){u.world=true;safeSend(u.ws,{type:"worldMatch",matchId:world.matchId});sendWorld();return}
+  }
+  if(!worldQueue.includes(u.id))worldQueue.push(u.id);
+  u.world=true;
+  sendUser(u.id,{type:"worldQueued",position:worldQueue.indexOf(u.id)+1,players:worldQueue.length});
+  safeSend(u.ws,worldSnapshot());presence();
+  if(world.phase==="waiting"&&worldQueue.length>=2)startWorld();
+  else if(!worldQueueTimer&&world.phase==="waiting"){worldQueueTimer=setTimeout(startWorld,4500);worldQueueTimer.unref()}
+ }
+ function worldCancel(u){
+  worldQueue=worldQueue.filter(id=>id!==u.id);
+  u.world=false;sendUser(u.id,{type:"worldQueueCancelled"});presence();
+ }
+ // Across continuous landmasses, expeditions may target distant land. Crossing
+ // open ocean requires owning a coastal tile and landing on a coastal tile.
+ function travel(p,i){
+  const regions=new Set(),ownsCoast=world.cells.some((c,j)=>{
+   if(c.owner!==p.id)return false;
+   regions.add(region[j]);return !!coast[j];
+  });
+  // some() short-circuits on a coast tile; collect all landmasses separately.
+  for(const q of world.cells.keys())if(world.cells[q].owner===p.id)regions.add(region[q]);
+  if(regions.has(region[i]))return "land";
+  return ownsCoast&&!!coast[i]?"naval":null;
+ }
+ function capture(p,index,ratio){
+  const tile=world.cells[index];
+  if(!tile||tile.owner==="sea"||tile.owner===p.id)return {error:"Choose enemy or neutral land."};
+  if(tile.owner&&p.allies.includes(tile.owner))return {error:"You cannot attack an ally."};
+  const route=travel(p,index);
+  if(!route)return {error:"No land route. Naval attacks need coastal land and a coastal destination."};
+  if(p.troops<35)return {error:"Recruit more troops before attacking."};
+  const committed=Math.floor(p.troops*ratio);
+  const rival=world.players[tile.owner];
+  const defender=rival?Math.max(20,Math.floor(rival.troops/Math.max(1,owned(rival))*.8)+tile.def*4+tile.fort*15):tile.def*7;
+  if(committed*(route==="naval"?.82:1)<defender){
+   p.troops=Math.max(0,p.troops-Math.ceil(committed*.35));
+   return {error:"Assault repelled. Build up more troops.",route};
+  }
+  p.troops=Math.max(1,p.troops-Math.ceil(defender*.55));
+  if(rival)rival.troops=Math.max(15,rival.troops-Math.floor(defender*.24));
+  tile.owner=p.id;tile.kind="";tile.fort=0;
+  // Successful landings secure nearby neutral territories so expansion is visible.
+  const x=index%WORLD_W,y=Math.floor(index/WORLD_W);
+  for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+   const i=at(x+dx,y+dy);
+   if(i>=0&&world.cells[i].owner===null&&region[i]===region[index]){
+    world.cells[i].owner=p.id;p.troops=Math.max(1,p.troops-3);
+   }
+  }
+  return {route,success:true};
+ }
+ function checkWorldWin(){
+  const winner=Object.values(world.players).find(p=>owned(p)/landIndices.length>=.8);
+  if(!winner||world.winner)return;
+  world.winner=winner.name;
+  sendAll({type:"worldInfo",text:winner.name+" has conquered 80% of the world!"});sendWorld();
+  const timer=setTimeout(()=>{
+   world.phase="waiting";world.cells=makeMap();world.players={};world.winner=null;
+   world.matchId=null;world.tick=0;for(const u of clients.values())u.world=false;
+   sendAll({type:"worldEnded"});presence();
+  },15000);timer.unref();
  }
  function worldAction(u,data){
   const p=world.players[u.id];
-  if(!p)return safeSend(u.ws,{type:"error",message:"Join WorldPvP first."});
+  if(!p||world.phase!=="playing")return safeSend(u.ws,{type:"error",message:"Join a WorldPvP match first."});
   if(world.winner)return;
   const index=at(data.x,data.y),tile=world.cells[index];
-  if(index<0||!tile||tile.owner==="sea")return;
-  const amount=Math.min(.75,Math.max(.1,Number(data.ratio)||.25));
+  if(index<0||!tile||tile.owner==="sea")return safeSend(u.ws,{type:"error",message:"Select land, not ocean."});
+  const amount=Math.min(.9,Math.max(.1,Number(data.ratio)||.35));
   if(data.action==="attack"){
-   if(Date.now()-p.lastAttack<1150)return;
+   if(Date.now()-p.lastAttack<900)return;
    p.lastAttack=Date.now();
-   if(tile.owner===p.id)return;
-   if(!world.cells.some((cell,j)=>cell.owner===p.id&&adj(j,index)))return safeSend(u.ws,{type:"error",message:"Choose a territory along your land border."});
-   if(tile.owner&&p.allies.includes(tile.owner))return safeSend(u.ws,{type:"error",message:"You cannot attack an ally."});
-   const committed=Math.floor(p.troops*amount);
-   const defender=tile.owner&&world.players[tile.owner]?Math.max(22,Math.floor(world.players[tile.owner].troops/Math.max(1,owned(world.players[tile.owner]))*.85)+tile.def*3+tile.fort*8):tile.def*9;
-   if(committed<defender){p.troops=Math.max(0,p.troops-Math.ceil(committed*.45));safeSend(u.ws,{type:"worldInfo",text:"Your attack failed. Build up more troops."})}
-   else{
-    p.troops-=Math.ceil(defender*.72);
-    const enemy=world.players[tile.owner];
-    if(enemy)enemy.troops=Math.max(10,enemy.troops-Math.floor(defender*.25));
-    tile.owner=p.id;tile.fort=0;tile.kind="";
-   }
+   const result=capture(p,index,amount);
+   safeSend(u.ws,{type:"worldInfo",text:result.success?(result.route==="naval"?"Naval landing successful.":"Land offensive successful."):result.error});
   }else if(data.action==="build"){
-   if(tile.owner!==p.id)return;
-   if(tile.kind)return safeSend(u.ws,{type:"error",message:"This territory already has infrastructure."});
-   const type=String(data.kind||"");
-   const costs={city:180,factory:230,port:160,fort:130};
+   if(tile.owner!==p.id)return safeSend(u.ws,{type:"error",message:"Build on your own land."});
+   if(tile.kind)return safeSend(u.ws,{type:"error",message:"This region already has a building."});
+   const type=String(data.kind||""),costs={city:170,factory:230,port:160,fort:130};
    if(!costs[type])return;
    if(p.gold<costs[type])return safeSend(u.ws,{type:"error",message:"Not enough gold."});
-   if(type==="port"&&![-1,1,-64,64].some(d=>{const n=index+d;return n>=0&&n<world.cells.length&&adj(index,n)&&world.cells[n].owner==="sea"}))return safeSend(u.ws,{type:"error",message:"Ports must be built on the coast."});
+   if(type==="port"&&!coast[index])return safeSend(u.ws,{type:"error",message:"Ports must be built on the coast."});
    p.gold-=costs[type];tile.kind=type;tile.fort=type==="fort"?3:0;
   }else if(data.action==="alliance"){
    const other=world.players[trimText(data.target,70)];
    if(!other||other.id===p.id)return;
    if(p.allies.includes(other.id)){p.allies=p.allies.filter(id=>id!==other.id);other.allies=other.allies.filter(id=>id!==p.id)}
-   else if(other.allies.includes(p.id)){p.allies.push(other.id)}
-   else {p.allies.push(other.id);other.allies.push(p.id)}
+   else{p.allies.push(other.id);other.allies.push(p.id)}
   }else if(data.action==="nuke"){
-   if(tile.owner===p.id||p.gold<1800)return safeSend(u.ws,{type:"error",message:"A nuclear strike costs 1,800 gold and cannot target your own land."});
+   if(tile.owner===p.id||p.gold<1800)return safeSend(u.ws,{type:"error",message:"A nuclear strike costs 1,800 gold."});
    p.gold-=1800;
-   for(let y=-1;y<=1;y++)for(let x=-1;x<=1;x++){
-    const n=at(data.x+x,data.y+y),c=world.cells[n];
+   for(let dy=-3;dy<=3;dy++)for(let dx=-3;dx<=3;dx++){
+    if(dx*dx+dy*dy>10)continue;
+    const i=at(data.x+dx,data.y+dy),c=world.cells[i];
     if(c&&c.owner!=="sea"&&c.owner!==p.id){c.owner=null;c.kind="";c.fort=0}
    }
   }else return;
-  const total=world.cells.filter(c=>c.owner!=="sea").length;
-  if(owned(p)/total>=.8){world.winner=p.name;sendAll({type:"worldInfo",text:p.name+" has conquered 80% of the world!"});setTimeout(()=>{world.cells=makeMap();world.players={};world.winner=null;world.tick=0;sendWorld()},13000).unref()}
-  sendWorld();
+  checkWorldWin();sendWorld();
  }
  function newChess(ids){
   const id=uid(),game={id,ids,engine:new Chess(),created:Date.now(),over:false};
