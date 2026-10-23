@@ -89,7 +89,12 @@ export function installArenaPolish(Hub){
     oldClose.call(this);
   };
   Hub.prototype.onMessage=function(message){
-    if(message.type==="chessState"||message.type==="chessStart"){this.chessPending=false;this.chessError="";}
+    if(message.type==="chessState"||message.type==="chessStart"){this.chessPending=false;this.chessError="";this.chessQueueing=false;}
+    if(message.type==="queued"&&message.game==="chess"){this.chessQueueing=true;if(this.view==="chess")this.chessScreen();}
+    if(message.type==="chessQueueCancelled"){this.chessQueueing=false;if(this.view==="chess")this.chessScreen();}
+    if(message.type==="chessState"&&message.over&&this.chessLeaving){this.chessLeaving=false;this.chess=null;this.selectedSquare=null;this.show("games");}
+
+    if(message.type==="error"&&this.chessLeaving){this.chessLeaving=false;this.flash(message.message||"Could not resign.");}
     if(message.type==="error"&&this.chessPending){this.chessPending=false;this.chessError=message.message||"Move rejected";if(this.view==="chess")this.chessScreen();}
     if(message.type==="error"&&this.worldQueueing&&!this.worldActive){this.worldQueueing=false;if(this.view==="world")this.worldScreen();}
     if(message.type==="worldQueueCancelled")this.worldQueueing=false;
@@ -335,7 +340,8 @@ export function installArenaPolish(Hub){
     this.header("Chess","The Chess Club · Legal moves verified live");
     const host=this.$("#hubContent"),game=this.chess;
     if(!game){
-      host.innerHTML='<section class="hub-game-area hub-chess-lobby"><span class="hub-label">LIGHTNING CHESS CLUB</span><h2>Play real chess.</h2><p>Get paired with a member, invite someone directly, or learn against the bot. Click a piece, then a highlighted square. You can also drag pieces on desktop.</p><div class="hub-actions"><button class="hub-btn primary" data-act="chessQueue">⚔ Queue for a match</button><button class="hub-btn" data-act="chessBot">♟ Play against bot</button></div><div class="hub-actions"><input id="hubDuelId" placeholder="Opponent user ID"><button class="hub-btn" data-act="chessDuel">Invite player</button></div><button class="hub-btn" data-act="back">← All games</button></section>';
+      const queueButton=this.chessQueueing?'<button class="hub-btn primary" disabled>⌛ Finding a player…</button><button class="hub-btn" data-act="chessCancelQueue">✕ Cancel queue</button>':'<button class="hub-btn primary" data-act="chessQueue">⚔ Queue for a match</button>';
+      host.innerHTML='<section class="hub-game-area hub-chess-lobby"><span class="hub-label">LIGHTNING CHESS CLUB</span><h2>Play real chess.</h2><p>Get paired with a member, invite someone directly, or learn against the bot. Click a piece, then a highlighted square. You can also drag pieces on desktop.</p><div class="hub-actions">'+queueButton+'<button class="hub-btn" data-act="chessBot">♟ Play against bot</button></div><div class="hub-actions"><input id="hubDuelId" placeholder="Opponent user ID"><button class="hub-btn" data-act="chessDuel">Invite player</button></div><button class="hub-btn" data-act="back">← All games</button></section>';
       return;
     }
     const board=game.fen.split(" ")[0].split("/").map(row=>{
@@ -356,7 +362,7 @@ export function installArenaPolish(Hub){
     const opp=game.players?.[game.color==="w"?1:0]||"Opponent";
     const hint=game.over?(game.result||"Game finished"):this.chessPending?"Submitting your move…":this.chessError||(!myTurn?"Waiting for "+opp+"…":!legal.length?"Move list unavailable. Refresh the board.":this.selectedSquare?"Choose any green highlighted square.":"Your turn · Select a piece");
     const badge=game.over?"GAME FINISHED":myTurn?"YOUR MOVE":"WAITING";
-    host.innerHTML='<section class="hub-chess-layout arena-chess"><div class="hub-chess-panel"><div class="hub-chess-status"><span class="hub-label">MATCH '+esc(game.id.slice(0,7).toUpperCase())+'</span><strong>'+esc(badge)+'</strong></div><div class="hub-chess-board"><div class="hub-chess" id="hubChessBoard" role="grid" aria-label="Chess board">'+squares+'</div></div></div><aside class="hub-chess-sidebar"><span class="hub-label">THE CHESS CLUB</span><h2>Make your move.</h2><p>You are playing <b>'+ (game.color==="w"?"White ♙":"Black ♟")+'</b> against <b>'+esc(opp)+'</b></p><p class="hub-chess-hint '+(myTurn?"arena-turn-hint":"")+'">'+esc(hint)+'</p><div class="hub-chess-card">Last move <strong>'+esc(game.last||"Opening position")+'</strong></div><div class="hub-chess-card">Moves available <strong>'+legal.length+'</strong></div><div class="arena-chess-controls"><button class="hub-btn primary" data-act="chessRefresh">↻ Refresh board</button><button class="hub-btn" data-act="back">← Arcade</button>'+(game.over?'<button class="hub-btn" data-act="chessBot">New bot game</button>':'')+'</div><p class="arena-chess-help"><code>TIP</code> Click or drag a piece to move. The green markers are legal destinations. Refresh if your connection gets interrupted.</p></aside></section>';
+    host.innerHTML='<section class="hub-chess-layout arena-chess"><div class="hub-chess-panel"><div class="hub-chess-status"><span class="hub-label">MATCH '+esc(game.id.slice(0,7).toUpperCase())+'</span><strong>'+esc(badge)+'</strong></div><div class="hub-chess-board"><div class="hub-chess" id="hubChessBoard" role="grid" aria-label="Chess board">'+squares+'</div></div></div><aside class="hub-chess-sidebar"><span class="hub-label">THE CHESS CLUB</span><h2>Make your move.</h2><p>You are playing <b>'+ (game.color==="w"?"White ♙":"Black ♟")+'</b> against <b>'+esc(opp)+'</b></p><p class="hub-chess-hint '+(myTurn?"arena-turn-hint":"")+'">'+esc(hint)+'</p><div class="hub-chess-card">Last move <strong>'+esc(game.last||"Opening position")+'</strong></div><div class="hub-chess-card">Moves available <strong>'+legal.length+'</strong></div><div class="arena-chess-controls"><button class="hub-btn primary" data-act="chessRefresh">↻ Refresh board</button><button class="hub-btn" data-act="back">← Arcade</button>'+(game.over?'<button class="hub-btn" data-act="chessExit">Leave finished match</button><button class="hub-btn" data-act="chessBot">New bot game</button>':'<button class="hub-btn chess-resign" data-act="chessResign">Resign & leave</button>')+'</div><p class="arena-chess-help"><code>TIP</code> Click or drag a piece to move. The green markers are legal destinations. Refresh if your connection gets interrupted.</p></aside></section>';
     const boardEl=this.$("#hubChessBoard");
     boardEl.addEventListener("dragstart",event=>{
       const button=event.target.closest("[data-square]");
@@ -408,6 +414,25 @@ export function installArenaPolish(Hub){
     if(action==="worldLeave"){
       this.send({type:"worldLeave"});this.worldActive=false;this.worldQueueing=false;this.world=null;this.tile=null;
       this.camera={zoom:1,x:0,y:0};this.show("games");return;
+    }
+    if(action==="chessQueue"){
+      this.chessQueueing=true;this.chessScreen();
+      if(!this.send({type:"queue",game:"chess"})){this.chessQueueing=false;this.chessScreen();}
+      return;
+    }
+    if(action==="chessCancelQueue"){
+      if(this.send({type:"chessCancelQueue"})){this.chessQueueing=false;this.chessScreen();}
+      return;
+    }
+    if(action==="chessExit"){
+      this.chess=null;this.selectedSquare=null;this.chessQueueing=false;this.show("games");return;
+    }
+    if(action==="chessResign"){
+      const game=this.chess;
+      if(!game||game.over)return;
+      if(!window.confirm("Resign this chess match? Your opponent will win."))return;
+      if(this.send({type:"chessResign",id:game.id})){this.chessLeaving=true;this.flash("Resigning match…");}
+      return;
     }
     if(action==="chessRefresh"){
       if(this.chess?.id){this.chessPending=false;this.chessError="";this.send({type:"chessSync",id:this.chess.id})}
