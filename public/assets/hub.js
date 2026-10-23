@@ -54,7 +54,7 @@ class Hub{
   }else if(m.type==="chat"){
    if(m.entry){(this.history[m.entry.channel]??=[]).push(m.entry);if(m.entry.channel===this.channel&&this.view==="chat")this.messages()}
   }else if(m.type==="queued")this.flash("Queued for "+m.game+". Waiting for an opponent.");
-  else if(m.type==="chessStart"){this.chess={...m,turn:m.turn||"w",over:false};this.selectedSquare=null;this.view="chess";this.render()}
+  else if(m.type==="chessStart"){this.chess={...m,turn:m.turn||"w",over:!!m.over};this.selectedSquare=null;this.view="chess";this.render()}
   else if(m.type==="chessState"){if(this.chess?.id===m.id){Object.assign(this.chess,m);this.selectedSquare=null;if(this.view==="chess")this.chessScreen();if(m.over)this.flash(m.result||"Game over")}}
   else if(m.type==="rpsStart"){this.rps={...m,waiting:false,result:null};this.view="rps";this.render()}
   else if(m.type==="rpsWaiting"){if(this.rps?.id===m.id){this.rps.waiting=true;if(this.view==="rps")this.rpsScreen()}}
