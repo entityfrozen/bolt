@@ -43,7 +43,7 @@ export function installWorldPort(Hub) {
   };
 
   Hub.prototype.act = function (action, button) {
-    if (action === "worldView") return this.show("world");
+    if (action === "worldView") { this.worldActive = false; this.worldQueueing = false; this.world = null; return this.show("world"); }
     return previousAct.call(this, action, button);
   };
 
