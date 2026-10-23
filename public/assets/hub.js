@@ -1,5 +1,6 @@
 import {installArenaPolish} from "./arena-v3.js?v=5";
 import {installWorldPort} from "./openfront-port.js?v=2";
+import {installSocial} from "./social-v4.js?v=1";
 
 const E=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const PIECES={K:"♔",Q:"♕",R:"♖",B:"♗",N:"♘",P:"♙",k:"♚",q:"♛",r:"♜",b:"♝",n:"♞",p:"♟"};
@@ -397,13 +398,21 @@ class Hub{
 }
 installArenaPolish(Hub);
 installWorldPort(Hub);
+installSocial(Hub);
 export function openHub(view="chat"){
  const root=document.getElementById("hubMount");if(!root)return;
  if(!document.getElementById("lightningHubCss")){
   const css=document.createElement("link");css.id="lightningHubCss";css.rel="stylesheet";css.href="/assets/hub.css?v=3";document.head.append(css);
    const arena=document.createElement("link");arena.id="lightningArenaCss";arena.rel="stylesheet";arena.href="/assets/arena-v3.css?v=3";document.head.append(arena);
    const port=document.createElement("link");port.id="lightningOpenFrontCss";port.rel="stylesheet";port.href="/assets/openfront-port.css?v=1";document.head.append(port);
+  const social=document.createElement("link");social.id="lightningSocialCss";social.rel="stylesheet";social.href="/assets/social-v4.css?v=1";document.head.append(social);
  }
  if(!INSTANCE)INSTANCE=new Hub(root);
  INSTANCE.open(view);
+}
+
+export function startHubNotifications(){
+  const root=document.getElementById("hubMount");if(!root)return;
+  if(!INSTANCE)INSTANCE=new Hub(root);
+  INSTANCE.socialInit();INSTANCE.connect();
 }
