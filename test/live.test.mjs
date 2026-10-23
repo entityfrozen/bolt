@@ -175,6 +175,8 @@ test("WorldPvP permits distant land campaigns but rejects inland water jumps", a
  assert.ok(distant>=0,"have reachable neutral land outside immediate border");
  await delay(190);
  alice.send(JSON.stringify({type:"worldAction",action:"attack",x:distant%W,y:Math.floor(distant/W),ratio:.9}));
+ const launchInfo=await env.until(()=>env.messages.get(alice).find(m=>m.type==="worldInfo"));
+ assert.match(launchInfo.text,/campaign launched|Landing fleet dispatched/i,"launch error: "+launchInfo.text);
  const attack=await env.until(()=>env.messages.get(alice).find(m=>m.type==="world"&&m.attacks?.some(a=>a.by==="alice"&&a.target===distant)));
  assert.ok(attack.attacks[0].limit>0,"troop commitment should determine an attack's expansion cap");
  assert.notEqual(attack.cells[distant],"alice","an inland click cannot teleport troops to the destination");
@@ -253,6 +255,6 @@ test("WorldPvP grows a tiny spawn into a gradual troop-limited front", async t =
  assert.ok(expedition.limit>=2&&expedition.limit<before.troops/10,"army size limits expansion");
  assert.equal(pending.cells[target],"","the first claimed tile should not appear instantly");
  assert.ok(pending.players.find(p=>p.id==="alice").troops<before.troops,"committed troops leave reserve army");
- const later=await env.until(()=>env.messages.get(alice).find(m=>m.type==="world"&&m.players.find(p=>p.id==="alice").land>before.land));
+ const later=await env.until(()=>env.messages.get(alice).find(m=>m.type==="world"&&m.players.find(p=>p.id==="alice")?.land>before.land));
  assert.ok(later.players.find(p=>p.id==="alice").land>before.land);
 });
