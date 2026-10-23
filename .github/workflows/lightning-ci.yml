@@ -36,6 +36,8 @@ jobs:
           node --check public/assets/login.js
           test -f node_modules/marked/lib/marked.umd.js
           test -f node_modules/dompurify/dist/purify.min.js
+      - name: Test registration and admin approvals
+        run: node --test test/auth.test.mjs
       - name: Test Lightning Live
         run: node --test test/live.test.mjs
       - name: Test click layers and overlays
