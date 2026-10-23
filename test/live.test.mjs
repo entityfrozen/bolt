@@ -264,3 +264,34 @@ test("WorldPvP grows a tiny spawn into a gradual troop-limited front", async t =
  const later=await env.until(()=>env.messages.get(alice).find(m=>m.type==="world"&&m.players.find(p=>p.id==="alice")?.land>before.land));
  assert.ok(later.players.find(p=>p.id==="alice").land>before.land);
 });
+
+
+test("Chess resign ends the game for both players and allows a rematch",async t=>{
+ const env=await setup(t),alice=await env.connect("alice"),bob=await env.connect("bob");
+ alice.send(JSON.stringify({type:"queue",game:"chess"}));
+ await env.until(()=>env.messages.get(alice).some(m=>m.type==="queued"&&m.game==="chess"));
+ bob.send(JSON.stringify({type:"queue",game:"chess"}));
+ const start=await env.until(()=>env.messages.get(alice).find(m=>m.type==="chessStart"));
+ await delay(180);
+ alice.send(JSON.stringify({type:"chessResign",id:start.id}));
+ const over=await env.until(()=>env.messages.get(bob).find(m=>m.type==="chessState"&&m.id===start.id&&m.over));
+ assert.match(over.result,/resigned/i);
+ assert.equal(over.legal.length,0);
+ await delay(180);
+ alice.send(JSON.stringify({type:"chessBot"}));
+ const next=await env.until(()=>env.messages.get(alice).find(m=>m.type==="chessStart"&&m.id!==start.id));
+ assert.equal(next.color,"w");
+});
+
+test("Chess waiting room queue can be cancelled",async t=>{
+ const env=await setup(t),alice=await env.connect("alice"),bob=await env.connect("bob");
+ alice.send(JSON.stringify({type:"queue",game:"chess"}));
+ await env.until(()=>env.messages.get(alice).some(m=>m.type==="queued"));
+ await delay(180);
+ alice.send(JSON.stringify({type:"chessCancelQueue"}));
+ const cancelled=await env.until(()=>env.messages.get(alice).find(m=>m.type==="chessQueueCancelled"));
+ assert.equal(cancelled.removed,true);
+ bob.send(JSON.stringify({type:"queue",game:"chess"}));
+ await env.until(()=>env.messages.get(bob).find(m=>m.type==="queued"));
+ assert.equal(env.messages.get(alice).some(m=>m.type==="chessStart"),false);
+});
