@@ -1054,7 +1054,7 @@ function openLightningHub(view){
 
 function bindUi(){
   dom.newTabBtn.addEventListener("click",()=>newTab());
-  $("[data-hub]").forEach(button=>button.addEventListener("click",()=>openLightningHub(button.dataset.hub)));
+  document.querySelectorAll("[data-hub]").forEach(button=>button.addEventListener("click",()=>openLightningHub(button.dataset.hub)));
   $("#lightningSuggestionButton")?.addEventListener("click",()=>openLightningHub("suggestions"));
   document.querySelectorAll(".lightning-quick").forEach(button=>button.addEventListener("click",()=>navigate(button.dataset.lightningQuick)));
   dom.homeMark.addEventListener("click",()=>newTab());
