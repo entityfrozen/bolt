@@ -20,6 +20,7 @@ const adj=(a,b)=>Math.abs(a%WORLD_W-b%WORLD_W)+Math.abs(Math.floor(a/WORLD_W)-Ma
 const neighbor=i=>[i%WORLD_W?i-1:-1,i%WORLD_W<WORLD_W-1?i+1:-1,i>=WORLD_W?i-WORLD_W:-1,i<WORLD_W*(WORLD_H-1)?i+WORLD_W:-1].filter(n=>n>=0);
 const coast=new Uint8Array(WORLD_W*WORLD_H),region=new Int32Array(WORLD_W*WORLD_H).fill(-1);
 const landIndices=[];
+const regionSizes=[];
 for(let i=0;i<WORLD_W*WORLD_H;i++)if(isLand(i)){
  landIndices.push(i);
  if(neighbor(i).some(n=>!isLand(n)))coast[i]=1;
@@ -29,6 +30,7 @@ for(const seed of landIndices){
  if(region[seed]!==-1)continue;
  const pending=[seed];region[seed]=componentCount;
  for(let head=0;head<pending.length;head++)for(const next of neighbor(pending[head]))if(isLand(next)&&region[next]===-1){region[next]=componentCount;pending.push(next)}
+ regionSizes.push(pending.length);
  componentCount++;
 }
 const makeMap=()=>Array.from({length:WORLD_W*WORLD_H},(_,i)=>isLand(i)?{owner:null,def:4+(i*17%5),kind:"",fort:0}:{owner:"sea"});
@@ -86,7 +88,7 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir}){
   let spawn=-1;
   for(let attempts=0;attempts<450;attempts++){
    const next=landIndices[Math.floor(Math.random()*landIndices.length)];
-   if(world.cells[next].owner!==null)continue;
+   if(world.cells[next].owner!==null||regionSizes[region[next]]<110)continue;
    if(Object.values(world.players).some(p=>Math.abs(p.spawn%WORLD_W-next%WORLD_W)+Math.abs(Math.floor(p.spawn/WORLD_W)-Math.floor(next/WORLD_W))<14))continue;
    if(neighbor(next).filter(n=>isLand(n)).length>=3){spawn=next;break}
   }
