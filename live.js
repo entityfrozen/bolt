@@ -10,44 +10,35 @@ const uid=()=>crypto.randomBytes(7).toString("hex");
 const nameOf=user=>String(user?.username||"guest").slice(0,32);
 const trimText=(value,n=LIMIT)=>String(value||"").trim().slice(0,n);
 const safeSend=(ws,data)=>{if(ws?.readyState===WebSocket.OPEN)ws.send(JSON.stringify(data));};
-const continents=[
- [[2,5],[7,3],[14,4],[19,6],[22,10],[18,13],[15,12],[13,14],[9,12],[8,9],[4,10]],
- [[14,13],[17,14],[19,16],[18,19],[22,22],[20,26],[16,29],[15,25],[13,21],[12,17]],
- [[25,2],[32,1],[35,4],[34,7],[31,9],[26,7]],
- [[27,9],[31,8],[33,10],[36,9],[38,11],[35,13],[33,15],[29,14],[27,12]],
- [[28,15],[35,14],[40,17],[39,23],[36,27],[33,29],[31,26],[30,21],[27,18]],
- [[34,6],[40,4],[47,3],[55,5],[61,7],[61,12],[57,15],[52,14],[48,12],[45,17],[42,13],[39,12],[36,9]],
- [[42,15],[47,15],[50,18],[54,18],[55,22],[51,20],[47,21],[45,18]],
- [[51,23],[57,22],[62,25],[60,29],[55,28],[52,26]],
- [[58,13],[60,14],[61,17],[59,19],[58,16]],
- [[38,24],[40,23],[41,26],[40,29],[38,28]],
- [[0,31],[12,30],[24,31],[38,30],[50,31],[63,30],[63,32],[0,32]]
-];
-function inside(x,y,p){
- let result=false;
- for(let i=0,j=p.length-1;i<p.length;j=i++){
-  const a=p[i],b=p[j];
-  if((a[1]>y)!==(b[1]>y)&&x<(b[0]-a[0])*(y-a[1])/(b[1]-a[1])+a[0])result=!result;
- }
- return result;
+// Land comes from Natural Earth's 1:110m vector coastline, rasterized to a global 360×180 grid.
+const atlas=JSON.parse(fs.readFileSync(new URL("./public/assets/world-land.json",import.meta.url),"utf8"));
+const WORLD_W=atlas.width,WORLD_H=atlas.height;
+const landMask=Buffer.from(atlas.mask,"base64");
+const isLand=i=>i>=0&&i<WORLD_W*WORLD_H&&!!(landMask[i>>3]&(1<<(i&7)));
+const at=(x,y)=>Number.isInteger(x)&&Number.isInteger(y)&&x>=0&&x<WORLD_W&&y>=0&&y<WORLD_H?x+y*WORLD_W:-1;
+const adj=(a,b)=>Math.abs(a%WORLD_W-b%WORLD_W)+Math.abs(Math.floor(a/WORLD_W)-Math.floor(b/WORLD_W))===1;
+const neighbor=i=>[i%WORLD_W?i-1:-1,i%WORLD_W<WORLD_W-1?i+1:-1,i>=WORLD_W?i-WORLD_W:-1,i<WORLD_W*(WORLD_H-1)?i+WORLD_W:-1].filter(n=>n>=0);
+const coast=new Uint8Array(WORLD_W*WORLD_H),region=new Int32Array(WORLD_W*WORLD_H).fill(-1);
+const landIndices=[];
+for(let i=0;i<WORLD_W*WORLD_H;i++)if(isLand(i)){
+ landIndices.push(i);
+ if(neighbor(i).some(n=>!isLand(n)))coast[i]=1;
 }
-function makeMap(){
- const out=[];
- for(let y=0;y<32;y++)for(let x=0;x<64;x++){
-  const land=continents.some(p=>inside(x+.5,y+.5,p));
-  const n=land&&((x*19+y*7)%83===0)?4:0;
-  out.push(land?{owner:null,def:6+n,kind:"",fort:0}:{owner:"sea"});
- }
- return out;
+let componentCount=0;
+for(const seed of landIndices){
+ if(region[seed]!==-1)continue;
+ const pending=[seed];region[seed]=componentCount;
+ for(let head=0;head<pending.length;head++)for(const next of neighbor(pending[head]))if(isLand(next)&&region[next]===-1){region[next]=componentCount;pending.push(next)}
+ componentCount++;
 }
-const world={cells:makeMap(),players:{},start:Date.now(),winner:null};
-const at=(x,y)=>Number.isInteger(x)&&Number.isInteger(y)&&x>=0&&x<64&&y>=0&&y<32?x+y*64:-1;
-const adj=(a,b)=>Math.abs(a%64-b%64)+Math.abs(Math.floor(a/64)-Math.floor(b/64))===1;
+const makeMap=()=>Array.from({length:WORLD_W*WORLD_H},(_,i)=>isLand(i)?{owner:null,def:4+(i*17%5),kind:"",fort:0}:{owner:"sea"});
 const colors=["#f0bd67","#72b9c1","#f08381","#9c91d3","#89c574","#d9a0da","#d5c777","#87a5de","#c28d78","#9bc4a6"];
 const clients=new Map(),queues={chess:[],rps:[]},chessGames=new Map(),rpsGames=new Map(),tournaments=new Map();
 const usersOnline=()=>[...new Set([...clients.values()].map(u=>u.id))];
 const channelsFileName="lightning-social.json";
 export function attachLightningLive({server,sessionFromHeaders,dataDir}){
+ const world={cells:makeMap(),players:{},tick:0,winner:null,phase:"waiting",matchId:null,start:0};
+ let worldQueue=[],worldQueueTimer=null;
  const file=path.join(dataDir,channelsFileName);
  let history={};
  try{history=JSON.parse(fs.readFileSync(file,"utf8"))}catch{}
@@ -64,7 +55,7 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir}){
  const sendAll=(evt)=>{for(const ws of clients.keys())safeSend(ws,evt)};
  const clientOf=id=>[...clients.entries()].filter(([,u])=>u.id===id);
  const sendUser=(id,evt)=>{for(const [socket] of clientOf(id))safeSend(socket,evt)};
- const summary=()=>({users:usersOnline().length,queue:{chess:queues.chess.length,rps:queues.rps.length},tournaments:[...tournaments.values()].filter(t=>!t.done).map(t=>({id:t.id,players:t.ids.length,max:4,status:t.status})),games:{chess:chessGames.size,rps:rpsGames.size}});
+ const summary=()=>({users:usersOnline().length,queue:{chess:queues.chess.length,rps:queues.rps.length,world:worldQueue.length},tournaments:[...tournaments.values()].filter(t=>!t.done).map(t=>({id:t.id,players:t.ids.length,max:4,status:t.status})),games:{chess:chessGames.size,rps:rpsGames.size}});
  const presence=()=>sendAll({type:"presence",...summary(),online:usersOnline().map(id=>({id,name:clientOf(id)[0]?.[1]?.name||id}))});
  const validateSend=(ws,msg)=>{
   const u=clients.get(ws);
