@@ -245,69 +245,88 @@ class Hub{
   if(legend)legend.innerHTML='<strong>WORLD POWERS</strong>'+w.players.slice().sort((a,b)=>b.land-a.land).slice(0,10).map(p=>'<div><span style="background:'+E(p.color)+'"></span><label>'+E(p.name)+(p.bot?' <small>BOT</small>':'')+'</label><b>'+p.land.toLocaleString()+'</b></div>').join("");
   this.worldInfo();this.draw();
  }
- draw(){
-  const c=this.$("#hubWorldCanvas"),w=this.world;
-  if(!c||!w||this.view!=="world")return;
-  const r=c.getBoundingClientRect();if(!r.width||!r.height)return;
-  const dpr=Math.min(window.devicePixelRatio||1,2),pw=Math.floor(r.width*dpr),ph=Math.floor(r.height*dpr);
-  if(c.width!==pw||c.height!==ph){c.width=pw;c.height=ph}
-  const ctx=c.getContext("2d",{alpha:false}),scale=this.mapFit()*this.camera.zoom;
-  ctx.setTransform(dpr,0,0,dpr,0,0);
-  const ocean=ctx.createLinearGradient(0,0,0,r.height);ocean.addColorStop(0,"#142e43");ocean.addColorStop(.5,"#204c67");ocean.addColorStop(1,"#0f2b40");
-  ctx.fillStyle=ocean;ctx.fillRect(0,0,r.width,r.height);
-  this.clampCamera();
-  ctx.translate(r.width/2+this.camera.x,r.height/2+this.camera.y);
-  ctx.scale(scale,scale);ctx.translate(-720,-360);
-  ctx.fillStyle="#21516b";ctx.fillRect(0,0,1440,720);
-  const W=w.width||360,H=w.height||180,tw=1440/W,th=720/H,palette=new Map(w.players.map(p=>[p.id,p.color]));
-  for(let y=0;y<H;y++){
-   for(let x=0;x<W;){
-    const owner=w.cells[y*W+x];if(owner===-1){x++;continue}
-    let end=x+1;while(end<W&&w.cells[y*W+end]===owner)end++;
-    ctx.fillStyle=palette.get(owner)||(["#9bb691","#b5c099","#c5c9a5","#9aaa7a"][(x*19+y*7)%4]);
-    ctx.fillRect(x*tw,y*th,(end-x)*tw+.12,th+.15);x=end;
-   }
+ buildWorldSurface(w,detail){
+  const W=w.width||360,H=w.height||180,tw=1440/W,th=720/H;
+  const image=document.createElement("canvas");image.width=1440;image.height=720;
+  const ctx=image.getContext("2d"),palette=new Map(w.players.map(p=>[p.id,p.color]));
+  ctx.clearRect(0,0,1440,720);
+  // Fill entire contiguous runs rather than painting 64,800 tiny squares.
+  for(let y=0;y<H;y++)for(let x=0;x<W;){
+   const owner=w.cells[y*W+x];if(owner===-1){x++;continue}
+   let end=x+1;while(end<W&&w.cells[y*W+end]===owner)end++;
+   ctx.fillStyle=palette.get(owner)||(["#9bb691","#b5c099","#c5c9a5","#9aaa7a"][(x*19+y*7)%4]);
+   ctx.fillRect(x*tw,y*th,(end-x)*tw+.14,th+.14);x=end;
   }
-  // Country borders and coastlines are traced from real Natural Earth polygons.
+  // Natural Earth political boundaries and detailed coastlines.
   if(this.worldGeometry?.features){
-   ctx.lineWidth=Math.max(.25,1.05/scale);ctx.strokeStyle="#173447a8";
+   ctx.lineWidth=.65;ctx.strokeStyle="#142d3799";
    for(const feature of this.worldGeometry.features){
     const g=feature.geometry,polys=g.type==="Polygon"?[g.coordinates]:g.type==="MultiPolygon"?g.coordinates:[];
     ctx.beginPath();
     for(const poly of polys)for(const ring of poly){
-     let prev=null;for(const p of ring){
+     let prev=null;
+     for(const p of ring){
       const px=(p[0]+180)*4,py=(90-p[1])*4;
-      if(!prev||Math.abs(px-prev[0])>700)ctx.moveTo(px,py);
-      else ctx.lineTo(px,py);
+      if(!prev||Math.abs(px-prev[0])>700)ctx.moveTo(px,py);else ctx.lineTo(px,py);
       prev=[px,py];
      }
     }
     ctx.stroke();
    }
   }
-  if(this.camera.zoom>3){
-   ctx.strokeStyle="#0a263780";ctx.lineWidth=.35;
+  if(detail){
+   ctx.strokeStyle="#102d3e95";ctx.lineWidth=.4;
    for(let y=0;y<H;y++)for(let x=0;x<W;x++){
-    const i=y*W+x,o=w.cells[i];if(o===-1)continue;
-    if(x<W-1&&w.cells[i+1]!==o){ctx.beginPath();ctx.moveTo((x+1)*tw,y*th);ctx.lineTo((x+1)*tw,(y+1)*th);ctx.stroke()}
-    if(y<H-1&&w.cells[i+W]!==o){ctx.beginPath();ctx.moveTo(x*tw,(y+1)*th);ctx.lineTo((x+1)*tw,(y+1)*th);ctx.stroke()}
+    const i=y*W+x,owner=w.cells[i];if(owner===-1)continue;
+    if(x<W-1&&w.cells[i+1]!==owner){ctx.beginPath();ctx.moveTo((x+1)*tw,y*th);ctx.lineTo((x+1)*tw,(y+1)*th);ctx.stroke()}
+    if(y<H-1&&w.cells[i+W]!==owner){ctx.beginPath();ctx.moveTo(x*tw,(y+1)*th);ctx.lineTo((x+1)*tw,(y+1)*th);ctx.stroke()}
    }
   }
-  if(this.camera.zoom>2)for(const s of w.structures.slice(0,500)){
+  if(detail)for(const s of w.structures.slice(0,500)){
    const x=s.i%W,y=Math.floor(s.i/W);
-   ctx.fillStyle="#152b34";ctx.font="bold 8px sans-serif";ctx.textAlign="center";
+   ctx.fillStyle="#132833";ctx.font="bold 8px sans-serif";ctx.textAlign="center";
    ctx.fillText(({city:"⌂",factory:"⚒",port:"⚓",fort:"◆"})[s.kind]||"·",(x+.5)*tw,(y+.7)*th);
   }
   const centroids=new Map(w.players.map(p=>[p.id,{x:0,y:0,n:0}]));
-  for(let i=0;i<w.cells.length;i++){const a=centroids.get(w.cells[i]);if(a){a.x+=(i%W+.5)*tw;a.y+=(Math.floor(i/W)+.5)*th;a.n++}}
-  for(const p of w.players){
-   const o=centroids.get(p.id);if(!o?.n)continue;
-   const x=o.x/o.n,y=o.y/o.n;
-   ctx.textAlign="center";ctx.font="bold "+Math.max(9,11/Math.sqrt(scale))+"px system-ui";
-   ctx.lineWidth=3;ctx.strokeStyle="#172b36";ctx.strokeText(p.name,x,y);
-   ctx.fillStyle="#fff7df";ctx.fillText(p.name,x,y);
+  for(let i=0;i<w.cells.length;i++){
+   const entry=centroids.get(w.cells[i]);
+   if(entry){entry.x+=(i%W+.5)*tw;entry.y+=(Math.floor(i/W)+.5)*th;entry.n++}
   }
-  if(this.tile){const {x,y}=this.tile;ctx.strokeStyle="#fff3a1";ctx.lineWidth=Math.max(1,2/scale);ctx.strokeRect(x*tw+.1,y*th+.1,tw-.2,th-.2)}
+  this.worldSurface={data:w,geometry:this.worldGeometry,detail,image,centroids};
+ }
+ draw(){
+  const c=this.$("#hubWorldCanvas"),w=this.world;
+  if(!c||!w||this.view!=="world")return;
+  const r=c.getBoundingClientRect();if(!r.width||!r.height)return;
+  const dpr=Math.min(window.devicePixelRatio||1,2),pw=Math.floor(r.width*dpr),ph=Math.floor(r.height*dpr);
+  if(c.width!==pw||c.height!==ph){c.width=pw;c.height=ph}
+  const detail=this.camera.zoom>3,cache=this.worldSurface;
+  if(!cache||cache.data!==w||cache.geometry!==this.worldGeometry||cache.detail!==detail)this.buildWorldSurface(w,detail);
+  const ctx=c.getContext("2d",{alpha:false}),scale=this.mapFit()*this.camera.zoom;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  const ocean=ctx.createLinearGradient(0,0,0,r.height);
+  ocean.addColorStop(0,"#142e43");ocean.addColorStop(.5,"#204c67");ocean.addColorStop(1,"#0f2b40");
+  ctx.fillStyle=ocean;ctx.fillRect(0,0,r.width,r.height);
+  this.clampCamera();
+  const originX=r.width/2+this.camera.x,originY=r.height/2+this.camera.y;
+  ctx.translate(originX,originY);ctx.scale(scale,scale);ctx.translate(-720,-360);
+  ctx.fillStyle="#22536c";ctx.fillRect(0,0,1440,720);
+  ctx.drawImage(this.worldSurface.image,0,0);
+  if(this.tile){
+   const tw=1440/w.width,th=720/w.height,{x,y}=this.tile;
+   ctx.strokeStyle="#fff4a3";ctx.lineWidth=Math.max(.6,2/scale);
+   ctx.strokeRect(x*tw+.15,y*th+.15,tw-.3,th-.3);
+  }
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.font="700 11px system-ui";ctx.textAlign="center";ctx.lineWidth=3;
+  for(const p of w.players){
+   const entry=this.worldSurface.centroids.get(p.id);
+   if(!entry?.n)continue;
+   const x=originX+((entry.x/entry.n)-720)*scale,y=originY+((entry.y/entry.n)-360)*scale;
+   if(x<0||y<0||x>r.width||y>r.height)continue;
+   ctx.strokeStyle="#122534";ctx.strokeText(p.name,x,y);
+   ctx.fillStyle="#fff4d6";ctx.fillText(p.name,x,y);
+  }
   const indicator=this.$("#hubZoom");if(indicator)indicator.textContent=Math.round(this.camera.zoom*100)+"%";
  }
  act(action,button){
