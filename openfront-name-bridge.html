@@ -1,0 +1,23 @@
+<script>
+/* Lightning-approved player name bridge, limited to the actual Lightning origin. */
+(function () {
+  "use strict";
+  var TRUSTED_ORIGIN = "https://bolt-v5-preview-production.up.railway.app";
+  window.addEventListener("message", function (event) {
+    if (event.source !== window.parent || event.origin !== TRUSTED_ORIGIN) return;
+    var payload = event.data;
+    if (!payload || payload.type !== "lightning:setPlayerName") return;
+    var name = String(payload.name || "").trim().toLowerCase();
+    if (!/^[a-z0-9._-]{3,32}$/.test(name)) return;
+    try {
+      if (window.localStorage.getItem("username") !== name) {
+        window.localStorage.setItem("username", name);
+        window.localStorage.setItem("usernameIsGenerated", "false");
+        location.reload();
+      }
+    } catch (err) {
+      window.parent.postMessage({type:"lightning:nameBridgeError"} , TRUSTED_ORIGIN);
+    }
+  });
+})();
+</script>
