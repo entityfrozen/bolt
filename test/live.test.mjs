@@ -181,7 +181,7 @@ test("WorldPvP permits distant land campaigns but rejects inland water jumps", a
   return x>0&&x<W-1&&[i-1,i+1,i-W,i+W].every(j=>cells[j]!==-1);
  });
  assert.ok(farInland>=0,"there should be inland land on another continent");
- await delay(190);
+ await delay(1050);
  alice.send(JSON.stringify({type:"worldAction",action:"attack",x:farInland%W,y:Math.floor(farInland/W),ratio:.7}));
  const failed=await env.until(()=>env.messages.get(alice).find(m=>m.type==="worldInfo"&&/No land route|Naval attacks/.test(m.text)));
  assert.match(failed.text,/No land route/);
