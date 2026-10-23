@@ -137,3 +137,52 @@ test("WorldPvP captures neutral land on a real-world landmass", async t => {
   const second=await env.until(()=>env.messages.get(alice).find(m=>m.type==="world"&&m.players.find(p=>p.id==="alice")?.land>before));
   assert.ok(second.players.find(p=>p.id==="alice").land>before);
 });
+
+
+test("Chess bot responds after a legal highlighted opening move", async t => {
+ const env=await setup(t),alice=await env.connect("alice");
+ alice.send(JSON.stringify({type:"chessBot"}));
+ const start=await env.until(()=>env.messages.get(alice).find(m=>m.type==="chessStart"));
+ assert.equal(start.color,"w");
+ assert.ok(start.legal.some(m=>m.from==="e2"&&m.to==="e4"),"opening options should be sent to the client");
+ await delay(180);
+ alice.send(JSON.stringify({type:"chessMove",id:start.id,from:"e2",to:"e4"}));
+ const state=await env.until(()=>env.messages.get(alice).find(m=>m.type==="chessState"&&m.last==="e4"));
+ assert.equal(state.turn,"b");
+ const response=await env.until(()=>env.messages.get(alice).find(m=>m.type==="chessState"&&m.turn==="w"&&m.last!=="e4"));
+ assert.ok(response.legal.length>0,"client should receive legal destinations when it's their turn");
+});
+
+test("WorldPvP permits distant land campaigns but rejects inland water jumps", async t => {
+ const env=await setup(t),alice=await env.connect("alice");
+ alice.send(JSON.stringify({type:"worldQueue"}));
+ const first=await env.until(()=>env.messages.get(alice).find(m=>m.type==="world"&&m.phase==="playing"&&m.players.some(p=>p.id==="alice")));
+ const {width:W,height:H,cells}=first;
+ const own=cells.findIndex(o=>o==="alice");
+ const reachable=new Uint8Array(cells.length),queue=[own];reachable[own]=1;
+ for(let k=0;k<queue.length;k++){
+  const i=queue[k],x=i%W,y=Math.floor(i/W);
+  for(const n of [x>0?i-1:-1,x<W-1?i+1:-1,y>0?i-W:-1,y<H-1?i+W:-1]){
+   if(n<0||reachable[n]||cells[n]===-1)continue;
+   reachable[n]=1;queue.push(n);
+  }
+ }
+ const ox=own%W,oy=Math.floor(own/W);
+ const distant=cells.findIndex((o,i)=>o===""&&reachable[i]&&Math.abs(i%W-ox)+Math.abs(Math.floor(i/W)-oy)>20);
+ assert.ok(distant>=0,"have reachable neutral land outside immediate border");
+ await delay(190);
+ alice.send(JSON.stringify({type:"worldAction",action:"attack",x:distant%W,y:Math.floor(distant/W),ratio:.9}));
+ const victory=await env.until(()=>env.messages.get(alice).find(m=>m.type==="world"&&m.cells[distant]==="alice"));
+ assert.equal(victory.cells[distant],"alice");
+ // An inland target on a disconnected landmass cannot be landed on by ship.
+ const farInland=cells.findIndex((o,i)=>{
+  if(o!==""||reachable[i]||i<=W||i>=W*(H-1))return false;
+  const x=i%W;
+  return x>0&&x<W-1&&[i-1,i+1,i-W,i+W].every(j=>cells[j]!==-1);
+ });
+ assert.ok(farInland>=0,"there should be inland land on another continent");
+ await delay(190);
+ alice.send(JSON.stringify({type:"worldAction",action:"attack",x:farInland%W,y:Math.floor(farInland/W),ratio:.7}));
+ const failed=await env.until(()=>env.messages.get(alice).find(m=>m.type==="worldInfo"&&/No land route|Naval attacks/.test(m.text)));
+ assert.match(failed.text,/No land route/);
+});
