@@ -779,13 +779,11 @@ async function renderAdminPanel(){
     dom.panelBody.innerHTML=`
       <div class="admin-tabs">
         <button class="admin-tab active" data-admin-tab="users">Users</button>
-        <button class="admin-tab" data-admin-tab="passes">Temp access</button>
         <button class="admin-tab" data-admin-tab="controls">Controls</button>
         <button class="admin-tab" data-admin-tab="sessions">Sessions</button>
         <button class="admin-tab" data-admin-tab="audit">Audit</button>
       </div>
       <div class="admin-view active" data-admin-view="users"></div>
-      <div class="admin-view" data-admin-view="passes"></div>
       <div class="admin-view" data-admin-view="controls"></div>
       <div class="admin-view" data-admin-view="sessions"></div>
       <div class="admin-view" data-admin-view="audit"></div>`;
@@ -794,7 +792,6 @@ async function renderAdminPanel(){
       $$(".admin-view").forEach(view=>view.classList.toggle("active",view.dataset.adminView===button.dataset.adminTab));
     }));
     renderAdminUsers(data);
-    renderAdminPasses(data);
     renderAdminControls(data);
     renderAdminSessions(data);
     renderAdminAudit(data);
@@ -814,6 +811,7 @@ function renderAdminUsers(data){
       <div class="field"><span>Access length</span><select class="select" id="newUserExpiry"><option value="0">No expiry</option><option value="60">1 hour</option><option value="1440">1 day</option><option value="10080">7 days</option><option value="43200">30 days</option></select></div>
       <div class="button-row"><button class="button primary" id="createUser" type="button">Create account</button></div>
     </section>
+    <section class="panel-section"><h3>Pending approval <span id="pendingCount"></span></h3><div id="pendingApprovals"></div></section>
     <section class="panel-section"><h3>Accounts</h3><div id="adminUserTable"></div></section>`;
   $("#createUser").addEventListener("click",async()=>{
     const minutes=Number($("#newUserExpiry").value);
@@ -829,20 +827,34 @@ function renderAdminUsers(data){
       renderAdminPanel();
     }catch(error){toast(error.message)}
   });
+  const pending=data.users.filter(user=>user.approved===false);
+  $("#pendingCount").textContent="("+pending.length+")";
+  const pendingPanel=$("#pendingApprovals");
+  if(!pending.length)pendingPanel.innerHTML='<div class="empty-row">No accounts waiting for approval.</div>';
+  else for(const user of pending){
+    const row=document.createElement("div");row.className="history-item";
+    const details=document.createElement("div");
+    details.innerHTML="<strong>"+escapeHtml(user.username)+"</strong><span>Requested "+formatDate(user.createdAt)+"</span>";
+    const actions=document.createElement("div");actions.className="row-actions";
+    actions.append(actionButton("Approve",()=>adminPatchUser(user.id,{approved:true})),
+      actionButton("Reject",()=>adminDeleteUser(user),true));
+    row.append(details,actions);pendingPanel.append(row);
+  }
   const holder=$("#adminUserTable");
   const table=document.createElement("table");
   table.className="admin-table";
   table.innerHTML="<thead><tr><th>User</th><th>Access</th><th>Role</th><th></th></tr></thead>";
   const body=document.createElement("tbody");
-  data.users.forEach(user=>{
+  data.users.slice().sort((a,b)=>Number(a.approved!==false)-Number(b.approved!==false)).forEach(user=>{
     const row=document.createElement("tr");
     row.innerHTML=`
       <td><span class="admin-user">${escapeHtml(user.username)}</span></td>
-      <td>${user.enabled?(user.expiresAt?formatDate(user.expiresAt):"active"):"disabled"}</td>
+      <td>${user.approved===false?"Awaiting approval":user.enabled?(user.expiresAt?formatDate(user.expiresAt):"Active"):"Disabled"}</td>
       <td><span class="admin-badge ${user.role==="admin"?"admin":""} ${!user.enabled?"off":""}">${escapeHtml(user.role)}</span></td>
       <td><div class="row-actions"></div></td>`;
     const actions=row.querySelector(".row-actions");
     actions.append(
+      ...(user.approved===false?[actionButton("Approve",()=>adminPatchUser(user.id,{approved:true}))]:[]),
       actionButton(user.enabled?"off":"on",()=>adminPatchUser(user.id,{enabled:!user.enabled})),
       actionButton(user.role==="admin"?"user":"admin",()=>adminPatchUser(user.id,{role:user.role==="admin"?"user":"admin"})),
       actionButton("time",()=>adminSetExpiry(user)),
@@ -898,64 +910,12 @@ async function adminRevokeUser(id){
 }
 
 async function adminDeleteUser(user){
-  if(!confirm(`Delete ${user.username}?`))return;
+  if(!confirm(`${user.approved===false?"Reject access and delete":"Delete"} ${user.username}?`))return;
   try{
     await api(`/api/admin/users/${user.id}`,{method:"DELETE"});
     toast("Account deleted");
     renderAdminPanel();
   }catch(error){toast(error.message)}
-}
-
-function renderAdminPasses(data){
-  const view=$('[data-admin-view="passes"]');
-  view.innerHTML=`
-    <section class="panel-section">
-      <h3>Issue temporary access</h3>
-      <div class="field"><span>Label</span><input class="input" id="passLabel" placeholder="friend, tester, guest"></div>
-      <div class="field"><span>Length</span><select class="select" id="passMinutes"><option value="30">30 minutes</option><option value="60" selected>1 hour</option><option value="360">6 hours</option><option value="1440">1 day</option><option value="10080">7 days</option></select></div>
-      <div class="field"><span>Uses</span><input class="input" id="passUses" type="number" min="1" max="100" value="1"></div>
-      <div class="button-row"><button class="button primary" id="createPass" type="button">Create code</button></div>
-      <div id="newPassCode"></div>
-    </section>
-    <section class="panel-section"><h3>Active codes</h3><div id="passList"></div></section>`;
-  $("#createPass").addEventListener("click",async()=>{
-    try{
-      const result=await api("/api/admin/passes",{method:"POST",body:JSON.stringify({
-        label:$("#passLabel").value,
-        minutes:Number($("#passMinutes").value),
-        maxUses:Number($("#passUses").value)
-      })});
-      const box=$("#newPassCode");
-      box.innerHTML=`<div class="pass-code"><span>${escapeHtml(result.pass.code)}</span><button class="icon-mini" type="button">${svg("i-copy")}</button></div>`;
-      box.querySelector("button").addEventListener("click",()=>navigator.clipboard.writeText(result.pass.code).then(()=>toast("Code copied")));
-      setTimeout(()=>refreshAdminPassList(),100);
-    }catch(error){toast(error.message)}
-  });
-  renderPassList(data.passes);
-}
-
-async function refreshAdminPassList(){
-  try{
-    const data=await api("/api/admin/state");
-    renderPassList(data.passes);
-  }catch{}
-}
-
-function renderPassList(passes){
-  const list=$("#passList");
-  if(!list)return;
-  list.replaceChildren();
-  if(!passes.length){list.innerHTML='<div class="empty-row">No active codes.</div>';return}
-  passes.forEach(pass=>{
-    const row=document.createElement("div");
-    row.className="history-item";
-    row.innerHTML=`<div><strong>${escapeHtml(pass.label)}</strong><span>${pass.uses}/${pass.maxUses} uses · expires ${formatDate(pass.expiresAt)}</span></div>`;
-    const remove=actionButton("revoke",async()=>{
-      try{await api(`/api/admin/passes/${pass.id}`,{method:"DELETE"});renderAdminPanel()}catch(error){toast(error.message)}
-    },true);
-    row.append(remove);
-    list.append(row);
-  });
 }
 
 function renderAdminControls(data){
