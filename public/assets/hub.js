@@ -320,7 +320,7 @@ class Hub{
   if(action==="back")return this.show("games");
   if(action==="chessView"){this.chess=null;return this.show("chess")}
   if(action==="rpsView"){this.rps=null;return this.show("rps")}
-  if(action==="worldView")return this.show("world");
+  if(action==="worldView"){this.worldActive=false;this.worldQueueing=false;this.world=null;this.camera={zoom:1,x:0,y:0};return this.show("world")};
   if(action==="chessBot"){this.chess=null;return this.send({type:"chessBot"})}
   if(action==="chessQueue"||action==="rpsQueue")return this.send({type:"queue",game:action==="chessQueue"?"chess":"rps"});
   if(action==="tournament")return this.send({type:"tournamentJoin"});
@@ -340,11 +340,15 @@ class Hub{
    this.flash("Select your piece, then a highlighted square.");
   }
   if(action==="rpsPick")return this.send({type:"rpsChoice",id:this.rps?.id,choice:button.dataset.choice});
-  if(action==="worldJoin")return this.send({type:"worldJoin"});
+  if(action==="worldQueue"){this.worldQueueing=true;this.worldScreen();if(!this.send({type:"worldQueue"})){this.worldQueueing=false;this.worldScreen()}return}
+  if(action==="worldCancel"){this.worldQueueing=false;this.worldScreen();return this.send({type:"worldCancel"})}
+  if(action==="zoomIn")return this.zoomMap(1.45);
+  if(action==="zoomOut")return this.zoomMap(1/1.45);
+  if(action==="centerMap"){this.camera={zoom:1,x:0,y:0};return this.draw()}
   if(["attack","build","nuke","ally"].includes(action)){
    if(!this.tile)return this.flash("Select a territory on the map first.");
    const {x,y}=this.tile;
-   const owner=this.world?.cells[y*64+x];
+   const owner=this.world?.cells[y*(this.world?.width||360)+x];
    return this.send({type:"worldAction",action:action==="attack"?"attack":action==="nuke"?"nuke":action==="ally"?"alliance":"build",x,y,kind:button.dataset.kind,target:owner,ratio:Number(this.$("#hubRatio")?.value)||.25});
   }
  }
@@ -352,7 +356,7 @@ class Hub{
 export function openHub(view="chat"){
  const root=document.getElementById("hubMount");if(!root)return;
  if(!document.getElementById("lightningHubCss")){
-  const css=document.createElement("link");css.id="lightningHubCss";css.rel="stylesheet";css.href="/assets/hub.css?v=1";document.head.append(css);
+  const css=document.createElement("link");css.id="lightningHubCss";css.rel="stylesheet";css.href="/assets/hub.css?v=2";document.head.append(css);
  }
  if(!INSTANCE)INSTANCE=new Hub(root);
  INSTANCE.open(view);
