@@ -9,6 +9,17 @@ export function installWorldPort(Hub) {
   const previousShow = Hub.prototype.show;
   const previousAct = Hub.prototype.act;
   const previousClose = Hub.prototype.close;
+  const previousMessage = Hub.prototype.onMessage;
+  Hub.prototype.sendWorldName = function(){
+    const frame=this.$(".openfront-port-frame");
+    if(!frame?.contentWindow||!this.name)return;
+    frame.contentWindow.postMessage({type:"lightning:setPlayerName",name:this.name},"https://lightning-openfront-production.up.railway.app");
+    const slot=this.$("#worldAccountName");if(slot)slot.textContent="Player: "+this.name;
+  };
+  Hub.prototype.onMessage = function(message){
+    previousMessage.call(this,message);
+    if(message.type==="hello")this.sendWorldName();
+  };
 
   Hub.prototype.worldScreen = function () {
     this.header("WorldPvP", "OpenFront engine · Self-hosted on Lightning");
@@ -24,6 +35,7 @@ export function installWorldPort(Hub) {
           <small>Powered by OpenFront · Full strategy engine</small></div>
         </div>
         <span class="openfront-port-grow"></span>
+        <span id="worldAccountName" class="openfront-port-account">Player: syncing…</span>
         <a href="${GAME_URL}" target="_blank" rel="noopener noreferrer"
            class="openfront-port-action">↗ Open in a tab</a>
         <button data-act="back" class="openfront-port-action" type="button">← Arcade</button>
@@ -40,6 +52,8 @@ export function installWorldPort(Hub) {
         · <a href="https://github.com/openfrontio/OpenFrontIO/blob/main/LICENSE-ASSETS"
              target="_blank" rel="noopener noreferrer">Asset terms</a>
       </div>`;
+    mount.querySelector(".openfront-port-frame")?.addEventListener("load",()=>this.sendWorldName());
+    this.sendWorldName();
   };
 
   Hub.prototype.act = function (action, button) {
