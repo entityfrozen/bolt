@@ -265,7 +265,7 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir}){
   const id=uid(),game={id,ids,choices:{},tournament,bot:ids.includes("npc:rps")};
   if(game.bot)game.choices["npc:rps"]=["rock","paper","scissors"][Math.floor(Math.random()*3)];
   rpsGames.set(id,game);
-  for(const user of ids)if(user!=="npc:rps")sendUser(user,{type:"rpsStart",id,players:ids.map(z=>z==="npc:rps"?"Lightning Bot":clientOf(z)[0]?.[1]?.name||z),tournament,bot:game.bot});
+  for(const user of ids)if(user!=="npc:rps")sendUser(user,{type:"rpsStart",id,ids,players:ids.map(z=>z==="npc:rps"?"Lightning Bot":clientOf(z)[0]?.[1]?.name||z),tournament,bot:game.bot});
   return game;
  }
  function rpsChoice(u,data){
@@ -392,7 +392,13 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir}){
     options.sort((a,b)=>(world.cells[a].owner?1:0)-(world.cells[b].owner?1:0));
     target=options[0];break;
    }
-   if(target<0&&coast[territory[0]])target=landIndices[Math.floor(Math.random()*landIndices.length)];
+   // When land frontiers are exhausted, a coastal empire can invade another shore.
+   if(target<0&&territory.some(i=>coast[i])){
+    for(let tries=0;tries<45;tries++){
+     const next=landIndices[Math.floor(Math.random()*landIndices.length)];
+     if(coast[next]&&world.cells[next].owner!==p.id){target=next;break}
+    }
+   }
    if(target>=0)capture(p,target,.4+Math.random()*.4);
   }
   checkWorldWin();
