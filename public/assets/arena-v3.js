@@ -1,3 +1,4 @@
+import {installWorldRenderer} from "./world-renderer.js";
 
 /* Lightning game surfaces. The server remains authoritative for every move. */
 const esc = value => String(value ?? "").replace(/[&<>"']/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
@@ -129,7 +130,8 @@ export function installArenaPolish(Hub){
       return;
     }
     clearInterval(this.worldQueueInterval);this.worldQueueInterval=null;
-    mount.innerHTML='<section class="wp-root wp-battle"><header class="wp-top"><div class="wp-title"><strong>WORLD<span>PVP</span></strong><small>THE WAR ROOM</small></div><div class="wp-counters"><div class="wp-counter"><small>LAND CONTROL</small><strong id="hubLand">0%</strong></div><div class="wp-counter"><small>INFANTRY</small><strong id="hubTroops">0</strong></div><div class="wp-counter"><small>TREASURY</small><strong id="hubGold">0</strong></div><div class="wp-counter"><small>EMPIRES</small><strong id="hubNations">0</strong></div><div class="wp-counter"><small>CAMPAIGN</small><strong id="hubWorldDay">0</strong></div></div><span class="hub-spacer"></span><span class="wp-online">● LIVE</span><button class="wp-exit" data-act="worldLeave">Leave match ↗</button></header><div class="wp-field"><canvas id="hubWorldCanvas" tabindex="0" aria-label="World map. Drag to pan, scroll to zoom, select territories to command."></canvas><div class="wp-center-label">THE WORLD IS YOURS TO CONQUER</div><aside class="wp-overlay wp-left"><div class="wp-panel-head"><strong>WORLD POWERS</strong><small>RANK / LAND</small></div><div id="hubWorldLegend" class="hub-world-legend"></div></aside><aside class="wp-overlay wp-right"><div class="wp-panel-head"><strong>TACTICAL INTEL</strong><small>◈ MAP CELL</small></div><div class="wp-right-info"><div id="hubWorldInfo" class="hub-world-tooltip"><b>Planet Earth</b><small>Choose a region to see your options.</small></div><div class="wp-orders"><div class="wp-order-head"><strong>ISSUE ORDERS</strong><small class="hub-label">LIVE</small></div><button id="hubAttack" class="wp-attack" data-act="attack" disabled>⚔ SELECT AN ENEMY</button><div class="wp-order-grid"><button data-act="build" data-kind="city">⌂ City · 170</button><button data-act="build" data-kind="factory">⚒ Factory · 230</button><button data-act="build" data-kind="port">⚓ Port · 160</button><button data-act="build" data-kind="fort">⬟ Fort · 130</button><button data-act="ally">🤝 Alliance</button><button data-act="nuke">☢ Strike · 1800</button></div><p class="wp-order-note">Select your own land to build. Select a rival or neutral region to attack. Coastal access is required to cross water.</p></div></div><div class="wp-commander"><span>ARMY COMMITMENT</span><select id="hubRatio" aria-label="Army commitment"><option value=".2">20%</option><option value=".4" selected>40%</option><option value=".65">65%</option><option value=".9">90%</option></select></div><div id="hubNavy" class="wp-navy">NAVAL STATUS <b>CHECKING</b></div></aside><div class="wp-controls"><button data-act="zoomOut" aria-label="Zoom out">−</button><span id="hubZoom">100%</span><button data-act="zoomIn" aria-label="Zoom in">+</button><button data-act="centerMap" aria-label="Show entire world" title="Show entire world">⌖</button></div><div class="wp-footer"><span class="wp-help"><strong>DRAG</strong> MAP</span><span>SCROLL / PINCH TO ZOOM</span><span>CLICK LAND TO TARGET</span><span>DOUBLE CLICK TO ZOOM</span></div></div></section>';
+    mount.innerHTML='<section class="wp-root wp-battle"><header class="wp-top"><div class="wp-title"><strong>WORLD<span>PVP</span></strong><small>THE WAR ROOM</small></div><div class="wp-counters"><div class="wp-counter"><small>LAND CONTROL</small><strong id="hubLand">0%</strong></div><div class="wp-counter"><small>INFANTRY</small><strong id="hubTroops">0</strong></div><div class="wp-counter"><small>TREASURY</small><strong id="hubGold">0</strong></div><div class="wp-counter"><small>EMPIRES</small><strong id="hubNations">0</strong></div><div class="wp-counter"><small>CAMPAIGN</small><strong id="hubWorldDay">0</strong></div></div><span class="hub-spacer"></span><span class="wp-online">● LIVE</span><button class="wp-exit" data-act="worldLeave">Leave match ↗</button></header><div class="wp-field"><canvas id="hubWorldCanvas" tabindex="0" aria-label="World map. Drag to pan, scroll to zoom, select territories to command."></canvas><div class="wp-center-label">THE WORLD IS YOURS TO CONQUER</div><aside class="wp-overlay wp-left"><div class="wp-panel-head"><strong>WORLD POWERS</strong><small>RANK / LAND</small></div><div id="hubWorldLegend" class="hub-world-legend"></div></aside><aside class="wp-overlay wp-right"><div class="wp-panel-head"><strong>TACTICAL INTEL</strong><small>◈ MAP CELL</small></div><div class="wp-right-info"><div id="hubWorldInfo" class="hub-world-tooltip"><b>Planet Earth</b><small>Choose a region to see your options.</small></div></div><div id="hubNavy" class="wp-navy">⚓ NAVAL STATUS <b>CHECKING</b></div><div class="wp-command-legend">Drag the map · Scroll to zoom · Click land to target</div></aside><div class="wp-commandbar"><div class="wp-army"><small>TROOP COMMITMENT</small><strong id="worldCommitCaption">40% · Ready</strong><select id="hubRatio" aria-label="Army commitment"><option value=".10">10%</option><option value=".25" selected>25%</option><option value=".40">40%</option><option value=".60">60%</option><option value=".75">75%</option><option value=".90">90%</option></select></div><button id="hubAttack" class="wp-attack" data-act="attack" disabled>⚔ SELECT TARGET</button><div class="wp-builds"><button data-act="build" data-kind="city" title="City · 170 gold">⌂<small>170</small></button><button data-act="build" data-kind="factory" title="Factory · 230 gold">⚒<small>230</small></button><button data-act="build" data-kind="port" title="Port · 160 gold">⚓<small>160</small></button><button data-act="build" data-kind="fort" title="Fort · 130 gold">◆<small>130</small></button><button data-act="ally" title="Toggle alliance">🤝</button><button data-act="nuke" title="Nuclear strike · 1800 gold">☢<small>1800</small></button></div><div id="worldCampaigns" class="wp-campaigns">SELECT LAND TO BEGIN</div></div><div class="wp-controls"><button data-act="zoomOut" aria-label="Zoom out">−</button><span id="hubZoom">100%</span><button data-act="zoomIn" aria-label="Zoom in">+</button><button data-act="centerMap" aria-label="Show entire world" title="Show entire world">⌖</button></div><div class="wp-footer"><span class="wp-help"><strong>DRAG</strong> MAP</span><span>SCROLL / PINCH TO ZOOM</span><span>CLICK LAND TO TARGET</span><span>DOUBLE CLICK TO ZOOM</span></div></div></section>';
+    this.$("#hubRatio")?.addEventListener("change",()=>this.updateArmyEstimate());
     const canvas=this.$("#hubWorldCanvas");
     this.pointers=new Map();this.lastPinchDist=null;
     canvas.addEventListener("wheel",event=>{
@@ -186,6 +188,14 @@ export function installArenaPolish(Hub){
     });
     ensureGeography(this);this.worldUpdate();
   };
+  Hub.prototype.updateArmyEstimate=function(){
+    const el=this.$("#worldCommitCaption"),w=this.world,me=w?.players?.find(p=>p.id===this.id);
+    if(!el||!me)return;
+    const ratio=Number(this.$("#hubRatio")?.value)||.25;
+    const troops=Math.floor(me.troops*ratio);
+    const tiles=Math.min(200,Math.max(2,Math.floor(troops/19)));
+    el.textContent=troops.toLocaleString()+" troops · up to "+tiles+" tiles";
+  };
   Hub.prototype.worldInfo=function(){
     const el=this.$("#hubWorldInfo"),w=this.world;
     if(!el)return;
@@ -206,7 +216,7 @@ export function installArenaPolish(Hub){
     const territory=country||"Uncharted territory";
     const mode=owner===me?.id?"YOUR LAND":route.allowed?route.name.toUpperCase():route.name.toUpperCase();
     el.innerHTML='<b>'+esc(title)+'</b><small>'+esc(territory)+' · '+Math.abs(lat).toFixed(1)+'°'+(lat>=0?"N":"S")+' / '+Math.abs(lon).toFixed(1)+'°'+(lon>=0?"E":"W")+'<br>Structure: '+esc(structure)+'<br><strong class="'+(route.allowed?"":"wp-intel-off")+'">'+esc(mode)+'</strong></small>';
-    if(attack){attack.disabled=!route.allowed||!this.worldActive;attack.textContent=route.allowed?(route.mode==="naval"?"⚓ LAUNCH NAVAL ASSAULT":"⚔ ATTACK TERRITORY"):"⚔ NO VALID ATTACK ROUTE";}
+    if(attack){attack.disabled=!route.allowed||!this.worldActive||(w.attacks||[]).filter(a=>a.by===this.id).length>=3;attack.textContent=route.allowed?(route.mode==="naval"?"⚓ LAUNCH NAVAL ASSAULT":"⚔ ATTACK TERRITORY"):"⚔ NO VALID ATTACK ROUTE";}
   };
   Hub.prototype.worldUpdate=function(){
     const w=this.world;
@@ -233,7 +243,12 @@ export function installArenaPolish(Hub){
       const navy=this.$("#hubNavy");
       if(navy)navy.innerHTML=ownsCoast?'⚓ NAVAL ACCESS <b>AVAILABLE</b>':'⚓ NAVAL ACCESS <b class="wp-intel-off">LANDLOCKED</b>';
     }
-    this.worldInfo();this.draw();
+    const list=this.$("#worldCampaigns");
+    if(list){
+      const attacks=(w.attacks||[]).filter(a=>a.by===this.id);
+      list.innerHTML=attacks.length?attacks.map(a=>'<div class="wp-campaign"><span>'+ (a.route==="naval"?"⚓":"⚔")+' '+a.captured+'/'+a.limit+' TILES</span><div><i style="width:'+Math.round(a.captured/Math.max(1,a.limit)*100)+'%"></i></div></div>').join(""):'<span>NO ACTIVE CAMPAIGNS</span>';
+    }
+    this.updateArmyEstimate();this.worldInfo();this.draw();
   };
   Hub.prototype.buildWorldSurface=function(w,detail){
     const W=w.width,H=w.height,tw=1440/W,th=720/H,image=document.createElement("canvas");
@@ -378,6 +393,7 @@ export function installArenaPolish(Hub){
     ];
     this.$("#hubContent").innerHTML='<section class="hub-release-scroll arena-releases"><div class="hub-release-hero"><span class="hub-label">LIGHTNING / THE RELEASE JOURNAL</span><h1>Every update.<br><em>Another level.</em></h1><p>What changed, why it matters, and what you can play right now.</p><div class="hub-release-badges"><span>✦ LATEST · VERSION 2.2</span><span>◈ WORLDPVP WAR ROOM</span><span>⚡ LIVE ARCADE</span></div></div><div class="hub-release-list">'+releases.map((p,i)=>'<article class="hub-release"><div class="hub-release-meta"><span class="hub-release-version">'+esc(p.version)+'</span><div><span class="hub-label">'+esc(p.tag)+'</span><small>'+esc(p.date)+'</small></div></div><div class="hub-release-body"><span class="hub-release-number">0'+(i+1)+'</span><h2>'+esc(p.title)+'</h2><p>'+esc(p.desc)+'</p><div class="hub-release-items">'+p.items.map(x=>'<div><span>↗</span> '+esc(x)+'</div>').join("")+'</div></div></article>').join("")+'</div></section>';
   };
+  installWorldRenderer(Hub);
   Hub.prototype.act=function(action,button){
     if(action==="worldView"){this.show("world");return}
     if(action==="worldQueue"||action==="worldBot"){
