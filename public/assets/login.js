@@ -1,61 +1,53 @@
-const errorBox=document.getElementById("authError");
-const tabs=[...document.querySelectorAll("[data-auth-tab]")];
-const forms=[...document.querySelectorAll("[data-auth-form]")];
+const errorBox = document.getElementById("authError");
+const tabs = [...document.querySelectorAll("[data-auth-tab]")];
+const forms = [...document.querySelectorAll("[data-auth-form]")];
+const pending = document.getElementById("authPending");
 
-function setTab(name){
-  tabs.forEach(button=>button.classList.toggle("active",button.dataset.authTab===name));
-  forms.forEach(form=>form.classList.toggle("active",form.dataset.authForm===name));
-  errorBox.textContent="";
+function setTab(name) {
+  tabs.forEach(button => button.classList.toggle("active",button.dataset.authTab === name));
+  forms.forEach(form => form.classList.toggle("active",form.dataset.authForm === name));
+  pending.classList.remove("active");
+  errorBox.textContent = "";
 }
-
-async function embeddedStorage(){
-  if(window.top===window)return;
-  if(!document.requestStorageAccess)return;
-  try{
-    if(document.hasStorageAccess&&await document.hasStorageAccess())return;
-    await document.requestStorageAccess();
-  }catch{}
-}
-
-async function send(url,body){
-  await embeddedStorage();
-  const response=await fetch(url,{
+async function request(url,body) {
+  const res = await fetch(url,{
     method:"POST",
     headers:{"Content-Type":"application/json"},
     body:JSON.stringify(body)
   });
-  const data=await response.json().catch(()=>({}));
-  if(!response.ok)throw new Error(data.error||"Could not sign in");
-  location.replace("/");
+  const json = await res.json().catch(()=>({}));
+  if(!res.ok)throw new Error(json.error || "Something went wrong.");
+  return json;
 }
-
-tabs.forEach(button=>button.addEventListener("click",()=>setTab(button.dataset.authTab)));
-
+tabs.forEach(tab => tab.addEventListener("click",()=>setTab(tab.dataset.authTab)));
 document.getElementById("accountForm").addEventListener("submit",async event=>{
-  event.preventDefault();
-  errorBox.textContent="";
-  try{
-    await send("/api/login",{
+  event.preventDefault();errorBox.textContent="";
+  const button=event.currentTarget.querySelector("[type=submit]");
+  button.disabled=true;
+  try {
+    await request("/api/login",{
       username:document.getElementById("loginUsername").value,
       password:document.getElementById("loginPassword").value
     });
-  }catch(error){
-    errorBox.textContent=error.message;
-  }
+    location.replace("/");
+  } catch(error) { errorBox.textContent=error.message;button.disabled=false; }
 });
-
-document.getElementById("passForm").addEventListener("submit",async event=>{
-  event.preventDefault();
-  errorBox.textContent="";
+document.getElementById("registerForm").addEventListener("submit",async event=>{
+  event.preventDefault();errorBox.textContent="";
+  const form=event.currentTarget,button=form.querySelector("[type=submit]");
+  const username=document.getElementById("registerUsername").value.trim();
+  const password=document.getElementById("registerPassword").value;
+  if(password!==document.getElementById("registerConfirm").value){
+    errorBox.textContent="Your passwords do not match.";return;
+  }
+  button.disabled=true;
   try{
-    await send("/api/access/redeem",{code:document.getElementById("accessCode").value});
-  }catch(error){
-    errorBox.textContent=error.message;
-  }
+    await request("/api/register",{username,password});
+    forms.forEach(form=>form.classList.remove("active"));
+    tabs.forEach(button=>button.classList.remove("active"));
+    pending.classList.add("active");
+    form.reset();
+  }catch(error){errorBox.textContent=error.message}
+  finally{button.disabled=false}
 });
-
-const code=new URL(location.href).searchParams.get("code");
-if(code){
-  setTab("pass");
-  document.getElementById("accessCode").value=code;
-}
+document.getElementById("pendingSignIn").addEventListener("click",()=>setTab("account"));
