@@ -202,3 +202,28 @@ test("RPS bot plays a hidden choice and reveals both moves fairly",async t=>{
  assert.equal(result.choices.alice,"paper");
  assert.ok(["rock","paper","scissors"].includes(result.choices["npc:rps"]));
 });
+
+
+test("WorldPvP instant match starts bot nations and allows reconnecting", async t => {
+  const env=await setup(t),alice=await env.connect("alice");
+  alice.send(JSON.stringify({type:"worldPractice"}));
+  const start=await env.until(()=>env.messages.get(alice).find(m=>m.type==="world"&&m.phase==="playing"&&m.players.some(p=>p.id==="alice")));
+  assert.ok(start.players.some(p=>p.bot),"instant matches should provide NPC opponents");
+  assert.equal(start.width,360);
+  assert.equal(start.height,180);
+  await delay(190);
+  alice.send(JSON.stringify({type:"worldSync"}));
+  const matches=await env.until(()=>env.messages.get(alice).filter(m=>m.type==="worldMatch").length>=2);
+  assert.equal(matches,true,"player should be able to resume an active battle");
+});
+
+test("Chess refresh returns current server state and usable legal moves", async t => {
+  const env=await setup(t),alice=await env.connect("alice");
+  alice.send(JSON.stringify({type:"chessBot"}));
+  const game=await env.until(()=>env.messages.get(alice).find(m=>m.type==="chessStart"));
+  assert.equal(game.color,"w");
+  await delay(190);
+  alice.send(JSON.stringify({type:"chessSync",id:game.id}));
+  const refresh=await env.until(()=>env.messages.get(alice).filter(m=>m.type==="chessStart"&&m.id===game.id).at(-1)?.legal?.some(m=>m.from==="g1"&&m.to==="f3")&&env.messages.get(alice).filter(m=>m.type==="chessStart").length>=2);
+  assert.equal(refresh,true);
+});
