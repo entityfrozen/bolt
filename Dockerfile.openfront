@@ -1,0 +1,74 @@
+# Railway-compatible standalone build of the official OpenFrontIO project.
+# Source: https://github.com/openfrontio/OpenFrontIO (AGPL-3.0).
+# Keep OpenFront's original copyright notices and source attribution intact.
+# Original upstream Dockerfile uses anonymous cache mounts; Railway's builder
+# rejects those. npm ci runs normally here, without Docker cache mounts.
+#
+# Separate from Lightning's browser Dockerfile. Railway sets dockerfilePath
+# to Dockerfile.openfront on the openfront-railway branch.
+
+FROM node:24-slim AS upstream-source
+RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+RUN git clone --depth 1 --single-branch --branch main \
+    https://github.com/openfrontio/OpenFrontIO.git /opt/openfront \
+    && git -C /opt/openfront rev-parse HEAD > /openfront-revision \
+    && rm -rf /opt/openfront/.git
+
+FROM node:24-slim AS node-base
+WORKDIR /usr/src/app
+RUN npm install --global --ignore-scripts npm@12.1.0
+
+FROM node-base AS build
+ENV HUSKY=0
+COPY --from=upstream-source /opt/openfront/ ./
+RUN npm ci --ignore-scripts
+ARG GIT_COMMIT=standalone
+ENV GIT_COMMIT=${GIT_COMMIT}
+RUN npm run build-prod
+
+FROM node-base AS production-dependencies
+ENV HUSKY=0 NPM_CONFIG_IGNORE_SCRIPTS=1
+COPY --from=upstream-source /opt/openfront/package.json /opt/openfront/package-lock.json /opt/openfront/.npmrc ./
+COPY --from=upstream-source /opt/openfront/packages ./packages
+RUN npm ci --omit=dev --ignore-scripts
+
+FROM node-base
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    nginx curl wget supervisor apache2-utils \
+    && rm -rf /var/lib/apt/lists/*
+RUN sed -i 's/worker_connections [0-9]*/worker_connections 8192/' /etc/nginx/nginx.conf \
+    && mkdir -p /var/log/supervisor \
+    && rm -f /etc/nginx/sites-enabled/default
+COPY --from=upstream-source /opt/openfront/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY --from=upstream-source /opt/openfront/nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=upstream-source /opt/openfront/generate-nginx-upstream.sh /usr/local/bin/generate-nginx-upstream.sh
+
+COPY --from=production-dependencies /usr/src/app/node_modules ./node_modules
+COPY --from=upstream-source /opt/openfront/package.json /opt/openfront/package-lock.json ./
+COPY --from=build /usr/src/app/static ./static
+COPY --from=upstream-source /opt/openfront/resources ./resources
+RUN rm -rf ./resources/maps
+COPY --from=upstream-source /opt/openfront/tsconfig.json /opt/openfront/tsconfig.base.json ./
+COPY --from=upstream-source /opt/openfront/client-api.json ./
+COPY --from=upstream-source /opt/openfront/src ./src
+COPY --from=upstream-source /opt/openfront/packages ./packages
+COPY --from=upstream-source /openfront-revision ./static/commit.txt
+
+# Dev mode uses OpenFront's official standalone configuration and test CAPTCHA
+# key; it must not connect to production authentication or matchmaking.
+ENV GAME_ENV=dev \
+    DOMAIN=lightning-openfront-production.up.railway.app \
+    NUM_WORKERS=1 \
+    LOBBY_COORDINATOR=off \
+    TURNSTILE_SITE_KEY=1x00000000000000000000AA \
+    GIT_COMMIT=standalone \
+    PORT=80
+
+RUN printf '%s\n' '#!/bin/sh' \
+    '/usr/local/bin/generate-nginx-upstream.sh' \
+    'exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf' \
+    > /usr/local/bin/start-openfront.sh \
+    && chmod +x /usr/local/bin/start-openfront.sh /usr/local/bin/generate-nginx-upstream.sh
+EXPOSE 80
+ENTRYPOINT ["/usr/local/bin/start-openfront.sh"]
