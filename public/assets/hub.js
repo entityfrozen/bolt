@@ -156,70 +156,159 @@ class Hub{
   host.innerHTML='<section class="hub-game-area"><span class="hub-label">MATCH · '+E(g.id)+'</span><h2>'+(result?result.tie?"Tie round":result.winner===this.id?"You win":"You lose":"Choose your move")+'</h2><p>'+(result?E(Object.entries(result.choices).map(([k,v])=>(k===this.id?"You":"Opponent")+": "+v).join(" • ")):g.waiting?"Waiting for your opponent…":"Both players select a move in secret.")+'</p><div class="hub-rps-choices">'+["rock","paper","scissors"].map((v,i)=>'<button class="hub-btn '+(!g.waiting&&!result?"primary":"")+'" data-act="rpsPick" data-choice="'+v+'" '+(g.waiting||result?"disabled":"")+'> '+["✊","✋","✌️"][i]+" "+v+'</button>').join("")+'</div><div class="hub-actions"><button class="hub-btn" data-act="back">← All games</button></div></section>';
  }
  worldScreen(){
-  this.header("WorldPvP","Realtime territory conquest · Alpha");
+  this.header("WorldPvP","Global conquest · Live nations");
   this.$("#hubContent").innerHTML="";
-  this.$("#hubWorld").innerHTML='<div class="hub-world-top"><div class="hub-world-stat"><span>LAND</span><b id="hubLand">0%</b></div><div class="hub-world-stat"><span>TROOPS</span><b id="hubTroops">0</b></div><div class="hub-world-stat"><span>GOLD</span><b id="hubGold">0</b></div><div class="hub-world-stat"><span>NATIONS</span><b id="hubNations">0</b></div><span class="hub-spacer"></span><button class="hub-btn" data-act="worldJoin">Join</button><button class="hub-btn" data-act="back">← Arcade</button></div><div class="hub-world-stage"><canvas id="hubWorldCanvas"></canvas><div id="hubWorldInfo" class="hub-world-tooltip"><b>WorldPvP</b><small>Choose a territory to scout.</small></div><div id="hubWorldLegend" class="hub-world-legend">NATIONS</div><div class="hub-tip">Claim connected land. Build up troops and use the action bar to expand.</div><div class="hub-world-bottom"><span class="hub-label">COMMIT</span><select id="hubRatio" aria-label="Army commitment"><option value=".1">10%</option><option value=".25" selected>25%</option><option value=".5">50%</option><option value=".75">75%</option></select><button class="hub-btn primary" data-act="attack">⚔ Attack</button><button class="hub-btn" data-act="build" data-kind="city">⌂ City</button><button class="hub-btn" data-act="build" data-kind="factory">⚒ Factory</button><button class="hub-btn" data-act="build" data-kind="port">⚓ Port</button><button class="hub-btn" data-act="build" data-kind="fort">⬟ Fort</button><button class="hub-btn" data-act="ally">🤝 Ally</button><button class="hub-btn" data-act="nuke">☢ Nuke</button></div></div>';
+  const mount=this.$("#hubWorld");
+  const me=this.world?.players?.find(p=>p.id===this.id);
+  if(!this.worldActive&&!me){
+   mount.innerHTML='<section class="world-lobby"><div class="world-lobby-ambient"><span>◈</span></div><div class="world-lobby-main"><div class="world-lobby-kicker">LIGHTNING ARCADE <b> / </b> GRAND STRATEGY</div><h1>World<span>PvP.</span></h1><p class="world-lobby-sub">One planet. A dozen nations. One empire left standing.</p><div class="world-lobby-actions">'+(this.worldQueueing?'<button class="world-play waiting" disabled><span class="world-loader"></span> MATCHMAKING…</button><button class="hub-btn" data-act="worldCancel">Cancel queue</button>':'<button class="world-play" data-act="worldQueue">⚔ &nbsp; PLAY WORLD PVP <span>→</span></button>')+'<button class="world-secondary" data-act="back">← Back to arcade</button></div><div class="world-queue-status"><i></i><span>'+(this.worldQueueing?"Finding your world…":"Live matchmaking · Solo players get NPC opponents")+'</span><b>'+(this.world?.queued||0)+' queued</b></div></div><div class="world-lobby-footer"><div><strong>01</strong><span>Full Earth map<br><small>Zoom · Drag · Conquer</small></span></div><div><strong>02</strong><span>NPC empires<br><small>Bot nations fight back</small></span></div><div><strong>03</strong><span>Real-time warfare<br><small>Coastal navy · Land attacks</small></span></div></div></section>';
+   return;
+  }
+  mount.innerHTML='<div class="hub-world-top"><div class="hub-world-brand"><b>WORLD<span>PVP</span></b><small>LIVE CONQUEST</small></div><div class="hub-world-stat"><span>LAND</span><b id="hubLand">0%</b></div><div class="hub-world-stat"><span>TROOPS</span><b id="hubTroops">0</b></div><div class="hub-world-stat"><span>GOLD</span><b id="hubGold">0</b></div><div class="hub-world-stat"><span>NATIONS</span><b id="hubNations">0</b></div><span class="hub-spacer"></span><span class="world-live-dot">● LIVE MATCH</span><button class="hub-btn" data-act="back">← Arcade</button></div><div class="hub-world-stage"><canvas id="hubWorldCanvas"></canvas><div class="hub-world-maptools"><button data-act="zoomIn" title="Zoom in">+</button><button data-act="zoomOut" title="Zoom out">−</button><button data-act="centerMap" title="Reset view">⌖</button><span id="hubZoom">100%</span></div><div class="hub-world-tooltip" id="hubWorldInfo"><b>Choose a region</b><small>Drag to explore · Scroll to zoom.</small></div><div id="hubWorldLegend" class="hub-world-legend"></div><div class="world-instructions">DRAG TO PAN &nbsp; · &nbsp; SCROLL / PINCH TO ZOOM &nbsp; · &nbsp; TAP TO SELECT</div><div class="hub-world-bottom"><span class="hub-label">SEND</span><select id="hubRatio" aria-label="Army commitment"><option value=".2">20%</option><option value=".4" selected>40%</option><option value=".65">65%</option><option value=".9">90%</option></select><button class="hub-btn primary" data-act="attack">⚔ Attack</button><button class="hub-btn" data-act="build" data-kind="city">⌂ City</button><button class="hub-btn" data-act="build" data-kind="factory">⚒ Factory</button><button class="hub-btn" data-act="build" data-kind="port">⚓ Port</button><button class="hub-btn" data-act="build" data-kind="fort">⬟ Fort</button><button class="hub-btn" data-act="ally">🤝 Ally</button><button class="hub-btn" data-act="nuke">☢ Nuke</button></div></div>';
   const canvas=this.$("#hubWorldCanvas");
-  canvas.addEventListener("click",e=>{
-   const r=canvas.getBoundingClientRect();
-   this.tile={x:Math.max(0,Math.min(63,Math.floor((e.clientX-r.left)/r.width*64))),y:Math.max(0,Math.min(31,Math.floor((e.clientY-r.top)/r.height*32)))};
-   this.worldInfo();this.draw();
+  canvas.style.touchAction="none";
+  canvas.addEventListener("wheel",event=>{event.preventDefault();const r=canvas.getBoundingClientRect();this.zoomMap(event.deltaY<0?1.18:1/1.18,event.clientX-r.left,event.clientY-r.top)},{passive:false});
+  canvas.addEventListener("pointerdown",event=>{
+   canvas.setPointerCapture(event.pointerId);
+   this.pointers.set(event.pointerId,{x:event.clientX,y:event.clientY,downX:event.clientX,downY:event.clientY,moved:false});
   });
-  if(this.socket?.readyState===WebSocket.OPEN)this.send({type:"worldJoin"});
+  canvas.addEventListener("pointermove",event=>{
+   const state=this.pointers.get(event.pointerId);if(!state)return;
+   const dx=event.clientX-state.x,dy=event.clientY-state.y;
+   if(Math.hypot(event.clientX-state.downX,event.clientY-state.downY)>6)state.moved=true;
+   state.x=event.clientX;state.y=event.clientY;
+   if(this.pointers.size===1){this.camera.x+=dx;this.camera.y+=dy;this.clampCamera();this.draw()}
+   else if(this.pointers.size===2){
+    const points=[...this.pointers.values()],distance=Math.hypot(points[0].x-points[1].x,points[0].y-points[1].y);
+    if(this.lastPinchDist&&distance>0)this.zoomMap(distance/this.lastPinchDist,((points[0].x+points[1].x)/2)-canvas.getBoundingClientRect().left,((points[0].y+points[1].y)/2)-canvas.getBoundingClientRect().top);
+    this.lastPinchDist=distance;points.forEach(p=>p.moved=true);
+   }
+  });
+  const release=event=>{
+   const state=this.pointers.get(event.pointerId);if(!state)return;
+   this.pointers.delete(event.pointerId);
+   if(this.pointers.size<2)this.lastPinchDist=null;
+   if(!state.moved&&this.pointers.size===0){const r=canvas.getBoundingClientRect();const cell=this.mapCell(event.clientX-r.left,event.clientY-r.top);if(cell){this.tile=cell;this.worldInfo();this.draw()}}
+  };
+  canvas.addEventListener("pointerup",release);
+  canvas.addEventListener("pointercancel",release);
+  if(!this.worldGeometry)fetch("/assets/world-geography.json").then(r=>r.ok?r.json():null).then(data=>{this.worldGeometry=data;this.draw()}).catch(()=>{});
   this.worldUpdate();
  }
+ mapFit(){
+  const c=this.$("#hubWorldCanvas"),r=c?.getBoundingClientRect();
+  return r?.width&&r?.height?Math.min(r.width/1440,r.height/720)*.98:1;
+ }
+ mapCell(x,y){
+  const c=this.$("#hubWorldCanvas");if(!c)return null;
+  const r=c.getBoundingClientRect(),scale=this.mapFit()*this.camera.zoom;
+  const mx=(x-r.width/2-this.camera.x)/scale+720,my=(y-r.height/2-this.camera.y)/scale+360;
+  const w=this.world?.width||360,h=this.world?.height||180;
+  const cx=Math.floor(mx/1440*w),cy=Math.floor(my/720*h);
+  return cx>=0&&cx<w&&cy>=0&&cy<h?{x:cx,y:cy}:null;
+ }
+ clampCamera(){
+  const c=this.$("#hubWorldCanvas");if(!c)return;
+  const r=c.getBoundingClientRect(),scale=this.mapFit()*this.camera.zoom;
+  const maxX=Math.max(0,(1440*scale-r.width)/2),maxY=Math.max(0,(720*scale-r.height)/2);
+  this.camera.x=Math.max(-maxX,Math.min(maxX,this.camera.x));
+  this.camera.y=Math.max(-maxY,Math.min(maxY,this.camera.y));
+ }
+ zoomMap(factor,x,y){
+  const c=this.$("#hubWorldCanvas");if(!c)return;
+  const r=c.getBoundingClientRect(),prev=this.camera.zoom,next=Math.max(1,Math.min(22,prev*factor));
+  const anchorX=Number.isFinite(x)?x:r.width/2,anchorY=Number.isFinite(y)?y:r.height/2;
+  this.camera.x+=(anchorX-r.width/2-this.camera.x)*(1-next/prev);
+  this.camera.y+=(anchorY-r.height/2-this.camera.y)*(1-next/prev);
+  this.camera.zoom=next;this.clampCamera();this.draw();
+ }
  worldInfo(){
-  const el=this.$("#hubWorldInfo");if(!el)return;
-  if(!this.tile||!this.world){el.innerHTML="<b>WorldPvP</b><small>Click a region to inspect it.</small>";return}
-  const {x,y}=this.tile,i=y*64+x,owner=this.world.cells[i],kind=this.world.structures.find(a=>a.i===i)?.kind||"None";
-  const name=owner===-1?"Ocean":owner===""?"Neutral territory":this.world.players.find(p=>p.id===owner)?.name||"Tribe";
-  el.innerHTML='<b>'+E(name)+'</b><small>Region '+x+', '+y+'<br>Building: '+E(kind)+'</small>';
+  const el=this.$("#hubWorldInfo"),w=this.world;if(!el)return;
+  if(!this.tile||!w){el.innerHTML="<b>Planet Earth</b><small>Click land to inspect the territory. Drag to look around.</small>";return}
+  const {x,y}=this.tile,i=y*w.width+x,owner=w.cells[i],structure=w.structures.find(a=>a.i===i)?.kind||"Unbuilt";
+  const name=owner===-1?"Ocean":owner===""?"Unclaimed land":w.players.find(p=>p.id===owner)?.name||"Unknown empire";
+  const lat=(90-(y+.5)*180/w.height).toFixed(1),lon=(-180+(x+.5)*360/w.width).toFixed(1);
+  el.innerHTML='<b>'+E(name)+'</b><small>'+lat+'° N/S · '+lon+'° E/W<br>Structure: '+E(structure)+'<br>'+(owner===this.id?"Your territory":owner===-1?"Ships cannot land in open water.":"Attack any reachable landmass. Cross water from the coast.")+'</small>';
  }
  worldUpdate(){
   if(!this.world||this.view!=="world")return;
   const w=this.world,me=w.players.find(p=>p.id===this.id);
-  const set=(q,t)=>{const el=this.$(q);if(el)el.textContent=t};
-  set("#hubLand",((me?.land||0)*100/(w.landTotal||1)).toFixed(1)+"%");
+  if(me&&!this.worldActive){this.worldActive=true;this.worldQueueing=false;this.worldScreen();return}
+  if(!me&&!this.worldActive){const count=this.$(".world-queue-status b");if(count)count.textContent=(w.queued||0)+" queued";return}
+  if(!this.$("#hubWorldCanvas"))return;
+  const set=(q,value)=>{const el=this.$(q);if(el)el.textContent=value};
+  set("#hubLand",((me?.land||0)*100/(w.landTotal||1)).toFixed(2)+"%");
   set("#hubTroops",(me?.troops||0).toLocaleString());
   set("#hubGold",(me?.gold||0).toLocaleString());
   set("#hubNations",w.players.length);
   const legend=this.$("#hubWorldLegend");
-  if(legend)legend.innerHTML='<strong>NATIONS</strong>'+w.players.slice(0,10).map(p=>'<div><span style="background:'+E(p.color)+'"></span>'+E(p.name)+' — '+p.land+'</div>').join("");
+  if(legend)legend.innerHTML='<strong>WORLD POWERS</strong>'+w.players.slice().sort((a,b)=>b.land-a.land).slice(0,10).map(p=>'<div><span style="background:'+E(p.color)+'"></span><label>'+E(p.name)+(p.bot?' <small>BOT</small>':'')+'</label><b>'+p.land.toLocaleString()+'</b></div>').join("");
   this.worldInfo();this.draw();
  }
  draw(){
   const c=this.$("#hubWorldCanvas"),w=this.world;
   if(!c||!w||this.view!=="world")return;
-  const rect=c.getBoundingClientRect();if(!rect.width||!rect.height)return;
-  const ratio=Math.min(window.devicePixelRatio||1,2),width=Math.floor(rect.width*ratio),height=Math.floor(rect.height*ratio);
-  if(c.width!==width||c.height!==height){c.width=width;c.height=height}
-  const ctx=c.getContext("2d",{alpha:false}),tw=width/64,th=height/32;
-  ctx.fillStyle="#417ba0";ctx.fillRect(0,0,width,height);
-  const palette=new Map(w.players.map(p=>[p.id,p.color]));
-  for(let y=0;y<32;y++)for(let x=0;x<64;x++){
-   const id=y*64+x,owner=w.cells[id];if(owner===-1)continue;
-   ctx.fillStyle=palette.get(owner)||(["#bcd19a","#d4d5a7","#ebdfb1","#d6bd84"][(x*19+y*7)%4]);
-   ctx.fillRect(x*tw,y*th,tw+.25,th+.25);
+  const r=c.getBoundingClientRect();if(!r.width||!r.height)return;
+  const dpr=Math.min(window.devicePixelRatio||1,2),pw=Math.floor(r.width*dpr),ph=Math.floor(r.height*dpr);
+  if(c.width!==pw||c.height!==ph){c.width=pw;c.height=ph}
+  const ctx=c.getContext("2d",{alpha:false}),scale=this.mapFit()*this.camera.zoom;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  const ocean=ctx.createLinearGradient(0,0,0,r.height);ocean.addColorStop(0,"#142e43");ocean.addColorStop(.5,"#204c67");ocean.addColorStop(1,"#0f2b40");
+  ctx.fillStyle=ocean;ctx.fillRect(0,0,r.width,r.height);
+  this.clampCamera();
+  ctx.translate(r.width/2+this.camera.x,r.height/2+this.camera.y);
+  ctx.scale(scale,scale);ctx.translate(-720,-360);
+  ctx.fillStyle="#21516b";ctx.fillRect(0,0,1440,720);
+  const W=w.width||360,H=w.height||180,tw=1440/W,th=720/H,palette=new Map(w.players.map(p=>[p.id,p.color]));
+  for(let y=0;y<H;y++){
+   for(let x=0;x<W;){
+    const owner=w.cells[y*W+x];if(owner===-1){x++;continue}
+    let end=x+1;while(end<W&&w.cells[y*W+end]===owner)end++;
+    ctx.fillStyle=palette.get(owner)||(["#9bb691","#b5c099","#c5c9a5","#9aaa7a"][(x*19+y*7)%4]);
+    ctx.fillRect(x*tw,y*th,(end-x)*tw+.12,th+.15);x=end;
+   }
   }
-  ctx.lineWidth=Math.max(.7,Math.min(tw,th)*.12);
-  for(let y=0;y<32;y++)for(let x=0;x<64;x++){
-   const id=y*64+x,o=w.cells[id];if(o===-1)continue;
-   ctx.strokeStyle=o?"#303137ae":"#78734d50";
-   if(x<63&&w.cells[id+1]!==o){ctx.beginPath();ctx.moveTo((x+1)*tw,y*th);ctx.lineTo((x+1)*tw,(y+1)*th);ctx.stroke()}
-   if(y<31&&w.cells[id+64]!==o){ctx.beginPath();ctx.moveTo(x*tw,(y+1)*th);ctx.lineTo((x+1)*tw,(y+1)*th);ctx.stroke()}
+  // Country borders and coastlines are traced from real Natural Earth polygons.
+  if(this.worldGeometry?.features){
+   ctx.lineWidth=Math.max(.25,1.05/scale);ctx.strokeStyle="#173447a8";
+   for(const feature of this.worldGeometry.features){
+    const g=feature.geometry,polys=g.type==="Polygon"?[g.coordinates]:g.type==="MultiPolygon"?g.coordinates:[];
+    ctx.beginPath();
+    for(const poly of polys)for(const ring of poly){
+     let prev=null;for(const p of ring){
+      const px=(p[0]+180)*4,py=(90-p[1])*4;
+      if(!prev||Math.abs(px-prev[0])>700)ctx.moveTo(px,py);
+      else ctx.lineTo(px,py);
+      prev=[px,py];
+     }
+    }
+    ctx.stroke();
+   }
   }
-  for(const s of w.structures){
-   const x=s.i%64,y=Math.floor(s.i/64);
-   ctx.fillStyle="#11283b";ctx.font="bold "+Math.max(8,Math.floor(th*.75))+"px system-ui";ctx.textAlign="center";
-   ctx.fillText(({city:"⌂",factory:"⚒",port:"⚓",fort:"⬟"})[s.kind]||"•",(x+.5)*tw,(y+.8)*th);
+  if(this.camera.zoom>3){
+   ctx.strokeStyle="#0a263780";ctx.lineWidth=.35;
+   for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+    const i=y*W+x,o=w.cells[i];if(o===-1)continue;
+    if(x<W-1&&w.cells[i+1]!==o){ctx.beginPath();ctx.moveTo((x+1)*tw,y*th);ctx.lineTo((x+1)*tw,(y+1)*th);ctx.stroke()}
+    if(y<H-1&&w.cells[i+W]!==o){ctx.beginPath();ctx.moveTo(x*tw,(y+1)*th);ctx.lineTo((x+1)*tw,(y+1)*th);ctx.stroke()}
+   }
   }
+  if(this.camera.zoom>2)for(const s of w.structures.slice(0,500)){
+   const x=s.i%W,y=Math.floor(s.i/W);
+   ctx.fillStyle="#152b34";ctx.font="bold 8px sans-serif";ctx.textAlign="center";
+   ctx.fillText(({city:"⌂",factory:"⚒",port:"⚓",fort:"◆"})[s.kind]||"·",(x+.5)*tw,(y+.7)*th);
+  }
+  const centroids=new Map(w.players.map(p=>[p.id,{x:0,y:0,n:0}]));
+  for(let i=0;i<w.cells.length;i++){const a=centroids.get(w.cells[i]);if(a){a.x+=(i%W+.5)*tw;a.y+=(Math.floor(i/W)+.5)*th;a.n++}}
   for(const p of w.players){
-   let x=0,y=0,n=0;
-   for(let i=0;i<w.cells.length;i++)if(w.cells[i]===p.id){x+=(i%64+.5)*tw;y+=(Math.floor(i/64)+.5)*th;n++}
-   if(n){ctx.textAlign="center";ctx.font="bold "+Math.max(9,Math.min(14,Math.floor(th*.9)))+"px system-ui";
-    ctx.lineWidth=3;ctx.strokeStyle="#183144";ctx.strokeText(p.name,x/n,y/n);ctx.fillStyle="#fff6d3";ctx.fillText(p.name,x/n,y/n)}
+   const o=centroids.get(p.id);if(!o?.n)continue;
+   const x=o.x/o.n,y=o.y/o.n;
+   ctx.textAlign="center";ctx.font="bold "+Math.max(9,11/Math.sqrt(scale))+"px system-ui";
+   ctx.lineWidth=3;ctx.strokeStyle="#172b36";ctx.strokeText(p.name,x,y);
+   ctx.fillStyle="#fff7df";ctx.fillText(p.name,x,y);
   }
-  if(this.tile){const {x,y}=this.tile;ctx.strokeStyle="#ffeb97";ctx.lineWidth=3;ctx.strokeRect(x*tw+1,y*th+1,tw-2,th-2)}
+  if(this.tile){const {x,y}=this.tile;ctx.strokeStyle="#fff3a1";ctx.lineWidth=Math.max(1,2/scale);ctx.strokeRect(x*tw+.1,y*th+.1,tw-.2,th-.2)}
+  const indicator=this.$("#hubZoom");if(indicator)indicator.textContent=Math.round(this.camera.zoom*100)+"%";
  }
  act(action,button){
   if(action==="close")return this.close();
