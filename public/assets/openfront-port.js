@@ -14,13 +14,26 @@ export function installWorldPort(Hub) {
     const frame=this.$(".openfront-port-frame");
     if(!frame?.contentWindow||!this.name)return;
     frame.contentWindow.postMessage({type:"lightning:setPlayerName",name:this.name},"https://lightning-openfront-production.up.railway.app");
-    const slot=this.$("#worldAccountName");if(slot)slot.textContent="Player: "+this.name;
+    const slot=this.$("#worldAccountName");if(slot&&slot.dataset.ready!==this.name)slot.textContent="Syncing "+this.name+"…";
   };
   Hub.prototype.onMessage = function(message){
     previousMessage.call(this,message);
     if(message.type==="hello")this.sendWorldName();
   };
 
+  window.addEventListener("message",event=>{
+    if(event.origin!=="https://lightning-openfront-production.up.railway.app")return;
+    const frame=document.querySelector("#hubMount .openfront-port-frame");
+    if(!frame||event.source!==frame.contentWindow)return;
+    const slot=document.querySelector("#worldAccountName");
+    if(!slot)return;
+    if(event.data?.type==="lightning:nameReady"&&event.data.name){
+      slot.dataset.ready=event.data.name;
+      slot.textContent="Playing as "+event.data.name;
+    }else if(event.data?.type==="lightning:nameBridgeError"){
+      slot.textContent="Choose your name in WorldPvP";
+    }
+  });
   Hub.prototype.worldScreen = function () {
     this.header("WorldPvP", "OpenFront engine · Self-hosted on Lightning");
     this.$("#hubContent").innerHTML = "";
