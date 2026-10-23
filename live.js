@@ -33,10 +33,12 @@ for(const seed of landIndices){
 }
 const makeMap=()=>Array.from({length:WORLD_W*WORLD_H},(_,i)=>isLand(i)?{owner:null,def:4+(i*17%5),kind:"",fort:0}:{owner:"sea"});
 const colors=["#f0bd67","#72b9c1","#f08381","#9c91d3","#89c574","#d9a0da","#d5c777","#87a5de","#c28d78","#9bc4a6"];
-const clients=new Map(),queues={chess:[],rps:[]},chessGames=new Map(),rpsGames=new Map(),tournaments=new Map();
-const usersOnline=()=>[...new Set([...clients.values()].map(u=>u.id))];
 const channelsFileName="lightning-social.json";
 export function attachLightningLive({server,sessionFromHeaders,dataDir}){
+ // An isolated game engine per HTTP server: tests and previews must never
+ // receive WebSocket state from other Lightning instances in the process.
+ const clients=new Map(),queues={chess:[],rps:[]},chessGames=new Map(),rpsGames=new Map(),tournaments=new Map();
+ const usersOnline=()=>[...new Set([...clients.values()].map(u=>u.id))];
  const world={cells:makeMap(),players:{},attacks:[],tick:0,winner:null,phase:"waiting",matchId:null,start:0};
  let worldQueue=[],worldQueueTimer=null;
  const file=path.join(dataDir,channelsFileName);
