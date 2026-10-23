@@ -176,3 +176,85 @@
 .wp-left .hub-world-legend .wp-rank-label,
 .wp-left .hub-world-legend .wp-rank-count{width:auto;height:auto;border:0;border-radius:0;display:block}
 .wp-left .hub-world-legend .wp-rank-dot{width:9px;height:9px;min-width:9px;border:0;border-radius:2px;display:inline-block}
+
+
+/* WorldPvP 2.3: let the map breathe; controls live in one deliberate dock. */
+.wp-battle .wp-top{height:51px;padding:5px 14px;gap:12px;background:#17222ceF;border-bottom:1px solid #5f768343}
+.wp-battle .wp-title{min-width:106px}
+.wp-battle .wp-title strong{font-size:15px}
+.wp-battle .wp-counter{min-width:76px;padding:0 12px}
+.wp-battle .wp-counter small{font-size:8px}
+.wp-battle .wp-counter strong{font-size:16px}
+.wp-battle .wp-online{font-size:9px}
+.wp-battle .wp-exit{min-height:31px}
+.wp-battle .wp-left{left:11px;top:12px;width:181px;max-height:216px;border-color:#9bb7a43a;background:#12212add}
+.wp-battle .wp-left .wp-panel-head{padding:10px}
+.wp-battle .wp-rank{padding:6px 9px}
+.wp-battle .wp-right{right:12px;top:12px;width:210px;border-color:#839a9b5b;background:#111e28de}
+.wp-battle .wp-right-info{padding:10px 12px}
+.wp-battle .wp-right-info b{font-size:14px}
+.wp-battle .wp-right-info small{font-size:9px;line-height:1.65;margin-top:7px}
+.wp-battle .wp-right .wp-navy{padding:9px 12px;font-size:9px}
+.wp-command-legend{padding:9px 12px;color:#9bb0b1;font-size:9px;line-height:1.5}
+.wp-battle .wp-footer{display:none}
+.wp-battle .wp-controls{bottom:97px;left:13px;right:auto;gap:3px;padding:3px}
+.wp-battle .wp-controls button{height:29px;min-width:29px;font-size:15px}
+.wp-commandbar{position:absolute;z-index:7;bottom:12px;left:50%;transform:translateX(-50%);display:flex;align-items:stretch;gap:8px;max-width:calc(100% - 26px);min-height:72px;padding:8px;border-radius:12px;border:1px solid #82959b7b;background:linear-gradient(95deg,#192531f0,#1d2934f5,#17222ef5);backdrop-filter:blur(15px);box-shadow:0 11px 35px #07141ac9}
+.wp-army{min-width:190px;display:flex;flex-direction:column;gap:4px;padding:4px 13px;border-right:1px solid #95a1a448;justify-content:center}
+.wp-army small{color:#99b5bf;font:700 9px var(--mono,monospace);letter-spacing:.12em}
+.wp-army strong{color:#e9d39e;font:750 10px var(--mono,monospace);white-space:nowrap}
+.wp-army select{padding:5px 9px;max-width:170px;min-height:30px;border-radius:6px;border:1px solid #6c8490;background:#233849;color:#f4d7a3;font:750 11px var(--mono,monospace)}
+.wp-commandbar>.wp-attack{min-width:173px;max-width:204px;min-height:56px;align-self:center;font-size:11px;white-space:normal;padding:0 15px}
+.wp-builds{display:flex;align-items:center;gap:5px;flex-wrap:nowrap;overflow:auto;scrollbar-width:thin}
+.wp-builds button{display:flex;min-width:49px;height:52px;align-items:center;justify-content:center;flex-direction:column;gap:2px;background:#243443;border:1px solid #6e818c65;border-radius:7px;color:#e4d8b9;font-size:21px}
+.wp-builds button small{color:#b3c0c3;font:750 8px var(--mono,monospace)}
+.wp-builds button:hover{background:#3c5160;border-color:#dab978}
+.wp-builds button:active{transform:translateY(1px)}
+.wp-campaigns{display:flex;justify-content:center;flex-direction:column;min-width:129px;max-width:185px;gap:3px;padding:3px 9px;border-left:1px solid #899ca142;color:#bbc9cf;font:700 9px var(--mono,monospace)}
+.wp-campaign{min-width:120px}
+.wp-campaign span{color:#e6d095;white-space:nowrap}
+.wp-campaign>div{margin-top:3px;height:3px;background:#4c6071;border-radius:10px;overflow:hidden}
+.wp-campaign>div i{display:block;height:100%;background:#e9be74;transition:width .35s ease}
+.wp-battle .wp-overlay{box-shadow:0 8px 21px #03131a72}
+@media(max-width:1320px){
+ .wp-commandbar{max-width:calc(100% - 14px);gap:5px}
+ .wp-army{min-width:152px;padding:3px 7px}
+ .wp-army select{max-width:142px}
+ .wp-commandbar>.wp-attack{min-width:139px}
+ .wp-builds button{min-width:40px}
+ .wp-campaigns{min-width:98px;padding:2px 4px}
+}
+@media(max-width:980px){
+ .wp-commandbar{width:calc(100% - 14px)}
+ .wp-army{min-width:120px}
+ .wp-army strong{font-size:9px;white-space:normal}
+ .wp-commandbar>.wp-attack{min-width:118px}
+ .wp-builds{flex:1}
+ .wp-campaigns{display:none}
+ .wp-battle .wp-left{width:157px;max-height:145px}
+ .wp-battle .wp-right{width:189px}
+}
+@media(max-width:680px){
+ .wp-battle .wp-top{gap:6px;padding:5px}
+ .wp-battle .wp-title{min-width:75px}
+ .wp-battle .wp-title strong{font-size:12px}
+ .wp-battle .wp-counter{min-width:50px;padding:0 5px}
+ .wp-battle .wp-counter strong{font-size:13px}
+ .wp-battle .wp-counter small{font-size:7px}
+ .wp-battle .wp-online{display:none}
+ .wp-battle .wp-exit{font-size:9px;padding:0 6px}
+ .wp-battle .wp-left{display:none}
+ .wp-battle .wp-right{right:7px;top:6px;width:160px;max-height:146px;overflow:auto}
+ .wp-battle .wp-panel-head{padding:6px 8px}
+ .wp-battle .wp-right-info{padding:6px 9px}
+ .wp-battle .wp-right-info small{font-size:8px}
+ .wp-battle .wp-right-info b{font-size:12px}
+ .wp-battle .wp-right .wp-navy{padding:5px 8px}
+ .wp-command-legend{display:none}
+ .wp-commandbar{left:5px;bottom:6px;width:calc(100% - 10px);max-width:none;transform:none;min-height:67px;gap:5px;padding:5px;overflow-x:auto;scrollbar-width:thin}
+ .wp-army{flex:none;min-width:116px;padding:0 4px}
+ .wp-commandbar>.wp-attack{min-width:98px;font-size:9px}
+ .wp-builds{flex:none;overflow:visible}
+ .wp-builds button{height:48px;min-width:40px;font-size:17px}
+ .wp-battle .wp-controls{left:7px;bottom:85px}
+}
