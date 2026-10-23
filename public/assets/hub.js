@@ -1,4 +1,4 @@
-import {installArenaPolish} from "./arena-v3.js?v=4";
+import {installArenaPolish} from "./arena-v3.js?v=5";
 import {installWorldPort} from "./openfront-port.js?v=2";
 
 const E=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -401,7 +401,7 @@ export function openHub(view="chat"){
  const root=document.getElementById("hubMount");if(!root)return;
  if(!document.getElementById("lightningHubCss")){
   const css=document.createElement("link");css.id="lightningHubCss";css.rel="stylesheet";css.href="/assets/hub.css?v=3";document.head.append(css);
-   const arena=document.createElement("link");arena.id="lightningArenaCss";arena.rel="stylesheet";arena.href="/assets/arena-v3.css?v=2";document.head.append(arena);
+   const arena=document.createElement("link");arena.id="lightningArenaCss";arena.rel="stylesheet";arena.href="/assets/arena-v3.css?v=3";document.head.append(arena);
    const port=document.createElement("link");port.id="lightningOpenFrontCss";port.rel="stylesheet";port.href="/assets/openfront-port.css?v=1";document.head.append(port);
  }
  if(!INSTANCE)INSTANCE=new Hub(root);
