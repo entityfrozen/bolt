@@ -397,27 +397,33 @@ export function installArenaPolish(Hub){
         items:[
           "WorldPvP now runs the official OpenFront game on a dedicated Lightning server.",
           "Chess now has Resign & Leave, Cancel Queue, and Leave Finished Match.",
+          "New Lightning accounts can be created by anyone and enter a manual approval queue.",
+          "Chat replies, reactions, typing indicators, mentions and opt-in notifications.",
           "A direct-tab option for playing WorldPvP outside the arcade."
         ]
       },
       {
         sign:"-",kind:"removed",title:"Removed",
         items:[
-          "The old custom WorldPvP prototype from the playable arcade."
+          "The old custom WorldPvP prototype from the playable arcade.",
+          "Access-code sign-in and temporary access passes."
         ]
       },
       {
         sign:"*",kind:"improved",title:"Improved",
         items:[
           "WorldPvP now opens with OpenFront's own lobby, map and spawn-selection interface.",
-          "Chess has clearer legal-move highlights and a board refresh option."
+          "Chess has clearer legal-move highlights and a board refresh option.",
+          "Lightning chat has unread channel badges and a redesigned composer.",
+          "WorldPvP receives your approved Lightning account name inside the game."
         ]
       },
       {
         sign:"!",kind:"fixed",title:"Fixed",
         items:[
           "Resolved OpenFront's Railway build and Nginx startup problems.",
-          "Chess matches can be resigned without preventing another match."
+          "Chess matches can be resigned without preventing another match.",
+          "Account approval is enforced across browser pages, APIs and live chat."
         ]
       }
     ];
@@ -436,11 +442,11 @@ export function installArenaPolish(Hub){
         '<div class="lc-wrap">'+
           '<div class="lc-header">'+
             '<span class="lc-eyebrow"><span class="lc-pulse"></span> LIGHTNING / CHANGELOG</span>'+
-            '<div class="lc-heading"><h1>Update log<span class="lc-dot">.</span></h1><span class="lc-version">VERSION 2.4.0 <i>•</i> OCT 2026</span></div>'+
+            '<div class="lc-heading"><h1>Update log<span class="lc-dot">.</span></h1><span class="lc-version">VERSION 2.5.0 <i>•</i> OCT 2026</span></div>'+
             '<p>Everything added, removed, improved, and fixed.</p>'+
           '</div>'+
           '<div class="lc-sections">'+sections+'</div>'+
-          '<footer class="lc-footer">LIGHTNING <span>—</span> BUILD 2.4.0</footer>'+
+          '<footer class="lc-footer">LIGHTNING <span>—</span> BUILD 2.5.0</footer>'+
         '</div>'+
       '</main>';
   };
