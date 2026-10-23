@@ -186,3 +186,16 @@ test("WorldPvP permits distant land campaigns but rejects inland water jumps", a
  const failed=await env.until(()=>env.messages.get(alice).find(m=>m.type==="worldInfo"&&/No land route|Naval attacks/.test(m.text)));
  assert.match(failed.text,/No land route/);
 });
+
+
+test("RPS bot plays a hidden choice and reveals both moves fairly",async t=>{
+ const env=await setup(t),alice=await env.connect("alice");
+ alice.send(JSON.stringify({type:"rpsBot"}));
+ const match=await env.until(()=>env.messages.get(alice).find(m=>m.type==="rpsStart"&&m.bot===true));
+ assert.equal(env.messages.get(alice).some(m=>m.type==="rpsResult"),false);
+ await delay(180);
+ alice.send(JSON.stringify({type:"rpsChoice",id:match.id,choice:"paper"}));
+ const result=await env.until(()=>env.messages.get(alice).find(m=>m.type==="rpsResult"&&m.id===match.id));
+ assert.equal(result.choices.alice,"paper");
+ assert.ok(["rock","paper","scissors"].includes(result.choices["npc:rps"]));
+});
