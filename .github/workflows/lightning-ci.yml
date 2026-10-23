@@ -30,6 +30,7 @@ jobs:
           node --check public/assets/bolt-tools.js
           node --check public/assets/hub.js
           node --check public/assets/arena-v3.js
+          node --check public/assets/world-renderer.js
           test -f node_modules/marked/lib/marked.umd.js
           test -f node_modules/dompurify/dist/purify.min.js
       - name: Test Lightning Live
