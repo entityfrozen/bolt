@@ -1,5 +1,5 @@
-import {installArenaPolish} from "./arena-v3.js?v=3";
-import {installWorldPort} from "./openfront-port.js?v=1";
+import {installArenaPolish} from "./arena-v3.js?v=4";
+import {installWorldPort} from "./openfront-port.js?v=2";
 
 const E=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const PIECES={K:"♔",Q:"♕",R:"♖",B:"♗",N:"♘",P:"♙",k:"♚",q:"♛",r:"♜",b:"♝",n:"♞",p:"♟"};
