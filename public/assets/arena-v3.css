@@ -171,3 +171,8 @@
  .wp-controls{bottom:10px}
  .wp-primary,.wp-secondary{min-height:47px}
 }
+
+/* Override the legacy legend's generic span sizing for the new scoreboard. */
+.wp-left .hub-world-legend .wp-rank-label,
+.wp-left .hub-world-legend .wp-rank-count{width:auto;height:auto;border:0;border-radius:0;display:block}
+.wp-left .hub-world-legend .wp-rank-dot{width:9px;height:9px;min-width:9px;border:0;border-radius:2px;display:inline-block}
