@@ -35,6 +35,8 @@ jobs:
         run: node --test test/live.test.mjs
       - name: Test click layers and overlays
         run: node --test test/ui-layer.test.mjs
+      - name: Test initial browser click handlers
+        run: node --test test/ui-init.test.mjs
       - name: Verify hosted Lightning preview
         run: |
           url="https://bolt-v5-preview-production.up.railway.app/assets/bolt-v6.css?ci=${GITHUB_SHA}"
