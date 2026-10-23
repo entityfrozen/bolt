@@ -14,7 +14,9 @@
         window.localStorage.setItem("username", name);
         window.localStorage.setItem("usernameIsGenerated", "false");
         location.reload();
+        return;
       }
+      window.parent.postMessage({type:"lightning:nameReady",name:name}, TRUSTED_ORIGIN);
     } catch (err) {
       window.parent.postMessage({type:"lightning:nameBridgeError"} , TRUSTED_ORIGIN);
     }
