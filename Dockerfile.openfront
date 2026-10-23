@@ -66,6 +66,7 @@ ENV GAME_ENV=dev \
     PORT=80
 
 RUN printf '%s\n' '#!/bin/sh' \
+    'rm -f /etc/nginx/sites-enabled/default' \
     '/usr/local/bin/generate-nginx-upstream.sh' \
     'exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf' \
     > /usr/local/bin/start-openfront.sh \
