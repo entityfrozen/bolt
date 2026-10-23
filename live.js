@@ -37,7 +37,7 @@ const clients=new Map(),queues={chess:[],rps:[]},chessGames=new Map(),rpsGames=n
 const usersOnline=()=>[...new Set([...clients.values()].map(u=>u.id))];
 const channelsFileName="lightning-social.json";
 export function attachLightningLive({server,sessionFromHeaders,dataDir}){
- const world={cells:makeMap(),players:{},tick:0,winner:null,phase:"waiting",matchId:null,start:0};
+ const world={cells:makeMap(),players:{},attacks:[],tick:0,winner:null,phase:"waiting",matchId:null,start:0};
  let worldQueue=[],worldQueueTimer=null;
  const file=path.join(dataDir,channelsFileName);
  let history={};
@@ -71,7 +71,8 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir}){
    cells:world.cells.map(c=>c.owner==="sea"?-1:c.owner||""),
    structures:world.cells.map((c,i)=>c.kind?{i,kind:c.kind}:null).filter(Boolean),
    players:players.map(p=>({id:p.id,name:p.name,color:p.color,bot:!!p.bot,troops:Math.floor(p.troops),gold:Math.floor(p.gold),land:territories[p.id]||0,allies:p.allies})),
-   tick:world.tick||0,winner:world.winner,landTotal:landIndices.length};
+   tick:world.tick||0,winner:world.winner,landTotal:landIndices.length,
+   attacks:world.attacks.map(a=>({id:a.id,by:a.by,target:a.target,route:a.route,captured:a.captured,limit:a.limit,committed:a.initial,remaining:Math.floor(a.remaining)}))};
  }
  function sendWorld(){const snap=worldSnapshot();for(const [ws,u] of clients)if(u.world)safeSend(ws,snap)}
  function owned(p){let n=0;for(const c of world.cells)if(c.owner===p.id)n++;return n}
@@ -90,14 +91,9 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir}){
   if(spawn<0)spawn=landIndices.find(i=>world.cells[i].owner===null);
   if(spawn===undefined)return null;
   const p={id,name:trimText(name,32),bot,spawn,color:colors[taken%colors.length]||"hsl("+((taken*79)%360)+" 56% 65%)",
-   gold:390,troops:950,allies:[],lastAttack:0};
+   gold:390,troops:1800,allies:[],lastAttack:0};
   world.players[id]=p;
-  const x=spawn%WORLD_W,y=Math.floor(spawn/WORLD_W);
-  for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++){
-   if(Math.abs(dx)+Math.abs(dy)>3)continue;
-   const i=at(x+dx,y+dy);
-   if(i>=0&&world.cells[i].owner===null&&region[i]===region[spawn])world.cells[i].owner=id;
-  }
+  // A nation starts as one point, not a pre-painted rectangular chunk.
   world.cells[spawn].owner=id;
   return p;
  }
@@ -107,7 +103,7 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir}){
   const people=worldQueue.filter(id=>clientOf(id).length).slice(0,12);
   worldQueue=[];
   if(!people.length){presence();return}
-  world.cells=makeMap();world.players={};world.winner=null;world.tick=0;
+  world.cells=makeMap();world.players={};world.attacks=[];world.winner=null;world.tick=0;
   world.phase="playing";world.matchId=uid();world.start=Date.now();
   for(const id of people)spawnNation(id,clientOf(id)[0][1].name);
   for(let b=0;b<Math.max(7,12-people.length);b++)spawnNation("npc:"+b,botNames[b%botNames.length],true);
@@ -157,40 +153,96 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir}){
   if(regions.has(region[i]))return "land";
   return ownsCoast&&!!coast[i]?"naval":null;
  }
- function capture(p,index,ratio){
-  const tile=world.cells[index];
-  if(!tile||tile.owner==="sea"||tile.owner===p.id)return {error:"Choose enemy or neutral land."};
+ function attackDistance(a,b){
+  // Wrapping the international date line is useful when choosing a front.
+  const dx=Math.abs(a%WORLD_W-b%WORLD_W),dy=Math.abs(Math.floor(a/WORLD_W)-Math.floor(b/WORLD_W));
+  return Math.min(dx,WORLD_W-dx)+dy;
+ }
+ function launchCampaign(p,target,ratio){
+  const tile=world.cells[target];
+  if(!tile||tile.owner==="sea"||tile.owner===p.id)return {error:"Choose neutral or enemy land."};
   if(tile.owner&&p.allies.includes(tile.owner))return {error:"You cannot attack an ally."};
-  const route=travel(p,index);
-  if(!route)return {error:"No land route. Naval attacks need coastal land and a coastal destination."};
-  if(p.troops<35)return {error:"Recruit more troops before attacking."};
+  const route=travel(p,target);
+  if(!route)return {error:"No land route. To cross the ocean you need an owned coastline and a coastal landing tile."};
+  if(world.attacks.filter(a=>a.by===p.id).length>=3)return {error:"Three campaigns are active. Let one finish before launching another."};
+  if(p.troops<70)return {error:"Not enough troops for an expedition."};
   const committed=Math.floor(p.troops*ratio);
-  const rival=world.players[tile.owner];
-  const defender=rival?Math.max(20,Math.floor(rival.troops/Math.max(1,owned(rival))*.8)+tile.def*4+tile.fort*15):tile.def*7;
-  if(committed*(route==="naval"?.82:1)<defender){
-   p.troops=Math.max(0,p.troops-Math.ceil(committed*.35));
-   return {error:"Assault repelled. Build up more troops.",route};
+  if(committed<35)return {error:"Commit more troops to this campaign."};
+  let first=target;
+  if(route==="land"){
+   // Distant clicks pick the nearest REAL border. Never teleport the army
+   // directly to the target. Every following tile is captured through that front.
+   let best=Infinity;
+   for(let i=0;i<world.cells.length;i++){
+    if(world.cells[i].owner!==p.id)continue;
+    for(const n of neighbor(i)){
+     const t=world.cells[n];
+     if(t.owner==="sea"||t.owner===p.id||t.owner&&p.allies.includes(t.owner)||region[n]!==region[target])continue;
+     const distance=attackDistance(n,target);
+     if(distance<best){best=distance;first=n;}
+    }
+   }
+   if(best===Infinity)return {error:"No reachable border. Obtain a coast before invading this landmass."};
   }
-  p.troops=Math.max(1,p.troops-Math.ceil(defender*.55));
-  if(rival)rival.troops=Math.max(15,rival.troops-Math.floor(defender*.24));
-  tile.owner=p.id;tile.kind="";tile.fort=0;
-  // Successful landings secure nearby neutral territories so expansion is visible.
-  const x=index%WORLD_W,y=Math.floor(index/WORLD_W);
-  for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
-   const i=at(x+dx,y+dy);
-   if(i>=0&&world.cells[i].owner===null&&region[i]===region[index]){
-    world.cells[i].owner=p.id;p.troops=Math.max(1,p.troops-3);
+  p.troops-=committed;
+  const limit=Math.min(200,Math.max(2,Math.floor(committed/19)));
+  const attack={id:uid(),by:p.id,target,route,region:region[first],initial:committed,remaining:committed,
+   limit,captured:0,progress:0,frontier:[first],seen:new Set([first])};
+  world.attacks.push(attack);
+  return {success:true,route,limit,attack};
+ }
+ function finishCampaign(attack){
+  const owner=world.players[attack.by];
+  if(owner)owner.troops=Math.min(90000,owner.troops+Math.floor(attack.remaining));
+  world.attacks=world.attacks.filter(a=>a.id!==attack.id);
+ }
+ function stepCampaign(attack){
+  const owner=world.players[attack.by];
+  if(!owner||owned(owner)===0){finishCampaign(attack);return true}
+  if(!attack.frontier.length||attack.captured>=attack.limit||attack.remaining<12){
+   finishCampaign(attack);return true;
+  }
+  // Troops control both campaign reach and speed. Losses gradually slow the front.
+  const strength=Math.max(0.18,attack.remaining/attack.initial);
+  attack.progress+=Math.min(4.2,(.25+Math.sqrt(attack.remaining)/25)*(.55+.45*strength));
+  let dirty=false;
+  for(let n=0;n<6&&attack.progress>=1&&attack.frontier.length&&attack.captured<attack.limit;n++){
+   attack.frontier.sort((a,b)=>attackDistance(a,attack.target)-attackDistance(b,attack.target));
+   const idx=attack.frontier.shift(),cell=world.cells[idx];
+   if(!cell||cell.owner==="sea"||cell.owner===owner.id||
+      cell.owner&&owner.allies.includes(cell.owner))continue;
+   // Every land step connects to the attacking empire. Naval starts on a coast.
+   if(attack.captured>0||attack.route==="land"){
+    if(!neighbor(idx).some(i=>world.cells[i].owner===owner.id))continue;
+   }
+   const rival=world.players[cell.owner];
+   const defense=rival?Math.min(80,Math.floor(rival.troops/Math.max(6,owned(rival))*.22)):0;
+   const expense=Math.ceil(8+cell.def*1.5+cell.fort*8+defense+(attack.route==="naval"&&attack.captured===0?18:0));
+   if(attack.remaining<expense){attack.remaining=0;break}
+   attack.remaining-=expense;
+   if(rival)rival.troops=Math.max(0,rival.troops-Math.floor(expense*.35));
+   cell.owner=owner.id;cell.kind="";cell.fort=0;
+   attack.captured++;dirty=true;
+   attack.progress-=Math.max(.85,cell.def/5.5);
+   for(const next of neighbor(idx)){
+    if(region[next]!==attack.region||attack.seen.has(next))continue;
+    attack.seen.add(next);
+    if(world.cells[next].owner!=="sea"&&world.cells[next].owner!==owner.id){
+     attack.frontier.push(next);
+    }
    }
   }
-  return {route,success:true};
- }
+  if(!attack.frontier.length||attack.captured>=attack.limit||attack.remaining<12)finishCampaign(attack);
+  return dirty;
+}
+
  function checkWorldWin(){
   const winner=Object.values(world.players).find(p=>owned(p)/landIndices.length>=.8);
   if(!winner||world.winner)return;
   world.winner=winner.name;
   sendAll({type:"worldInfo",text:winner.name+" has conquered 80% of the world!"});sendWorld();
   const timer=setTimeout(()=>{
-   world.phase="waiting";world.cells=makeMap();world.players={};world.winner=null;
+   world.phase="waiting";world.cells=makeMap();world.players={};world.attacks=[];world.winner=null;
    world.matchId=null;world.tick=0;for(const u of clients.values())u.world=false;
    sendAll({type:"worldEnded"});presence();
   },15000);timer.unref();
@@ -205,8 +257,9 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir}){
   if(data.action==="attack"){
    if(Date.now()-p.lastAttack<900)return;
    p.lastAttack=Date.now();
-   const result=capture(p,index,amount);
-   safeSend(u.ws,{type:"worldInfo",text:result.success?(result.route==="naval"?"Naval landing successful.":"Land offensive successful."):result.error});
+   const result=launchCampaign(p,index,amount);
+   safeSend(u.ws,{type:"worldInfo",text:result.success?
+    (result.route==="naval"?"Landing fleet dispatched.":"Ground campaign launched.")+" Up to "+result.limit+" tiles; troops advance over time.":result.error});
   }else if(data.action==="build"){
    if(tile.owner!==p.id)return safeSend(u.ws,{type:"error",message:"Build on your own land."});
    if(tile.kind)return safeSend(u.ws,{type:"error",message:"This region already has a building."});
@@ -389,6 +442,19 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir}){
    presence();
   });
  });
+ // Advance live fronts frequently, but broadcast at a lower rate than rendering.
+ let lastFrontBroadcast=0;
+ const frontTicker=setInterval(()=>{
+  if(world.phase!=="playing"||world.winner||!world.attacks.length)return;
+  let changed=false;
+  for(const attack of [...world.attacks])changed=stepCampaign(attack)||changed;
+  if(Date.now()-lastFrontBroadcast>=750){
+   lastFrontBroadcast=Date.now();
+   if(changed||world.attacks.length)sendWorld();
+  }
+  if(changed)checkWorldWin();
+ },350);
+ frontTicker.unref();
  const ticker=setInterval(()=>{
   if(!wss.clients.size)return;
   if(world.phase!=="playing"||world.winner)return;
@@ -409,7 +475,7 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir}){
    for(const i of territory){const kind=world.cells[i].kind;if(kind==="city")cities++;else if(kind==="factory")factories++;else if(kind==="port")ports++}
    p.troops=Math.min(90000,p.troops+Math.min(280,territory.length*.4+18+cities*7));
    p.gold=Math.min(30000,p.gold+Math.min(120,territory.length*.24+9+factories*8+ports*3));
-   if(!p.bot||p.troops<100)continue;
+   if(!p.bot||p.troops<150||world.attacks.some(a=>a.by===p.id))continue;
    // NPC armies build a real economy and strategically expand along the front.
    if(p.gold>=230&&world.tick%6===0){
     const site=territory.find(i=>!world.cells[i].kind);
@@ -437,7 +503,7 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir}){
      if(coast[next]&&world.cells[next].owner!==p.id){target=next;break}
     }
    }
-   if(target>=0)capture(p,target,.4+Math.random()*.4);
+   if(target>=0)launchCampaign(p,target,.35+Math.random()*.35);
   }
   checkWorldWin();
   if(world.tick%2===0)sendWorld();
