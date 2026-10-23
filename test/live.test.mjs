@@ -175,8 +175,11 @@ test("WorldPvP permits distant land campaigns but rejects inland water jumps", a
  assert.ok(distant>=0,"have reachable neutral land outside immediate border");
  await delay(190);
  alice.send(JSON.stringify({type:"worldAction",action:"attack",x:distant%W,y:Math.floor(distant/W),ratio:.9}));
- const victory=await env.until(()=>env.messages.get(alice).find(m=>m.type==="world"&&m.cells[distant]==="alice"));
- assert.equal(victory.cells[distant],"alice");
+ const attack=await env.until(()=>env.messages.get(alice).find(m=>m.type==="world"&&m.attacks?.some(a=>a.by==="alice"&&a.target===distant)));
+ assert.ok(attack.attacks[0].limit>0,"troop commitment should determine an attack's expansion cap");
+ assert.notEqual(attack.cells[distant],"alice","an inland click cannot teleport troops to the destination");
+ const conquest=await env.until(()=>env.messages.get(alice).find(m=>m.type==="world"&&m.players.find(p=>p.id==="alice")?.land>first.players.find(p=>p.id==="alice").land));
+ assert.ok(conquest.players.find(p=>p.id==="alice").land>first.players.find(p=>p.id==="alice").land,"land must expand over time");
  // An inland target on a disconnected landmass cannot be landed on by ship.
  const farInland=cells.findIndex((o,i)=>{
   if(o!==""||reachable[i]||i<=W||i>=W*(H-1))return false;
@@ -226,4 +229,30 @@ test("Chess refresh returns current server state and usable legal moves", async 
   alice.send(JSON.stringify({type:"chessSync",id:game.id}));
   const refresh=await env.until(()=>env.messages.get(alice).filter(m=>m.type==="chessStart"&&m.id===game.id).at(-1)?.legal?.some(m=>m.from==="g1"&&m.to==="f3")&&env.messages.get(alice).filter(m=>m.type==="chessStart").length>=2);
   assert.equal(refresh,true);
+});
+
+
+test("WorldPvP grows a tiny spawn into a gradual troop-limited front", async t => {
+ const env=await setup(t),alice=await env.connect("alice");
+ alice.send(JSON.stringify({type:"worldPractice"}));
+ const start=await env.until(()=>env.messages.get(alice).find(m=>m.type==="world"&&m.phase==="playing"&&m.players.some(p=>p.id==="alice")));
+ const before=start.players.find(p=>p.id==="alice");
+ assert.ok(before.land<=2,"a new nation should start from a small base, not a large square");
+ const W=start.width,H=start.height;
+ const target=start.cells.findIndex((owner,i)=>{
+  if(owner!=="")return false;
+  const x=i%W,y=Math.floor(i/W);
+  return (x>0&&start.cells[i-1]==="alice")||(x<W-1&&start.cells[i+1]==="alice")||
+   (y>0&&start.cells[i-W]==="alice")||(y<H-1&&start.cells[i+W]==="alice");
+ });
+ assert.ok(target>=0);
+ await delay(190);
+ alice.send(JSON.stringify({type:"worldAction",action:"attack",x:target%W,y:Math.floor(target/W),ratio:.2}));
+ const pending=await env.until(()=>env.messages.get(alice).find(m=>m.type==="world"&&m.attacks?.some(a=>a.by==="alice")));
+ const expedition=pending.attacks.find(a=>a.by==="alice");
+ assert.ok(expedition.limit>=2&&expedition.limit<before.troops/10,"army size limits expansion");
+ assert.equal(pending.cells[target],"","the first claimed tile should not appear instantly");
+ assert.ok(pending.players.find(p=>p.id==="alice").troops<before.troops,"committed troops leave reserve army");
+ const later=await env.until(()=>env.messages.get(alice).find(m=>m.type==="world"&&m.players.find(p=>p.id==="alice").land>before.land));
+ assert.ok(later.players.find(p=>p.id==="alice").land>before.land);
 });
