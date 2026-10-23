@@ -25,6 +25,7 @@ test("Lightning binds home search, Games and Chat without crashing on startup",a
  const shortcuts=[el("shortcut-google"),el("shortcut-wiki")];
  const panels=[el("panel-history"),el("panel-settings")];
  const document={
+  createElement:tag=>el("created-"+tag+"-"+elements.size),
   querySelector:selector=>el(selector),
   querySelectorAll:selector=>selector==="[data-hub]"?hubButtons:
    selector===".lightning-quick"?shortcuts:
