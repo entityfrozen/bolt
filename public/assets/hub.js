@@ -224,13 +224,30 @@ class Hub{
   this.camera.y+=(anchorY-r.height/2-this.camera.y)*(1-next/prev);
   this.camera.zoom=next;this.clampCamera();this.draw();
  }
+ countryAt(lon,lat){
+  const features=this.worldGeometry?.features;
+  if(!features)return "";
+  const inside=ring=>{
+   let hit=false;
+   for(let i=0,j=ring.length-1;i<ring.length;j=i++){
+    const a=ring[i],b=ring[j];
+    if((a[1]>lat)!==(b[1]>lat)&&lon<(b[0]-a[0])*(lat-a[1])/(b[1]-a[1])+a[0])hit=!hit;
+   }
+   return hit;
+  };
+  for(const feature of features){
+   const g=feature.geometry,polys=g.type==="Polygon"?[g.coordinates]:g.type==="MultiPolygon"?g.coordinates:[];
+   for(const rings of polys)if(inside(rings[0])&&!rings.slice(1).some(inside))return feature.properties?.name||"";
+  }
+  return "";
+ }
  worldInfo(){
   const el=this.$("#hubWorldInfo"),w=this.world;if(!el)return;
   if(!this.tile||!w){el.innerHTML="<b>Planet Earth</b><small>Click land to inspect the territory. Drag to look around.</small>";return}
   const {x,y}=this.tile,i=y*w.width+x,owner=w.cells[i],structure=w.structures.find(a=>a.i===i)?.kind||"Unbuilt";
   const name=owner===-1?"Ocean":owner===""?"Unclaimed land":w.players.find(p=>p.id===owner)?.name||"Unknown empire";
-  const lat=(90-(y+.5)*180/w.height).toFixed(1),lon=(-180+(x+.5)*360/w.width).toFixed(1);
-  el.innerHTML='<b>'+E(name)+'</b><small>'+lat+'° N/S · '+lon+'° E/W<br>Structure: '+E(structure)+'<br>'+(owner===this.id?"Your territory":owner===-1?"Ships cannot land in open water.":"Attack any reachable landmass. Cross water from the coast.")+'</small>';
+  const lat=(90-(y+.5)*180/w.height).toFixed(1),lon=(-180+(x+.5)*360/w.width).toFixed(1),country=this.countryAt(Number(lon),Number(lat));
+  el.innerHTML='<b>'+E(name)+'</b><small>'+(country?E(country)+' · ':'')+lat+'° N/S · '+lon+'° E/W<br>Structure: '+E(structure)+'<br>'+(owner===this.id?"Your territory":owner===-1?"Ships cannot land in open water.":"Attack any reachable landmass. Cross water from the coast.")+'</small>';
  }
  worldUpdate(){
   if(!this.world||this.view!=="world")return;
