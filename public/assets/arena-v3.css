@@ -258,3 +258,48 @@
  .wp-builds button{height:48px;min-width:40px;font-size:17px}
  .wp-battle .wp-controls{left:7px;bottom:85px}
 }
+
+
+/* Lightning changelog — compact, scannable, and separate from the old release journal. */
+.lightning-changelog{
+  width:100%;height:100%;min-height:0;overflow-y:auto;overscroll-behavior:contain;
+  background:radial-gradient(ellipse 70% 50% at 94% -15%,#b58f4b16,transparent 65%),#101419;
+  color:#e9e9e1;scrollbar-color:#3b454d transparent;
+}
+.lc-wrap{max-width:930px;margin:0 auto;padding:clamp(24px,4.6vw,65px) clamp(18px,4vw,40px) 55px}
+.lc-header{padding-bottom:27px;border-bottom:1px solid #a3adab35}
+.lc-eyebrow{display:flex;align-items:center;gap:10px;color:#b5bdc3;font:700 10px/1.2 var(--mono,monospace);letter-spacing:.2em}
+.lc-pulse{display:inline-block;width:6px;height:6px;border-radius:50%;background:#adcb95;box-shadow:0 0 10px #adcb9585}
+.lc-heading{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:10px;margin-top:14px}
+.lc-heading h1{margin:0;color:#f5f1e6;font:650 clamp(35px,5vw,56px)/1.05 var(--display,Georgia);letter-spacing:-.045em}
+.lc-dot{color:#d4ad72}
+.lc-version{color:#d6bd8f;white-space:nowrap;font:650 10px/1.2 var(--mono,monospace);letter-spacing:.08em}
+.lc-version i{font-style:normal;color:#697581;padding:0 3px}
+.lc-header p{margin:13px 0 0;color:#a2acaf;font-size:12px;line-height:1.7}
+.lc-sections{display:grid;gap:0}
+.lc-group{--lc-accent:#c4bba4;border-bottom:1px solid #70818932;padding:19px 0 21px}
+.lc-added{--lc-accent:#9fd4a3}
+.lc-removed{--lc-accent:#e1a09d}
+.lc-improved{--lc-accent:#dfc088}
+.lc-fixed{--lc-accent:#99bddf}
+.lc-group-head{display:flex;align-items:center;gap:12px}
+.lc-token{display:inline-flex;align-items:center;justify-content:center;width:43px;height:36px;flex:none;border:1px solid color-mix(in srgb,var(--lc-accent) 35%,transparent);border-radius:7px;background:color-mix(in srgb,var(--lc-accent) 9%,transparent);color:var(--lc-accent);font:750 17px/1 var(--mono,monospace);letter-spacing:-.07em}
+.lc-group h2{margin:0;color:#e9e8dd;font:650 17px/1.3 var(--font,system-ui);letter-spacing:-.03em}
+.lc-count{margin-left:auto;color:#87949a;font:650 10px/1.4 var(--mono,monospace);white-space:nowrap}
+.lc-list{list-style:none;margin:11px 0 0 56px;padding:0;display:grid;gap:8px}
+.lc-list li{position:relative;padding-left:16px;color:#c2c9c9;font:450 12px/1.65 var(--font,system-ui)}
+.lc-list li::before{content:"";position:absolute;left:1px;top:.7em;width:5px;height:5px;border-radius:2px;background:var(--lc-accent);opacity:.85}
+.lc-footer{display:flex;align-items:center;gap:9px;color:#6f7c82;font:650 9px var(--mono,monospace);letter-spacing:.16em;margin-top:23px}
+.lc-footer span{color:#ad946a}
+@media(max-width:630px){
+ .lc-wrap{padding:24px 17px 40px}
+ .lc-heading{display:block}
+ .lc-heading h1{font-size:38px}
+ .lc-version{display:block;margin-top:13px}
+ .lc-group{padding:16px 0 18px}
+ .lc-token{width:38px;height:34px}
+ .lc-group-head{gap:10px}
+ .lc-list{margin-left:48px}
+ .lc-count{font-size:9px}
+}
+@media(prefers-reduced-motion:reduce){.lightning-changelog *{animation:none!important;transition:none!important}}
