@@ -420,7 +420,7 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir}){
   wss.handleUpgrade(req,socket,head,ws=>wss.emit("connection",ws,auth,req));
  });
  wss.on("connection",(ws,auth,req)=>{
-  const id=auth.identity.id,u={ws,id,name:nameOf(auth.identity),last:0,world:false};
+  const id=auth.identity.id,u={ws,id,name:nameOf(auth.identity),role:auth.identity.role,last:0,world:false};
   clients.set(ws,u);
   safeSend(ws,{type:"hello",id,name:u.name,channels:CHANNELS,history,online:usersOnline().map(id=>({id,name:clientOf(id)[0]?.[1]?.name||id})),summary:summary()});
   presence();
@@ -429,15 +429,48 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir}){
    if(!current||current.identity.id!==u.id){
      ws.close(4003,"Session expired");return;
    }
+   u.role=current.identity.role;
    let data;try{data=JSON.parse(raw.toString())}catch{return}
    if(!data||typeof data!=="object")return;
    if(!validateSend(ws,data))return;
    if(data.type==="chat"){
     const channel=trimText(data.channel,25),message=trimText(data.message,1000);
     if(!CHANNELS.includes(channel)||!message)return;
-    const entry={id:uid(),by:u.name,userId:u.id,channel,message,at:Date.now()};
+    const parentId=trimText(data.replyTo,32);
+    const parent=parentId?history[channel].find(entry=>entry.id===parentId&&!entry.deleted):null;
+    const entry={id:uid(),by:u.name,userId:u.id,channel,message,at:Date.now(),
+      replyTo:parent?.id||null,reactions:{}};
     history[channel].push(entry);history[channel]=history[channel].slice(-120);save();
     sendAll({type:"chat",entry});return;
+   }
+   if(data.type==="typing"){
+    const channel=trimText(data.channel,25);
+    if(CHANNELS.includes(channel))sendAll({type:"chatTyping",channel,by:u.name,userId:u.id});
+    return;
+   }
+   if(["chatEdit","chatDelete","chatReact"].includes(data.type)){
+    const channel=trimText(data.channel,25),messageId=trimText(data.id,32);
+    if(!CHANNELS.includes(channel)||!messageId)return;
+    const entry=history[channel].find(row=>row.id===messageId);
+    if(!entry||entry.deleted)return;
+    if(data.type==="chatEdit"){
+      if(entry.userId!==u.id||Date.now()-entry.at>900000)
+        return safeSend(ws,{type:"error",message:"You can only edit your own recent messages."});
+      const next=trimText(data.message,1000);
+      if(!next)return;
+      entry.message=next;entry.editedAt=Date.now();
+    }else if(data.type==="chatDelete"){
+      if(entry.userId!==u.id&&u.role!=="admin")
+        return safeSend(ws,{type:"error",message:"You cannot delete that message."});
+      entry.message="";entry.deleted=true;entry.reactions={};
+    }else{
+      const emoji=trimText(data.emoji,8);
+      if(!["👍","❤️","😂","🔥"].includes(emoji))return;
+      entry.reactions ||= {};
+      const users=Array.isArray(entry.reactions[emoji])?entry.reactions[emoji]:[];
+      entry.reactions[emoji]=users.includes(u.id)?users.filter(id=>id!==u.id):[...users.slice(-119),u.id];
+    }
+    save();sendAll({type:"chatUpdate",channel,entry});return;
    }
    if(data.type==="chessResign")return chessResign(u,data);
    if(data.type==="chessCancelQueue")return chessCancelQueue(u);
