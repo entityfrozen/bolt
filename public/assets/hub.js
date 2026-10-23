@@ -10,7 +10,7 @@ const UPDATES=[
 let INSTANCE=null;
 class Hub{
  constructor(root){
-  this.root=root;this.view="chat";this.channel="general";this.name="";this.id="";this.users=[];this.history={};this.summary={users:0};this.socket=null;this.active=false;this.chess=null;this.rps=null;this.world=null;this.tile=null;this.selectedSquare=null;
+  this.root=root;this.view="chat";this.channel="general";this.name="";this.id="";this.users=[];this.history={};this.summary={users:0};this.socket=null;this.active=false;this.chess=null;this.rps=null;this.world=null;this.tile=null;this.selectedSquare=null;this.worldQueueing=false;this.worldActive=false;this.worldGeometry=null;this.camera={zoom:1,x:0,y:0};this.pointers=new Map();
   root.innerHTML='<div class="hub-shell"><aside class="hub-rail"><div class="hub-logo"><span class="hub-label">LIGHTNING NETWORK</span><strong>Social hub.</strong><small>Your space. Your people.</small></div><nav class="hub-nav"><div class="hub-nav-title">CHANNELS</div>'+
    ["general","games","suggestions","support"].map(c=>'<button class="hub-link" data-view="chat" data-channel="'+c+'"><i>#</i><span>'+c+'</span></button>').join("")+
    '<div class="hub-nav-title">EXPLORE</div><button class="hub-link" data-view="games"><i>♞</i><span>Multiplayer games</span></button><button class="hub-link" data-view="updates"><i>↗</i><span>Update log</span></button></nav><div class="hub-user"><div class="hub-avatar" id="hubAvatar">L</div><div><strong id="hubUsername">Lightning user</strong><span id="hubConnection">Connecting…</span></div></div></aside>'+
@@ -39,7 +39,7 @@ class Hub{
   const target=new URL("/live",location.href);
   target.protocol=location.protocol==="https:"?"wss:":"ws:";
   const ws=new WebSocket(target);this.socket=ws;
-  ws.addEventListener("open",()=>{this.$("#hubConnection").textContent="Connected";if(this.view==="world")this.send({type:"worldJoin"});});
+  ws.addEventListener("open",()=>{this.$("#hubConnection").textContent="Connected";if(this.worldActive||this.worldQueueing)this.send({type:"worldQueue"});});
   ws.addEventListener("message",e=>{try{this.onMessage(JSON.parse(e.data))}catch(err){console.warn("Hub:",err)}});
   ws.addEventListener("close",()=>{if(this.socket!==ws)return;this.$("#hubConnection").textContent="Offline";if(this.active)setTimeout(()=>this.connect(),2300)});
  }
@@ -53,7 +53,7 @@ class Hub{
   }else if(m.type==="chat"){
    if(m.entry){(this.history[m.entry.channel]??=[]).push(m.entry);if(m.entry.channel===this.channel&&this.view==="chat")this.messages()}
   }else if(m.type==="queued")this.flash("Queued for "+m.game+". Waiting for an opponent.");
-  else if(m.type==="chessStart"){this.chess={...m,turn:"w",over:false};this.selectedSquare=null;this.view="chess";this.render()}
+  else if(m.type==="chessStart"){this.chess={...m,turn:m.turn||"w",over:false};this.selectedSquare=null;this.view="chess";this.render()}
   else if(m.type==="chessState"){if(this.chess?.id===m.id){Object.assign(this.chess,m);this.selectedSquare=null;if(this.view==="chess")this.chessScreen();if(m.over)this.flash(m.result||"Game over")}}
   else if(m.type==="rpsStart"){this.rps={...m,waiting:false,result:null};this.view="rps";this.render()}
   else if(m.type==="rpsWaiting"){if(this.rps?.id===m.id){this.rps.waiting=true;if(this.view==="rps")this.rpsScreen()}}
@@ -62,6 +62,10 @@ class Hub{
   else if(m.type==="tournamentStarted")this.flash("Tournament has started!");
   else if(m.type==="tournamentWinner")this.flash("Tournament won by "+m.winner);
   else if(m.type==="world"){this.world=m;if(this.view==="world")this.worldUpdate()}
+  else if(m.type==="worldQueued"){this.worldQueueing=true;this.worldActive=false;if(this.view==="world")this.worldScreen()}
+  else if(m.type==="worldMatch"){this.worldActive=true;this.worldQueueing=false;this.tile=null;if(this.view==="world")this.worldScreen()}
+  else if(m.type==="worldQueueCancelled"){this.worldQueueing=false;if(this.view==="world")this.worldScreen()}
+  else if(m.type==="worldEnded"){this.worldActive=false;this.worldQueueing=false;this.world=null;this.camera={zoom:1,x:0,y:0};if(this.view==="world")this.worldScreen()}
   else if(m.type==="worldInfo")this.flash(m.text);
   else if(m.type==="error")this.flash(m.message||"Request failed");
  }
@@ -114,30 +118,33 @@ class Hub{
   this.$("#hubContent").innerHTML='<section class="hub-games"><div class="hub-games-head"><span class="hub-label">PLAY WITH LIGHTNING</span><h2>Pick your arena.</h2><p>Queue for a live match or challenge another member. No downloads required.</p></div><div class="hub-game-grid">'+[
     ["♞","Chess","Real-time chess. Legal moves and turns are verified by the server.","chessView","Queue • Duel"],
     ["✊","Rock Paper Scissors","Fast 1v1 duels, hidden choices and four-player tournaments.","rpsView","Queue • Tournaments"],
-    ["◈","WorldPvP","Grow your nation, build, defend and take control of the world.","worldView","Realtime • Alpha"]
+    ["◈","WorldPvP","The entire Earth. Human opponents, AI nations, military campaigns and real-time conquest.","worldView","Worldwide • Bot generals"]
   ].map(x=>'<article class="hub-game-card"><div><div class="hub-game-icon">'+x[0]+'</div><h3>'+x[1]+'</h3><p>'+x[2]+'</p></div><div><small>'+x[4]+'</small><br><button class="hub-btn primary" data-act="'+x[3]+'">Play now ↗</button></div></article>').join("")+'</div></section>';
  }
  updates(){
-  this.header("Update log","Lightning 2.0 — Alpha");
-  this.$("#hubContent").innerHTML='<section class="hub-games"><div class="hub-news"><span class="hub-label">PATCH NOTES</span><h1>What changed.</h1>'+UPDATES.map(u=>'<article><h3>'+E(u[0])+'</h3><p>'+E(u[1])+'</p></article>').join("")+'</div></section>';
+  this.header("What's New","Lightning · Releases");
+  const patches=[
+   {version:"2.1",tag:"WORLD EXPANSION",date:"October 2026",title:"A world worth conquering.",desc:"A real global coastline, zoom-and-pan controls, matchmaking, AI nations and inland/naval attack rules.",items:["WorldPvP · Queue and play lobby","360 × 180 global strategy map","Bot nations and coastal naval landings","Chess move highlights and AI opponent"]},
+   {version:"2.0",tag:"MULTIPLAYER ALPHA",date:"October 2026",title:"Lightning goes live.",desc:"The first version of Lightning's competitive and community multiplayer hub.",items:["Live community channels and suggestions","Chess matchmaking and RPS tournaments","WorldPvP proof of concept","Better AI Markdown and browser loading"]},
+   {version:"1.9",tag:"BROWSER",date:"Earlier",title:"A quieter browser.",desc:"The foundation: proxy browsing, tabs, music, design polish and Lightning AI.",items:["Gold-on-obsidian redesign","Core browsing and AI tools"]}
+  ];
+  this.$("#hubContent").innerHTML='<section class="hub-release-scroll"><div class="hub-release-hero"><span class="hub-label">THE LIGHTNING CHANGELOG</span><h1>Built to get<br><em>better.</em></h1><p>Every release, a stronger browser and a better place to play.</p><div class="hub-release-badges"><span>✦ CURRENT · 2.1 ALPHA</span><span>⚡ LIVE NETWORK</span></div></div><div class="hub-release-list">'+patches.map((p,i)=>'<article class="hub-release"><div class="hub-release-meta"><span class="hub-release-version">'+E(p.version)+'</span><div><span class="hub-label">'+E(p.tag)+'</span><small>'+E(p.date)+'</small></div></div><div class="hub-release-body"><span class="hub-release-number">0'+(i+1)+'</span><h2>'+E(p.title)+'</h2><p>'+E(p.desc)+'</p><div class="hub-release-items">'+p.items.map(x=>'<div><span>↗</span>'+E(x)+'</div>').join("")+'</div></div></article>').join("")+'</div></section>';
  }
  chessScreen(){
-  this.header("Chess","Server-validated multiplayer");
+  this.header("Chess","Live matches · Real rules · Bot practice");
   const host=this.$("#hubContent"),g=this.chess;
   if(!g){
-   host.innerHTML='<div class="hub-game-area"><span class="hub-label">STRATEGY / CLASSIC</span><h2>Chess</h2><p>Queue for a player or paste an online player ID to challenge them.</p><div class="hub-actions"><button class="hub-btn primary" data-act="chessQueue">Find match</button><input id="hubDuelId" placeholder="Opponent user ID"><button class="hub-btn" data-act="chessDuel">Duel player</button></div><button class="hub-btn" data-act="back">← All games</button></div>';return
+   host.innerHTML='<section class="hub-game-area hub-chess-lobby"><span class="hub-label">THE LIGHTNING CHESS CLUB</span><h2>Make your move.</h2><p>Find a human or practice against the Lightning bot. Select a piece, then tap a highlighted destination.</p><div class="hub-actions"><button class="hub-btn primary" data-act="chessQueue">⚔ Find a player</button><button class="hub-btn" data-act="chessBot">♟ Play vs bot</button></div><div class="hub-actions"><input id="hubDuelId" placeholder="Opponent user ID"><button class="hub-btn" data-act="chessDuel">Challenge player</button></div><button class="hub-btn" data-act="back">← All games</button></section>';return;
   }
-  const board=g.fen.split(" ")[0].split("/").map(row=>{
-   const cells=[];for(const ch of row)if(/[1-8]/.test(ch))for(let i=0;i<Number(ch);i++)cells.push("");else cells.push(ch);
-   return cells;
-  });
-  const order=g.color==="b"?[7,6,5,4,3,2,1,0]:[0,1,2,3,4,5,6,7];
-  let squares="";
+  const board=g.fen.split(" ")[0].split("/").map(row=>{const cells=[];for(const ch of row){if(/[1-8]/.test(ch))for(let i=0;i<Number(ch);i++)cells.push("");else cells.push(ch)}return cells});
+  const order=g.color==="b"?[7,6,5,4,3,2,1,0]:[0,1,2,3,4,5,6,7],myTurn=!g.over&&g.turn===g.color,legal=myTurn?(g.legal||[]):[];
+  const destinations=new Set(legal.filter(m=>m.from===this.selectedSquare).map(m=>m.to));let squares="";
   for(const y of order)for(const x of order){
-   const sq="abcdefgh"[x]+(8-y),p=board[y]?.[x]||"";
-   squares+='<button class="hub-square '+((x+y)%2?"dark":"light")+(this.selectedSquare===sq?" selected":"")+'" data-act="square" data-square="'+sq+'" title="'+sq+'">'+(PIECES[p]||"")+'</button>';
+   const sq="abcdefgh"[x]+(8-y),piece=board[y]?.[x]||"";
+   squares+='<button type="button" class="hub-square '+((x+y)%2?"dark":"light")+(this.selectedSquare===sq?" selected":"")+(destinations.has(sq)?" target":"")+'" data-act="square" data-square="'+sq+'" title="'+sq+'"><span>'+(PIECES[piece]||"")+'</span></button>';
   }
-  host.innerHTML='<section class="hub-game-area"><span class="hub-label">MATCH · '+E(g.id)+'</span><h2>Chess</h2><p>You are '+(g.color==="w"?"White":"Black")+'. '+(g.over?E(g.result||"Game over"):g.turn===g.color?"Your turn":"Opponent’s turn")+'</p><div class="hub-chess">'+squares+'</div><div class="hub-actions"><button class="hub-btn" data-act="back">← All games</button><span class="hub-pill">'+E(g.last||"Opening")+'</span></div></section>';
+  const hint=g.over?E(g.result||"Game finished"):myTurn?this.selectedSquare?"Tap a highlighted square to move.":"Your move · Select a piece":"Opponent is thinking…";
+  host.innerHTML='<section class="hub-chess-layout"><div class="hub-chess-panel"><div class="hub-chess-status"><span class="hub-label">MATCH · '+E(g.id.slice(0,7).toUpperCase())+'</span><strong>'+(g.over?"GAME OVER":myTurn?"YOUR TURN":"OPPONENT'S TURN")+'</strong></div><div class="hub-chess-board"><div class="hub-chess">'+squares+'</div></div></div><aside class="hub-chess-sidebar"><span class="hub-label">YOUR MATCH</span><h2>Chess.</h2><p>You play <b>'+(g.color==="w"?"White ♙":"Black ♟")+'</b></p><p class="hub-chess-hint">'+hint+'</p><div class="hub-chess-card">Latest move <strong>'+E(g.last||"Opening position")+'</strong></div><div class="hub-chess-card">Legal moves <strong>'+legal.length+'</strong></div><button class="hub-btn" data-act="back">← Arcade</button></aside></section>';
  }
  rpsScreen(){
   this.header("Rock Paper Scissors","Quick rounds & tournaments");
@@ -225,15 +232,23 @@ class Hub{
   if(action==="chessView"){this.chess=null;return this.show("chess")}
   if(action==="rpsView"){this.rps=null;return this.show("rps")}
   if(action==="worldView")return this.show("world");
+  if(action==="chessBot"){this.chess=null;return this.send({type:"chessBot"})}
   if(action==="chessQueue"||action==="rpsQueue")return this.send({type:"queue",game:action==="chessQueue"?"chess":"rps"});
   if(action==="tournament")return this.send({type:"tournamentJoin"});
   if(action==="chessDuel"||action==="rpsDuel"){const target=this.$("#hubDuelId")?.value.trim();if(!target)return this.flash("Enter an opponent user ID.");return this.send({type:"duel",game:action==="chessDuel"?"chess":"rps",target})}
   if(action==="square"){
-   if(!this.chess||this.chess.over)return;
-   const square=button.dataset.square;
-   if(!this.selectedSquare){this.selectedSquare=square;return this.chessScreen()}
-   if(this.selectedSquare!==square)this.send({type:"chessMove",id:this.chess.id,from:this.selectedSquare,to:square});
-   this.selectedSquare=null;return this.chessScreen();
+   const g=this.chess;
+   if(!g||g.over)return;
+   if(g.turn!==g.color)return this.flash("Wait for your opponent.");
+   const sq=button.dataset.square,legal=g.legal||[];
+   if(this.selectedSquare===sq){this.selectedSquare=null;return this.chessScreen()}
+   if(this.selectedSquare&&legal.some(m=>m.from===this.selectedSquare&&m.to===sq)){
+    const from=this.selectedSquare;this.selectedSquare=null;
+    this.send({type:"chessMove",id:g.id,from,to:sq,promotion:"q"});
+    return this.chessScreen();
+   }
+   if(legal.some(m=>m.from===sq)){this.selectedSquare=sq;return this.chessScreen()}
+   this.flash("Select your piece, then a highlighted square.");
   }
   if(action==="rpsPick")return this.send({type:"rpsChoice",id:this.rps?.id,choice:button.dataset.choice});
   if(action==="worldJoin")return this.send({type:"worldJoin"});
