@@ -1,0 +1,173 @@
+
+/* Lightning Arcade / The War Room — intentionally scoped to game surfaces */
+.wp-root{display:flex;flex:1;flex-direction:column;min-width:0;min-height:0;position:relative;color:#e9f0e9;font-family:var(--font,system-ui)}
+.wp-root button,.wp-root select{font-family:inherit}
+.wp-root button{cursor:pointer}
+.wp-lobby{position:relative;isolation:isolate;overflow:auto;justify-content:center;background:#0a1519}
+.wp-lobby-shade{position:absolute;inset:0;background:radial-gradient(ellipse at 72% 45%,transparent 0%,#07101690 53%,#060d11ef 100%),linear-gradient(100deg,#091218f0 0%,#0a121bb0 37%,transparent 77%);pointer-events:none;z-index:1}
+.wp-lobby-map{position:absolute;width:100%;height:100%;inset:0;opacity:.85;object-fit:cover;filter:saturate(.87);pointer-events:none}
+.wp-lobby-content{position:relative;z-index:2;padding:clamp(28px,6vw,100px);max-width:840px}
+.wp-eyebrow{font:700 11px/1.5 var(--mono,monospace);letter-spacing:.25em;color:#9fb4b5}
+.wp-eyebrow em{color:#e9c583;font-style:normal}
+.wp-lobby h1{margin:12px 0 12px;font:600 clamp(80px,11vw,153px)/.9 var(--display,Georgia);letter-spacing:-.07em;color:#faf4e6;text-shadow:0 10px 60px #000b}
+.wp-lobby h1 span{color:#d5ad6b}
+.wp-lobby-description{font-size:clamp(13px,1.3vw,17px);line-height:1.75;max-width:555px;color:#b6c5c5}
+.wp-feature-row{display:flex;flex-wrap:wrap;gap:8px;margin:27px 0 29px}
+.wp-feature-row span{padding:8px 11px;border:1px solid #829a9857;border-radius:7px;background:#081923ba;color:#e4e2cb;font:650 10px var(--mono,monospace);letter-spacing:.02em}
+.wp-lobby-actions{display:flex;flex-wrap:wrap;align-items:center;gap:11px}
+.wp-primary{min-height:51px;display:inline-flex;align-items:center;justify-content:center;gap:12px;border:1px solid #f7da9e;border-radius:8px;background:linear-gradient(115deg,#f4d89c,#c89652);color:#231809;font:800 12px var(--mono,monospace);letter-spacing:.07em;padding:0 22px;box-shadow:0 9px 35px #0006}
+.wp-primary:hover{filter:brightness(1.12);transform:translateY(-1px)}
+.wp-secondary{min-height:49px;display:inline-flex;align-items:center;justify-content:center;border:1px solid #8da7a25e;border-radius:8px;background:#1b3136dc;color:#e6ebdf;font-weight:650;font-size:12px;padding:0 19px}
+.wp-secondary:hover{background:#2f4c51}
+.wp-minor{border:0;background:transparent;color:#afbfc0;font-size:12px;padding:10px}
+.wp-minor:hover{color:#fff}
+.wp-queue-box{margin-top:30px;padding:18px 20px;width:min(510px,100%);border:1px solid #76918c65;border-radius:10px;background:#101f26d9;box-shadow:0 15px 55px #0006}
+.wp-queue-top{display:flex;justify-content:space-between;align-items:center;gap:12px;color:#e8dbc0;font:700 12px var(--mono,monospace)}
+.wp-status-light{display:inline-block;width:8px;height:8px;margin-right:9px;background:#79e9a6;border-radius:50%;box-shadow:0 0 12px #5ddca5}
+.wp-queue-meter{height:5px;border-radius:30px;background:#43535b;margin:15px 0 10px;overflow:hidden}
+.wp-queue-meter>span{display:block;width:30%;height:100%;background:linear-gradient(90deg,#88c0bd,#f1c886);animation:wp-search 2.3s ease-in-out infinite alternate}
+@keyframes wp-search{to{transform:translateX(230%)}}
+.wp-queue-box p{margin:0;color:#9bb1b3;font-size:11px;line-height:1.6}
+.wp-lobby-footer{position:relative;z-index:2;display:flex;gap:28px;flex-wrap:wrap;padding:16px clamp(28px,6vw,100px);border-top:1px solid #ffffff1e;background:#071117cb;color:#aebcbd;font:600 10px var(--mono,monospace);letter-spacing:.07em}
+.wp-lobby-footer b{color:#e4bf7f}
+.wp-battle{background:#0c202c}
+.wp-top{height:62px;flex:none;z-index:8;display:flex;align-items:center;gap:16px;padding:7px 19px;border-bottom:1px solid #9db7af30;background:linear-gradient(90deg,#101c24,#162b34 48%,#13212a);box-shadow:0 5px 22px #0007}
+.wp-title{display:flex;flex-direction:column;flex:none;min-width:124px}
+.wp-title strong{font:800 17px/1.1 var(--font,system-ui);letter-spacing:-.06em;color:#f1efe6;text-transform:uppercase}
+.wp-title strong span{color:#dfb574}
+.wp-title small{font:600 8px var(--mono,monospace);color:#8dabad;letter-spacing:.16em;padding-top:3px}
+.wp-counters{display:flex;align-items:center;gap:0;min-width:0;overflow:auto;scrollbar-width:none}
+.wp-counter{min-width:83px;padding:0 14px;border-left:1px solid #728b863f}
+.wp-counter small{display:block;color:#8ea7b0;font:650 9px var(--mono,monospace);letter-spacing:.09em}
+.wp-counter strong{font:750 18px/1.5 var(--font,system-ui);color:#f0d297;white-space:nowrap}
+.wp-online{color:#9cebc3;white-space:nowrap;font:700 10px var(--mono,monospace);letter-spacing:.08em}
+.wp-exit{min-height:34px;padding:0 12px;border:1px solid #6880855b;border-radius:7px;background:#1c3037;color:#d5e2e1;font-weight:650;font-size:11px}
+.wp-exit:hover{background:#334b55}
+.wp-field{position:relative;flex:1;min-height:0;overflow:hidden;background:#18384b}
+.wp-field canvas#hubWorldCanvas{width:100%;height:100%;display:block;cursor:grab;touch-action:none;user-select:none}
+.wp-field canvas#hubWorldCanvas:active{cursor:grabbing}
+.wp-overlay{position:absolute;z-index:3;pointer-events:none;border:1px solid #6785876e;border-radius:10px;background:linear-gradient(150deg,#101f28f0,#0d1b23eb);box-shadow:0 13px 38px #0006;backdrop-filter:blur(16px)}
+.wp-overlay button,.wp-overlay select{pointer-events:auto}
+.wp-left{left:15px;top:15px;width:230px;max-height:calc(100% - 168px);overflow:auto;scrollbar-width:thin}
+.wp-panel-head{padding:12px 14px;border-bottom:1px solid #a3a89c30;display:flex;align-items:center;justify-content:space-between}
+.wp-panel-head strong{font:800 10px var(--mono,monospace);letter-spacing:.14em;color:#e6c484}
+.wp-panel-head small{font:650 9px var(--mono,monospace);color:#a8bab7}
+.wp-rank{display:flex;align-items:center;gap:9px;padding:9px 12px;border-bottom:1px solid #ffffff0c}
+.wp-rank b{width:15px;color:#809da5;font:700 10px var(--mono,monospace)}
+.wp-rank-dot{width:9px;height:9px;border-radius:2px;flex:none;box-shadow:0 0 10px #0003}
+.wp-rank-label{min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:#d9e6e1}
+.wp-rank-label small{font:700 8px var(--mono,monospace);color:#97cc9d}
+.wp-rank-count{color:#e2c88f;font:700 10px var(--mono,monospace)}
+.wp-right{right:16px;top:16px;width:252px}
+.wp-right-info{padding:15px}
+.wp-right-info b{display:block;font-size:17px;line-height:1.2;color:#fff0c9;letter-spacing:-.04em}
+.wp-right-info small{display:block;font:650 10px/1.7 var(--mono,monospace);color:#b1c0c1;margin-top:11px}
+.wp-orders{margin-top:12px}
+.wp-order-head{display:flex;justify-content:space-between;align-items:center;margin:0 0 9px}
+.wp-order-head strong{font:750 10px var(--mono,monospace);letter-spacing:.13em;color:#e9d1a3}
+.wp-attack{width:100%;min-height:44px;border:1px solid #f4d48c;background:linear-gradient(125deg,#ebc77c,#bc8c4b);color:#231a10;border-radius:7px;font:800 12px var(--mono,monospace)}
+.wp-attack:hover{filter:brightness(1.09)}
+.wp-attack:disabled{opacity:.42;filter:grayscale(.7);cursor:not-allowed}
+.wp-order-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.wp-order-grid button{border:1px solid #68848660;border-radius:6px;background:#213b43;color:#d5e4e2;height:33px;font-size:10px;font-weight:700}
+.wp-order-grid button:hover{background:#315463}
+.wp-order-grid button:disabled{opacity:.4;cursor:not-allowed}
+.wp-order-note{font-size:10px;line-height:1.5;color:#9db2b2;margin:10px 0 0}
+.wp-controls{position:absolute;right:16px;bottom:17px;z-index:5;display:flex;gap:5px;align-items:center;background:#0d202aca;border:1px solid #63818d79;border-radius:9px;padding:5px;backdrop-filter:blur(10px)}
+.wp-controls button{height:35px;min-width:35px;border:0;border-radius:6px;background:#263e4a;color:#e4dfbf;font-size:18px}
+.wp-controls button:hover{background:#416073}
+.wp-controls span{width:48px;text-align:center;font:700 10px var(--mono,monospace);color:#d0dddc}
+.wp-footer{position:absolute;z-index:3;bottom:17px;left:16px;max-width:calc(100% - 260px);pointer-events:none;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.wp-footer span{border:1px solid #7e9a9775;border-radius:6px;padding:8px 10px;background:#0f2330df;color:#dde5df;font:650 10px var(--mono,monospace)}
+.wp-help{color:#e5ce96!important}
+.wp-field .hub-world-tooltip,.wp-field .hub-world-legend{position:static;max-height:none;max-width:none;min-width:0;border:0;border-radius:0;box-shadow:none;background:none}
+.wp-field .hub-world-legend{overflow:visible}
+.wp-navy{display:flex;align-items:center;gap:7px;padding:10px 13px;background:#0e2229;color:#b8cfcd;font:650 10px var(--mono,monospace);border-bottom:1px solid #ffffff19}
+.wp-navy b{color:#eacc8f}
+.wp-intel-off{color:#eeb6a6!important}
+.wp-commander{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0;padding:12px 14px;border-bottom:1px solid #ffffff17}
+.wp-commander span{font:650 10px var(--mono,monospace);color:#aec0c0}
+.wp-commander select{min-height:34px;border:1px solid #69828270;border-radius:6px;color:#f1ddb4;background:#223841;padding:0 8px;font-weight:700;font-size:11px}
+.wp-guide{font:650 10px/1.6 var(--mono,monospace);color:#c2d4d1}
+.wp-guide strong{color:#eac788}
+.wp-center-label{position:absolute;top:13px;left:50%;transform:translateX(-50%);z-index:2;color:#d3e1d4a8;font:750 9px var(--mono,monospace);letter-spacing:.2em;text-shadow:0 2px 10px #05131b;pointer-events:none}
+.wp-field #hubWorldCanvas:focus-visible{outline:3px solid #e7be78;outline-offset:-4px}
+.hub-chess-layout.arena-chess{grid-template-columns:minmax(280px,600px) minmax(200px,320px);background:radial-gradient(ellipse at 20% 10%,#7f65351c,transparent 60%),#100f0e;gap:23px}
+.arena-chess .hub-chess-panel,.arena-chess .hub-chess-sidebar{border-color:#68563e;background:#211d18}
+.arena-chess .hub-square{touch-action:manipulation;user-select:none;min-width:0;min-height:0;line-height:1}
+.arena-chess .hub-square span{pointer-events:none;display:block}
+.arena-chess .hub-square:focus-visible{z-index:2;outline:3px solid #efd38c;outline-offset:-3px}
+.arena-chess .hub-square.available:not(.target):before{content:"";position:absolute;inset:5px;border:1px solid #ffffff25;pointer-events:none}
+.arena-chess .hub-square.target:after{width:24%;background:#31794e99}
+.arena-chess .hub-square.target.is-capture:after{inset:5px;width:auto;border:5px solid #51955c;background:transparent}
+.arena-chess .hub-square[disabled]{cursor:default}
+.arena-chess .hub-square.selected{box-shadow:inset 0 0 0 4px #f9d26f;outline:0}
+.arena-chess .hub-chess-sidebar h2{font-size:37px}
+.arena-chess .hub-chess-status{gap:10px}
+.arena-chess .hub-chess-status strong{border:1px solid #765a36;border-radius:999px;padding:6px 11px;background:#443620}
+.arena-chess .hub-chess-hint{line-height:1.6}
+.arena-chess .arena-turn-hint{color:#92dcb2!important}
+.arena-chess .arena-chess-help{margin-top:13px;color:#a8a29a;font-size:11px;line-height:1.7}
+.arena-chess .arena-chess-help code{color:#edcb8a}
+.arena-chess .hub-chess-card strong{color:#edc995}
+.arena-chess .arena-chess-controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.arena-chess .arena-chess-controls .hub-btn{margin:0}
+.arena-chess .arena-chess-controls .hub-btn.primary{min-width:130px}
+.hub-release-scroll.arena-releases{background:#0e1013}
+.arena-releases .hub-release-hero{padding:46px clamp(23px,6vw,90px) 40px;background:radial-gradient(ellipse at 85% 15%,#c4964230,transparent 63%),linear-gradient(145deg,#182129,#121418)}
+.arena-releases .hub-release-hero h1{font:600 clamp(56px,7vw,101px)/.96 var(--display,Georgia);letter-spacing:-.055em}
+.arena-releases .hub-release-badges span{border-color:#7e7154;background:#bda77e14}
+.arena-releases .hub-release-list{max-width:1120px}
+.arena-releases .hub-release{position:relative;grid-template-columns:122px 1fr;gap:25px;padding:24px 27px;margin:12px 0;border:1px solid #4f5c5b;border-radius:15px;background:linear-gradient(120deg,#1c292e,#182024 50%,#1a1c1d);box-shadow:0 18px 45px #0003}
+.arena-releases .hub-release:first-child{border-color:#b9945c;background:linear-gradient(115deg,#263331,#24231e)}
+.arena-releases .hub-release-version{font:750 38px var(--display,Georgia);color:#dfba7c}
+.arena-releases .hub-release-meta{flex-direction:column;gap:8px}
+.arena-releases .hub-release-meta>div{padding:0}
+.arena-releases .hub-release-body{padding:0}
+.arena-releases .hub-release-body h2{font-size:30px}
+.arena-releases .hub-release-items div{border-color:#4c5754}
+.arena-releases .hub-release-items span{color:#f0cf93}
+@media(max-width:1150px){
+ .wp-left{width:194px}.wp-right{width:214px}
+ .wp-counter{min-width:70px;padding:0 9px}
+ .wp-footer{max-width:calc(100% - 220px)}
+}
+@media(max-width:780px){
+ .wp-top{height:auto;min-height:61px;flex-wrap:wrap;padding:8px;gap:8px}
+ .wp-counters{order:3;width:100%;justify-content:space-around}
+ .wp-title{min-width:99px}
+ .wp-counter{flex:1;text-align:center;min-width:53px}
+ .wp-online{display:none}
+ .wp-left{left:8px;top:8px;width:165px;max-height:33%}
+ .wp-right{right:8px;top:8px;width:185px;max-height:53%;overflow:auto}
+ .wp-right-info{padding:9px}
+ .wp-right-info b{font-size:13px}
+ .wp-right-info small{font-size:9px}
+ .wp-panel-head{padding:7px 9px}
+ .wp-rank{padding:5px 8px}
+ .wp-order-grid{grid-template-columns:1fr 1fr}
+ .wp-footer{bottom:64px;max-width:calc(100% - 20px);left:8px}
+ .wp-footer span{padding:5px 7px;font-size:8px}
+ .wp-controls{right:8px;bottom:8px}
+ .wp-center-label{display:none}
+ .arena-chess .hub-chess-panel{padding:7px}
+ .arena-releases .hub-release{grid-template-columns:1fr}
+ .arena-releases .hub-release-meta{flex-direction:row}
+}
+@media(max-width:520px){
+ .wp-lobby-content{padding:30px 18px}
+ .wp-lobby h1{font-size:69px}
+ .wp-lobby-actions button{width:100%;justify-content:center}
+ .wp-lobby-footer{padding:14px 20px}
+ .wp-left{width:125px;max-height:27%;opacity:.92}
+ .wp-rank:nth-of-type(n+6){display:none}
+ .wp-rank-count{display:none}
+ .wp-right{top:auto;bottom:78px;right:7px;max-height:38%;width:172px}
+ .wp-counter strong{font-size:14px}
+ .wp-right .wp-orders{margin-top:4px}
+ .wp-right-info small{font-size:8px}
+ .wp-footer{bottom:10px;max-width:47%}
+ .wp-footer span:not(.wp-help){display:none}
+ .wp-controls{bottom:10px}
+ .wp-primary,.wp-secondary{min-height:47px}
+}
