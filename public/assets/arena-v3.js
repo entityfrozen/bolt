@@ -390,16 +390,59 @@ export function installArenaPolish(Hub){
     this.chessScreen();
   };
   Hub.prototype.updates=function(){
-    this.header("Updates","Lightning · What's new");
-    const releases=[
-      {version:"2.4",tag:"OPENFRONT PORT",date:"October 2026",title:"WorldPvP. The real thing.",desc:"Lightning now hosts the complete OpenFront engine instead of its previous territory prototype.",items:["Official OpenFront client and strategy simulation","Original spawn selection and multiplayer lobby","Isolated OpenFront game server on Railway","Direct-tab fallback, credits and source attribution"]},
-      {version:"2.3",tag:"FRONTLINE OVERHAUL",date:"October 2026",title:"Every tile is earned.",desc:"WorldPvP takes a leap toward OpenFront-style real-time campaigns, with troop-limited expansion, a smaller spawn, faster map navigation and a tighter command HUD.",items:["Fronts expand tile by tile instead of teleporting","Troop commitment controls speed and reach","Nations start with a single piece of land","Map artwork cached for smoother zoom and dragging","Compact orders dock with campaign progress","Updated NPC frontline behavior"]},
-      {version:"2.2",tag:"WAR ROOM UPDATE",date:"October 2026",title:"The world, at war.",desc:"A redesigned WorldPvP lobby, a full interactive world map, commander intel and a faster route from queue to battle.",items:["WorldPvP queue and instant NPC battles","Drag, pinch, mousewheel and keyboard navigation","Better world borders and tactical targeting","Chess board interaction and refresh controls","A rebuilt update log"]},
-      {version:"2.1",tag:"WORLD EXPANSION",date:"October 2026",title:"Every nation has a story.",desc:"Global conquest came online with AI empires, economy and territorial combat.",items:["World-wide conquest system","NPC opponents and strategic buildings","Coastal access and naval landing rules"]},
-      {version:"2.0",tag:"SOCIAL & MULTIPLAYER",date:"October 2026",title:"A whole new arcade.",desc:"The first multiplayer games and community spaces launched inside Lightning.",items:["Channels, messaging and feature suggestions","Chess matchmaking and Rock Paper Scissors","Game rooms and live opponent updates"]},
-      {version:"1.9",tag:"LIGHTNING BROWSER",date:"Earlier",title:"Built for browsing.",desc:"A new identity, an integrated browser, and the first Lightning AI experiences.",items:["Obsidian-and-gold UI","Browsing and music","AI tools"]}
+    this.header("Updates","Lightning · Changelog");
+    const changes=[
+      {
+        sign:"+",kind:"added",title:"Added",
+        items:[
+          "WorldPvP now runs the official OpenFront game on a dedicated Lightning server.",
+          "Chess now has Resign & Leave, Cancel Queue, and Leave Finished Match.",
+          "A direct-tab option for playing WorldPvP outside the arcade."
+        ]
+      },
+      {
+        sign:"−",kind:"removed",title:"Removed",
+        items:[
+          "The old custom WorldPvP prototype from the playable arcade."
+        ]
+      },
+      {
+        sign:"*",kind:"improved",title:"Improved",
+        items:[
+          "WorldPvP now opens with OpenFront's own lobby, map and spawn-selection interface.",
+          "Chess has clearer legal-move highlights and a board refresh option."
+        ]
+      },
+      {
+        sign:"!",kind:"fixed",title:"Fixed",
+        items:[
+          "Resolved OpenFront's Railway build and Nginx startup problems.",
+          "Chess matches can be resigned without preventing another match."
+        ]
+      }
     ];
-    this.$("#hubContent").innerHTML='<section class="hub-release-scroll arena-releases"><div class="hub-release-hero"><span class="hub-label">LIGHTNING / THE RELEASE JOURNAL</span><h1>Every update.<br><em>Another level.</em></h1><p>What changed, why it matters, and what you can play right now.</p><div class="hub-release-badges"><span>✦ LATEST · VERSION 2.4</span><span>◈ WORLDPVP WAR ROOM</span><span>⚡ LIVE ARCADE</span></div></div><div class="hub-release-list">'+releases.map((p,i)=>'<article class="hub-release"><div class="hub-release-meta"><span class="hub-release-version">'+esc(p.version)+'</span><div><span class="hub-label">'+esc(p.tag)+'</span><small>'+esc(p.date)+'</small></div></div><div class="hub-release-body"><span class="hub-release-number">0'+(i+1)+'</span><h2>'+esc(p.title)+'</h2><p>'+esc(p.desc)+'</p><div class="hub-release-items">'+p.items.map(x=>'<div><span>↗</span> '+esc(x)+'</div>').join("")+'</div></div></article>').join("")+'</div></section>';
+    const sections=changes.map(group=>
+      '<section class="lc-group lc-'+group.kind+'" aria-labelledby="lc-'+group.kind+'">'+
+        '<header class="lc-group-head">'+
+          '<span class="lc-token" aria-hidden="true">['+group.sign+']</span>'+
+          '<h2 id="lc-'+group.kind+'">'+group.title+'</h2>'+
+          '<span class="lc-count">'+group.items.length+' '+(group.items.length===1?'change':'changes')+'</span>'+
+        '</header>'+
+        '<ul class="lc-list">'+group.items.map(item=>'<li>'+esc(item)+'</li>').join("")+'</ul>'+
+      '</section>'
+    ).join("");
+    this.$("#hubContent").innerHTML=
+      '<main class="lightning-changelog">'+
+        '<div class="lc-wrap">'+
+          '<div class="lc-header">'+
+            '<span class="lc-eyebrow"><span class="lc-pulse"></span> LIGHTNING / CHANGELOG</span>'+
+            '<div class="lc-heading"><h1>Update log<span class="lc-dot">.</span></h1><span class="lc-version">VERSION 2.4.0 <i>•</i> OCT 2026</span></div>'+
+            '<p>What changed in Lightning. No walls of text.</p>'+
+          '</div>'+
+          '<div class="lc-sections">'+sections+'</div>'+
+          '<footer class="lc-footer">LIGHTNING <span>—</span> BUILD 2.4.0</footer>'+
+        '</div>'+
+      '</main>';
   };
   installWorldRenderer(Hub);
   Hub.prototype.act=function(action,button){
