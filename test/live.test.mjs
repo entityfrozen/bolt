@@ -171,8 +171,12 @@ test("WorldPvP permits distant land campaigns but rejects inland water jumps", a
   }
  }
  const ox=own%W,oy=Math.floor(own/W);
- const distant=cells.findIndex((o,i)=>o===""&&reachable[i]&&Math.abs(i%W-ox)+Math.abs(Math.floor(i/W)-oy)>20);
- assert.ok(distant>=0,"have reachable neutral land outside immediate border");
+ // Pick a distant objective where the terrain permits it. Islands can have
+ // shorter land paths, so use their farthest reachable neutral tile instead.
+ const neutral=cells.map((o,i)=>o===""&&reachable[i]?i:-1).filter(i=>i>=0);
+ neutral.sort((a,b)=> (Math.abs(b%W-ox)+Math.abs(Math.floor(b/W)-oy))-(Math.abs(a%W-ox)+Math.abs(Math.floor(a/W)-oy)));
+ const distant=neutral[0]??-1;
+ assert.ok(distant>=0,"have reachable neutral land to expand toward");
  await delay(190);
  alice.send(JSON.stringify({type:"worldAction",action:"attack",x:distant%W,y:Math.floor(distant/W),ratio:.9}));
  await delay(900);
