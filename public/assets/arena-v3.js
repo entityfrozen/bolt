@@ -80,7 +80,7 @@ export function installArenaPolish(Hub){
   const oldOnMessage=Hub.prototype.onMessage;
   Hub.prototype.show=function(page,channel){
     oldShow.call(this,page,channel);
-    if(page==="world"&&this.socket?.readyState===WebSocket.OPEN)this.send({type:"worldSync"});
+    if(page==="world"&&(this.worldActive||this.worldQueueing)&&this.socket?.readyState===WebSocket.OPEN)this.send({type:"worldSync"});
     if(page==="chess"&&this.chess?.id&&this.socket?.readyState===WebSocket.OPEN)this.send({type:"chessSync",id:this.chess.id});
   };
   Hub.prototype.close=function(){
@@ -90,6 +90,7 @@ export function installArenaPolish(Hub){
   Hub.prototype.onMessage=function(message){
     if(message.type==="chessState"||message.type==="chessStart"){this.chessPending=false;this.chessError="";}
     if(message.type==="error"&&this.chessPending){this.chessPending=false;this.chessError=message.message||"Move rejected";if(this.view==="chess")this.chessScreen();}
+    if(message.type==="error"&&this.worldQueueing&&!this.worldActive){this.worldQueueing=false;if(this.view==="world")this.worldScreen();}
     if(message.type==="worldQueueCancelled")this.worldQueueing=false;
     oldOnMessage.call(this,message);
   };
