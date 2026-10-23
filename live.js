@@ -60,7 +60,7 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir}){
  const validateSend=(ws,msg)=>{
   const u=clients.get(ws);
   if(!u)return false;
-  if(Date.now()-u.last<550){safeSend(ws,{type:"error",message:"You're sending commands too quickly."});return false}
+  if(Date.now()-u.last<130){safeSend(ws,{type:"error",message:"You're sending commands too quickly."});return false}
   u.last=Date.now();return true;
  };
  function worldSnapshot(){
@@ -219,12 +219,21 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir}){
   }else return;
   checkWorldWin();sendWorld();
  }
+ function chessLegal(engine){return engine.moves({verbose:true}).map(m=>({from:m.from,to:m.to,promotion:m.promotion||""}))}
  function newChess(ids){
-  const id=uid(),game={id,ids,engine:new Chess(),created:Date.now(),over:false};
+  const id=uid(),game={id,ids,engine:new Chess(),created:Date.now(),over:false,bot:ids[1]==="npc:chess"};
   chessGames.set(id,game);
-  for(let i=0;i<2;i++)sendUser(ids[i],{type:"chessStart",id,color:i===0?"w":"b",players:ids.map(z=>clientOf(z)[0]?.[1]?.name||z),fen:game.engine.fen()});
-  presence();
-  return game;
+  for(let i=0;i<2;i++)if(i===0||!game.bot)
+   sendUser(ids[i],{type:"chessStart",id,color:i===0?"w":"b",players:ids.map(z=>z==="npc:chess"?"Lightning Bot":clientOf(z)[0]?.[1]?.name||z),fen:game.engine.fen(),turn:"w",legal:chessLegal(game.engine)});
+  presence();return game;
+ }
+ function publishChess(game,move,by){
+  game.over=game.engine.isGameOver();
+  const snapshot={type:"chessState",id:game.id,fen:game.engine.fen(),last:move.san,turn:game.engine.turn(),over:game.over,
+   legal:game.over?[]:chessLegal(game.engine),
+   result:game.engine.isCheckmate()?("Checkmate · "+by+" wins"):game.engine.isDraw()?"Draw":""};
+  for(const id of game.ids)if(id!=="npc:chess")sendUser(id,snapshot);
+  if(game.over){const timer=setTimeout(()=>chessGames.delete(game.id),60000);timer.unref()}
  }
  function chessMove(u,data){
   const game=chessGames.get(data.id);
@@ -233,16 +242,24 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir}){
   if(game.engine.turn()!==color)return safeSend(u.ws,{type:"error",message:"It's not your turn."});
   let move=null;
   try{
-    const piece=game.engine.get(data.from);
-    const promotion=piece?.type==="p"&&["1","8"].includes(String(data.to||"")[1]);
-    move=game.engine.move(promotion?{from:data.from,to:data.to,promotion:"q"}:{from:data.from,to:data.to});
+   const piece=game.engine.get(data.from);
+   const promotion=piece?.type==="p"&&["1","8"].includes(String(data.to||"")[1]);
+   move=game.engine.move(promotion?{from:data.from,to:data.to,promotion:data.promotion||"q"}:{from:data.from,to:data.to});
   }catch{}
-  if(!move)return safeSend(u.ws,{type:"error",message:"Illegal chess move."});
-  game.over=game.engine.isGameOver();
-  const snapshot={type:"chessState",id:game.id,fen:game.engine.fen(),last:move.san,turn:game.engine.turn(),over:game.over,
-    result:game.engine.isCheckmate()?("Checkmate · "+u.name+" wins"):game.engine.isDraw()?"Draw":""};
-  for(const user of game.ids)sendUser(user,snapshot);
-  if(game.over)setTimeout(()=>chessGames.delete(game.id),60000).unref();
+  if(!move)return safeSend(u.ws,{type:"error",message:"Illegal move. Select a highlighted square."});
+  publishChess(game,move,u.name);
+  if(game.bot&&!game.over){
+   const timer=setTimeout(()=>{
+    if(game.over||game.engine.turn()!=="b")return;
+    const moves=game.engine.moves({verbose:true});
+    // Captures, checks and promotions are favored over quiet moves.
+    const score=m=>(m.captured?8:0)+(m.san.includes("+")?3:0)+(m.san.includes("#")?100:0)+(m.promotion?14:0)+Math.random()*5;
+    moves.sort((a,b)=>score(b)-score(a));
+    const reply=game.engine.move(moves[0]);
+    publishChess(game,reply,"Lightning Bot");
+   },700);
+   timer.unref();
+  }
  }
  function newRPS(ids,tournament=null){
   const id=uid(),game={id,ids,choices:{},tournament};
@@ -329,7 +346,9 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir}){
    if(data.type==="chessMove")return chessMove(u,data);
    if(data.type==="rpsChoice")return rpsChoice(u,data);
    if(data.type==="tournamentJoin")return tournamentJoin(u);
-   if(data.type==="worldJoin")return worldJoin(u);
+   if(data.type==="worldQueue"||data.type==="worldJoin")return worldQueueJoin(u);
+   if(data.type==="worldCancel")return worldCancel(u);
+   if(data.type==="chessBot")return newChess([u.id,"npc:chess"]);
    if(data.type==="worldAction")return worldAction(u,data);
   });
   ws.on("close",()=>{
@@ -340,17 +359,38 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir}){
  });
  const ticker=setInterval(()=>{
   if(!wss.clients.size)return;
-  world.tick=(world.tick||0)+1;
-  for(const p of Object.values(world.players)){
-   const land=owned(p);
-   if(!land)continue;
-   const structures=world.cells.filter(c=>c.owner===p.id);
-   const cities=structures.filter(c=>c.kind==="city").length;
-   const factories=structures.filter(c=>c.kind==="factory").length;
-   const ports=structures.filter(c=>c.kind==="port").length;
-   p.troops=Math.min(50000+400*cities,p.troops+Math.min(150,land*.3+6+cities*3));
-   p.gold=Math.min(25000,p.gold+Math.min(100,land*.25+4+factories*7+ports*2));
+  if(world.phase!=="playing"||world.winner)return;
+  world.tick++;
+  const ownedBy=new Map();
+  for(let i=0;i<world.cells.length;i++){
+   const owner=world.cells[i].owner;
+   if(owner&&owner!=="sea"){
+    let arr=ownedBy.get(owner);
+    if(!arr){arr=[];ownedBy.set(owner,arr)}
+    arr.push(i);
+   }
   }
+  for(const p of Object.values(world.players)){
+   const territory=ownedBy.get(p.id)||[];
+   if(!territory.length)continue;
+   let cities=0,factories=0,ports=0;
+   for(const i of territory){const kind=world.cells[i].kind;if(kind==="city")cities++;else if(kind==="factory")factories++;else if(kind==="port")ports++}
+   p.troops=Math.min(90000,p.troops+Math.min(280,territory.length*.4+18+cities*7));
+   p.gold=Math.min(30000,p.gold+Math.min(120,territory.length*.24+9+factories*8+ports*3));
+   if(!p.bot||p.troops<100)continue;
+   // Bot generals expand from real front lines, or launch coastal invasions.
+   let target=-1;
+   for(let attempt=0;attempt<45;attempt++){
+    const origin=territory[Math.floor(Math.random()*territory.length)];
+    const options=neighbor(origin).filter(i=>isLand(i)&&world.cells[i].owner!==p.id);
+    if(!options.length)continue;
+    options.sort((a,b)=>(world.cells[a].owner?1:0)-(world.cells[b].owner?1:0));
+    target=options[0];break;
+   }
+   if(target<0&&coast[territory[0]])target=landIndices[Math.floor(Math.random()*landIndices.length)];
+   if(target>=0)capture(p,target,.4+Math.random()*.4);
+  }
+  checkWorldWin();
   if(world.tick%2===0)sendWorld();
  },3000);
  ticker.unref();
