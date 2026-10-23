@@ -204,3 +204,29 @@
 .hub-release-items span{color:#d3a55d;margin-right:8px}
 @media(max-width:950px){.hub-chess-layout{grid-template-columns:1fr;padding:18px}.hub-chess-sidebar{max-width:none}.hub-world-legend{display:none}.world-instructions{display:none}.hub-world-stat{min-width:58px;padding:0 6px}.hub-world-brand{min-width:110px}}
 @media(max-width:700px){.world-lobby-main{padding:26px}.world-lobby h1{font-size:70px}.world-lobby-footer{grid-template-columns:1fr;gap:12px;padding:18px 25px}.world-lobby-ambient{width:80vw;right:-35%;top:17%}.world-play{min-width:0;width:100%}.hub-world-tooltip{max-width:135px;min-width:0;right:7px;top:7px;padding:9px;font-size:10px}.hub-world-legend{display:none}.hub-world-bottom{bottom:5px}.hub-world-top{height:auto}.hub-world-brand{display:none}.world-live-dot{display:none}.hub-release{grid-template-columns:1fr;gap:10px}.hub-release-body{padding:0}.hub-release-items{grid-template-columns:1fr}.hub-release-hero{padding:27px}}
+
+
+/* The Arena: designed for an actual match, not a form with three buttons */
+.hub-rps-lobby,.hub-rps-match{height:100%;width:100%;overflow:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:35px 25px;color:#f3e7cc;background:radial-gradient(ellipse at 50% 0%,#64411d45,transparent 55%),repeating-linear-gradient(90deg,transparent 0 79px,#ffffff05 80px),#17130f}
+.hub-rps-huge{font-size:clamp(55px,10vw,106px);letter-spacing:.08em;filter:drop-shadow(0 15px 18px #0008);margin-bottom:20px}
+.hub-rps-huge span{transform:translateY(-14px);display:inline-block}
+.hub-rps-lobby h1{font:600 clamp(55px,7vw,88px)/.96 var(--display);letter-spacing:-.055em;color:#fff1d3;margin:17px 0}
+.hub-rps-lobby h1 em{color:#ddb06a}
+.hub-rps-lobby>p,.hub-rps-match>p{max-width:490px;color:#c0b4a1;font-size:12px;line-height:1.7}
+.hub-rps-buttons{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin:30px 0 8px}
+.hub-rps-buttons .hub-btn{min-height:48px;padding:0 22px;font-weight:650}
+.hub-rps-lobby .hub-back{margin-top:20px}
+.hub-rps-match h1{font:700 clamp(36px,6vw,70px)/1.1 var(--display);letter-spacing:-.04em;color:#efc57e;margin:16px 0 2px}
+.hub-rps-versus{display:flex;justify-content:center;align-items:center;gap:clamp(12px,5vw,60px);margin:32px 0;width:min(660px,100%)}
+.hub-rps-fighter{flex:1;min-width:0;max-width:230px;padding:22px 14px 15px;border:1px solid #6b5336;border-radius:18px;background:linear-gradient(135deg,#30271c,#181715);box-shadow:0 18px 45px #0005}
+.hub-rps-fighter>span{display:block;font:700 10px var(--mono);letter-spacing:.16em;color:#bfa981;overflow:hidden;text-overflow:ellipsis}
+.hub-rps-fighter strong{font:600 clamp(48px,9vw,95px)/1.6 system-ui;display:block;min-height:115px;color:#f5dba2}
+.hub-rps-fighter small{font-size:11px;color:#bd9d70;text-transform:capitalize}
+.hub-rps-vs{font:800 21px var(--mono);color:#87684b}
+.hub-rps-choices{margin:8px 0 18px;justify-content:center}
+.hub-rps-choice{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:110px;min-height:112px;border:1px solid #786345;border-radius:13px;background:linear-gradient(140deg,#382b19,#1e1a15);color:#f4d7a1;cursor:pointer;transition:transform .17s,background .17s,border-color .17s}
+.hub-rps-choice:hover:not(:disabled){transform:translateY(-5px);border-color:#ecca88;background:#4b3821;box-shadow:0 14px 30px #0005}
+.hub-rps-choice span{font-size:44px}
+.hub-rps-choice b{font-size:12px;text-transform:capitalize}
+.hub-rps-choice:disabled{opacity:.4;cursor:wait}
+@media(max-width:700px){.hub-rps-versus{gap:8px}.hub-rps-fighter{padding:14px 7px}.hub-rps-fighter strong{min-height:75px}.hub-rps-choice{min-width:86px;min-height:97px}}
