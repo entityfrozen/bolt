@@ -184,6 +184,7 @@ export function installSocial(Hub){
  };
  Hub.prototype.close=function(){
    this.active=false;this.root.hidden=true;clearInterval(this.worldQueueInterval);this.worldQueueInterval=null;
+   const frame=this.$("#hubWorld");if(frame){frame.replaceChildren();frame.classList.remove("hub-openfront-port")}
  };
  Hub.prototype.connect=function(){
    if(this.socket&&this.socket.readyState<=1)return;
