@@ -1,4 +1,5 @@
 import {installArenaPolish} from "./arena-v3.js?v=3";
+import {installWorldPort} from "./openfront-port.js?v=1";
 
 const E=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const PIECES={K:"♔",Q:"♕",R:"♖",B:"♗",N:"♘",P:"♙",k:"♚",q:"♛",r:"♜",b:"♝",n:"♞",p:"♟"};
@@ -119,7 +120,7 @@ class Hub{
   this.$("#hubContent").innerHTML='<section class="hub-games"><div class="hub-games-head"><span class="hub-label">PLAY WITH LIGHTNING</span><h2>Pick your arena.</h2><p>Queue for a live match or challenge another member. No downloads required.</p></div><div class="hub-game-grid">'+[
     ["♞","Chess","Real-time chess. Legal moves and turns are verified by the server.","chessView","Queue • Duel"],
     ["✊","Rock Paper Scissors","Fast 1v1 duels, hidden choices and four-player tournaments.","rpsView","Queue • Tournaments"],
-    ["◈","WorldPvP","The entire Earth. Human opponents, AI nations, military campaigns and real-time conquest.","worldView","Worldwide • Bot generals"]
+    ["◈","WorldPvP","The complete OpenFront engine, including real-time strategy, spawn selection, nations and multiplayer.","worldView","Real OpenFront · Self-hosted"]
   ].map(x=>'<article class="hub-game-card"><div><div class="hub-game-icon">'+x[0]+'</div><h3>'+x[1]+'</h3><p>'+x[2]+'</p></div><div><small>'+x[4]+'</small><br><button class="hub-btn primary" data-act="'+x[3]+'">Play now ↗</button></div></article>').join("")+'</div></section>';
  }
  updates(){
@@ -395,11 +396,13 @@ class Hub{
  }
 }
 installArenaPolish(Hub);
+installWorldPort(Hub);
 export function openHub(view="chat"){
  const root=document.getElementById("hubMount");if(!root)return;
  if(!document.getElementById("lightningHubCss")){
   const css=document.createElement("link");css.id="lightningHubCss";css.rel="stylesheet";css.href="/assets/hub.css?v=3";document.head.append(css);
    const arena=document.createElement("link");arena.id="lightningArenaCss";arena.rel="stylesheet";arena.href="/assets/arena-v3.css?v=2";document.head.append(arena);
+   const port=document.createElement("link");port.id="lightningOpenFrontCss";port.rel="stylesheet";port.href="/assets/openfront-port.css?v=1";document.head.append(port);
  }
  if(!INSTANCE)INSTANCE=new Hub(root);
  INSTANCE.open(view);
