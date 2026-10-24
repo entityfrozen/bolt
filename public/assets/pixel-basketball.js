@@ -1,3 +1,4 @@
+import { drawBasketball } from "./pixel-scenes.js?v=1";
 // Lightning Pixel Basketball: original side-view arcade match.
 const W=480,H=270,GROUND=222,RIM=123,GRAVITY=385;
 const clip=(n,lo,hi)=>Math.max(lo,Math.min(hi,n));
@@ -147,34 +148,7 @@ export function createBasketball(options={}){
      }
    }
  };
- state.draw=g=>{
-   g.imageSmoothingEnabled=false;
-   drawBox(g,0,0,W,H,"#171f32");
-   for(let i=0;i<8;i++){drawBox(g,0,i*13,W,10,i%2?"#343955":"#2a3150")}
-   // Bleachers, pixel spectators and arena signage.
-   for(let j=0;j<91;j++){const x=(j*37)%W,y=10+((j*13)%83);
-     drawBox(g,x,y,4,4,["#e7b58b","#b0c0d1","#a781b8","#aec28c"][j%4]);
-     drawBox(g,x-1,y+4,6,4,["#526683","#d27d65","#6b709d","#7b9d8c"][j%4]);
-   }
-   drawBox(g,0,97,W,6,"#a67a50");drawBox(g,0,103,W,12,"#1c263c");
-   drawBox(g,0,115,W,118,"#c28a51");
-   for(let i=0;i<19;i++)drawBox(g,i*27,115,1,118,"#b07845");
-   drawBox(g,0,228,W,42,"#171e31");
-   for(let i=0;i<11;i++)drawBox(g,i*44,239,20,1,"#6a7b8f");
-   g.strokeStyle="#eac48c";g.lineWidth=2;g.beginPath();g.arc(240,230,44,Math.PI,0);g.stroke();
-   drawBox(g,239,115,2,112,"#eac48c");
-   g.strokeRect(18,146,98,80);g.strokeRect(364,146,98,80);
-   drawBox(g,4,116,472,2,"#e4b984a9");
-   hoop(g,59,-1);hoop(g,420,1);
-   basketPlayer(g,state.cpu,"#6554ca","#9f8aff",8,state.clock);
-   basketPlayer(g,state.user,"#e6a252","#ffdd87",11,state.clock);
-   ballSprite(g,state.ball);
-   if(state.phase!=="play"){
-     drawBox(g,133,92,214,66,"#0e1427dd");drawBox(g,136,95,208,60,"#253247");
-     drawText(g,state.over?state.notice:state.phase==="score"?state.notice:"TIP OFF!",240,124,17,"#ffe1a2","center");
-     drawText(g,state.over?"FINAL SCORE":"READY IN "+Math.max(1,Math.ceil(state.countdown||state.resetDelay)),240,143,9,"#a8c4d5","center");
-   }
- };
+ state.draw = ctx => drawBasketball(ctx, state);
  reset(0);
  return state;
 }
