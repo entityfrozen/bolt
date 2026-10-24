@@ -404,7 +404,9 @@ export function installArenaPolish(Hub){
           "Arcade categories with a new pixel-sports section and difficulty settings.",
           "A direct-tab option for playing WorldPvP outside the arcade.",
           "Shot-timing meters in basketball and soccer.",
-          "Soccer fakes, chips, curved shots and sprint stamina."
+          "Soccer fakes, chips, curved shots and sprint stamina.",
+          "Two-on-two soccer with a teammate and a pass button.",
+          "Basketball crossover dribbles and CPU steals."
         ]
       },
       {
@@ -424,8 +426,8 @@ export function installArenaPolish(Hub){
           "Chat layout now supports channel search, message groups, member mentions and quick emoji.",
           "Arcade cards, match HUDs and touch controls have been rebuilt.",
           "Chat and arcade match Lightning’s original dark-and-gold style.",
-          "Pixel games use sharper native-resolution artwork and game previews.",
-          "Basketball dribbling, steal reach and recovery animation.",
+          "Pixel games now fill the match window and use custom bitmap text, detailed sprites and larger courts.",
+          "Basketball dribbling, steal reach, recovery animation and footwork.",
           "WorldPvP now has a dedicated entry screen and first-match guide.",
           "WorldPvP receives your approved Lightning account name inside the game."
         ]
@@ -436,7 +438,7 @@ export function installArenaPolish(Hub){
           "Resolved the strategy server's Railway startup problems.",
           "Chess matches can be resigned without preventing another match.",
           "Account approval is enforced across browser pages, APIs and live chat.",
-          "Pixel sports engines validate scoring, movement and match completion.",
+          "Pixel sports tests check real opponent steals, passing, fake-outs and sprite rendering.",
           "AI clearly reports when search providers are unavailable instead of inventing web results."
         ]
       }
@@ -456,11 +458,11 @@ export function installArenaPolish(Hub){
         '<div class="lc-wrap">'+
           '<div class="lc-header">'+
             '<span class="lc-eyebrow"><span class="lc-pulse"></span> LIGHTNING / CHANGELOG</span>'+
-            '<div class="lc-heading"><h1>Update log<span class="lc-dot">.</span></h1><span class="lc-version">VERSION 2.8.0 <i>•</i> OCT 2026</span></div>'+
+            '<div class="lc-heading"><h1>Update log<span class="lc-dot">.</span></h1><span class="lc-version">VERSION 2.9.0 <i>•</i> OCT 2026</span></div>'+
             '<p>Everything added, removed, improved, and fixed.</p>'+
           '</div>'+
           '<div class="lc-sections">'+sections+'</div>'+
-          '<footer class="lc-footer">LIGHTNING <span>—</span> BUILD 2.8.0</footer>'+
+          '<footer class="lc-footer">LIGHTNING <span>—</span> BUILD 2.9.0</footer>'+
         '</div>'+
       '</main>';
   };
