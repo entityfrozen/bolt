@@ -196,3 +196,27 @@ test("Pixel scenes use crisp custom bitmap lettering",()=>{
   }
   assert.ok(calls.length>500,"full pixel scene should be drawn in pixel primitives");
 });
+
+
+test("Teammate moves to collect an actual pass",()=>{
+  const game=createSoccer({random:()=>.99});
+  game.phase="play";
+  game.cpu.x=450;game.cpu.y=35;game.rival.x=450;game.rival.y=235;
+  game.action("v");
+  let collected=false;
+  for(let i=0;i<140;i++){
+    game.tick(1/120,new Set());
+    if(game.ball.owner===2){collected=true;break;}
+  }
+  assert.ok(collected,"pass should result in teammate receiving possession");
+});
+
+test("A soccer fake interrupts the defender's tackle attempt",()=>{
+  const game=createSoccer({random:()=>0});
+  game.phase="play";
+  game.cpu.x=game.user.x+16;game.cpu.y=game.user.y;game.cpu.stealCooldown=0;
+  game.press("x");game.fake();
+  game.tick(1/120,new Set());
+  assert.equal(game.ball.owner,0);
+  assert.ok(game.cpu.hesitate>0);
+});
