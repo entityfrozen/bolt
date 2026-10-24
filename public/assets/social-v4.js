@@ -124,10 +124,10 @@ export function installSocial(Hub){
    if(this.reply)box.querySelector("span").textContent="↳ "+this.reply.by+": "+this.reply.message.slice(0,110);
  };
  Hub.prototype.chat=function(){
-   this.socialInit();this.header("# "+this.channel,"Live network · #"+this.channel);
+   this.socialInit();this.header("# "+this.channel,"Community · #"+this.channel);
    this.$("#hubContent").innerHTML=
      '<div class="social-layout"><main class="social-main">'+
-     '<header class="social-channel-head"><div><strong># '+esc(this.channel)+'</strong><small>Lightning community · realtime</small></div>'+
+     '<header class="social-channel-head"><div><strong># '+esc(this.channel)+'</strong><small>Lightning chat</small></div>'+
      '<div class="social-head-actions"><button type="button" data-social="mode" id="socialMode">Alerts: '+esc(this.notifyMode)+'</button>'+
      '<button type="button" data-social="desktop" id="socialDesktop">Enable desktop</button></div></header>'+
      '<div class="hub-chat-stream social-messages" id="hubMessages"></div>'+
