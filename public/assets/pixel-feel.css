@@ -1,0 +1,179 @@
+/* v2.9 — bigger court, quieter chrome, readable games.
+   The 480 x 270 source canvas is never smoothed. */
+#hubMount .px-page {
+  background:#100e0b;
+  color:#eee1ca;
+}
+#hubMount .px-wrap.px-wrap-v3 {
+  max-width:1280px;
+  padding:22px clamp(10px,2.4vw,32px) 35px;
+}
+#hubMount .px-head {margin-bottom:17px;align-items:end;}
+#hubMount .px-head h2 {
+  font:650 clamp(28px,3.6vw,43px)/1.12 Georgia,serif;
+  color:#f2ddb6;
+  letter-spacing:-.045em;
+}
+#hubMount .px-head h2 em{color:#d8b17e}
+#hubMount .px-head p {font:400 12px/1.6 system-ui;color:#b4a38b}
+#hubMount .px-board {
+  border:2px solid #514029;border-radius:8px;
+  background:#0e1113;
+  box-shadow:0 15px 50px #0008;
+}
+#hubMount .px-scoreboard{
+  min-height:78px;
+  background:#1b1814;
+  border-bottom:2px solid #9c7748;
+}
+#hubMount .px-score-team{gap:18px;padding:11px clamp(10px,2.3vw,30px)}
+#hubMount .px-score-team strong{
+  font:800 clamp(33px,4vw,50px)/1 monospace;
+  text-shadow:2px 2px 0 #0b0908;
+}
+#hubMount .px-score-team span{letter-spacing:.11em;font-size:10px}
+#hubMount .px-center-clock{min-width:150px}
+#hubMount .px-center-clock strong{font:800 26px/1.2 monospace;color:#fff0cf}
+#hubMount .px-center-clock small{font-size:10px;text-transform:uppercase}
+#hubMount .px-canvas-shell{
+  min-height:0;
+  padding:12px 0;
+  background:repeating-linear-gradient(90deg,#17130e 0 25px,#1b1711 25px 26px);
+  overflow:hidden;
+}
+#hubMount .px-canvas-stage {
+  width:100%;
+  overflow:hidden;
+  border:2px solid #756040;
+  box-shadow:0 8px 0 #0b0907,0 22px 38px #0008;
+  image-rendering:pixelated;
+}
+#hubMount .px-canvas-stage canvas {
+  display:block;
+  width:100%;height:100%;
+  aspect-ratio:480 / 270;
+  image-rendering:pixelated;
+  filter:none;
+  -webkit-font-smoothing:none;
+}
+#hubMount .px-canvas-stage:fullscreen {
+  width:100vw!important;
+  height:100vh!important;
+  display:grid;
+  place-items:center;
+  background:#070707;
+  border:none;
+  box-shadow:none;
+}
+#hubMount .px-canvas-stage:fullscreen canvas{
+  width:min(100vw,177.78vh);
+  height:auto;
+  max-height:100vh;
+}
+#hubMount .px-controls {
+  padding:14px 18px;
+  background:#19150f;
+  border-top:2px solid #4d3b27;
+}
+#hubMount .px-controls-label{color:#debc82;letter-spacing:.02em}
+#hubMount .px-controls-buttons>button{
+  border:1px solid #675232;background:#292016;
+  border-radius:4px;padding:10px 12px;color:#dfc292
+}
+#hubMount .px-controls-buttons>button:hover{
+  border-color:#b28d54;background:#3c2d1c
+}
+#hubMount .px-controls-buttons select{border-radius:4px}
+#hubMount .px-instructions{
+  gap:8px;margin-top:16px;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+}
+#hubMount .px-instructions>div{
+  border:1px solid #493824;
+  background:#191510;
+  border-radius:5px;
+  padding:14px 17px;
+}
+#hubMount .px-instructions span {
+  color:#a08660;
+  font:700 10px monospace;
+}
+#hubMount .px-instructions strong{
+  font:700 13px/1.4 monospace;
+  color:#f2d198
+}
+#hubMount .px-instructions p{
+  color:#a89982;
+  font:400 11px/1.55 system-ui;
+}
+#hubMount .px-shot-overlay{
+  border:2px solid #b9955c;
+  background:#110d0bf1;
+  border-radius:3px;
+  bottom:20px;
+  width:min(68%,355px);
+}
+#hubMount .px-shot-track {
+  height:21px;border:2px solid #090907;
+  background:repeating-linear-gradient(90deg,#5c4132 0 8px,#674936 8px 16px)
+}
+#hubMount .px-shot-green {
+  background:#82d477;
+  box-shadow:inset 0 0 0 2px #d6f4ac73,0 0 11px #4bbb6f44
+}
+#hubMount .px-shot-needle {
+  background:#fff2b8;width:5px;
+}
+#hubMount .px-shot-label{
+  color:#f5d5a0;font-size:12px
+}
+#hubMount .px-shot-caption {color:#bbaa8c}
+#hubMount .px-feedback {
+  top:20px;border:2px solid #b38953;
+  background:#17100adf;
+  color:#fff1bd;
+  box-shadow:0 3px 0 #080605;
+}
+#hubMount .px-touch {margin-top:19px;gap:14px}
+#hubMount .px-touch button{
+  background:#251e16;border:2px solid #59452b;
+  color:#e7c895;border-radius:5px;
+  box-shadow:0 4px 0 #0c0907;
+  touch-action:none;
+}
+#hubMount .px-touch button:active,
+#hubMount .px-touch button.held{
+  transform:translateY(3px);box-shadow:0 1px 0 #0c0907;
+  background:#a8804d;color:#190e08;
+}
+#hubMount .px-touch-actions {max-width:unset;flex-wrap:wrap;gap:7px}
+#hubMount .px-touch-actions button {min-width:76px;min-height:52px;font-size:10px}
+#hubMount .px-touch-actions .px-touch-shoot {
+  min-width:108px;min-height:61px;
+  background:#a8804d;border-color:#e0b779;
+  color:#1a100a
+}
+#hubMount .arc-game-media{height:182px}
+#hubMount .arc-game-preview {width:100%;height:100%;object-fit:cover;image-rendering:pixelated}
+#hubMount .arc-game:hover {border-color:#cba365}
+@media(max-width:700px){
+  #hubMount .px-wrap.px-wrap-v3{padding:11px 8px 25px}
+  #hubMount .px-head{margin-bottom:12px}
+  #hubMount .px-head h2{font-size:26px}
+  #hubMount .px-scoreboard{min-height:62px}
+  #hubMount .px-score-team{gap:7px;padding:7px}
+  #hubMount .px-score-team strong{font-size:30px}
+  #hubMount .px-score-team span{font-size:8px;max-width:90px}
+  #hubMount .px-center-clock{min-width:88px}
+  #hubMount .px-center-clock strong{font-size:18px}
+  #hubMount .px-canvas-shell{padding:0}
+  #hubMount .px-canvas-stage{border-left:0;border-right:0}
+  #hubMount .px-instructions{grid-template-columns:1fr;gap:6px}
+  #hubMount .px-instructions>div{padding:10px}
+  #hubMount .px-touch-actions {max-width:220px}
+  #hubMount .px-touch-actions button{min-width:64px;min-height:44px;font-size:9px}
+  #hubMount .px-touch-actions .px-touch-shoot{min-height:52px;min-width:88px}
+}
+@media(prefers-reduced-motion:reduce){
+  #hubMount .px-touch button{transition:none!important}
+}
