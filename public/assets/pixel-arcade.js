@@ -241,7 +241,13 @@ export function installPixelArcade(Hub){
     if(sports.has(this.view)&&this.view!==view)this.stopPixel();
     return originalShow.call(this,view,channel);
   };
-  Hub.prototype.close=function(){this.stopPixel();return originalClose.call(this);};
+  Hub.prototype.close=function(){
+    this.stopPixel();
+    const world=this.$("#hubWorld");
+    if(world){world.replaceChildren();world.classList.remove("hub-openfront-port");}
+    this.worldStarted=false;
+    return originalClose.call(this);
+  };
   Hub.prototype.act=function(action,button){
     if(action==="arcFilter"){this.arenaFilter=button.dataset.filter||"all";this.games();return;}
     if(action==="sportsOpen"){this.show(button.dataset.game);return;}
