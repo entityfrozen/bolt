@@ -141,3 +141,58 @@ test("Soccer sprint consumes stamina and later recovers",()=>{
   for(let i=0;i<50;i++)game.tick(.02,keys);
   assert.ok(game.user.sprint>low);
 });
+
+
+test("Basketball defender can force a turnover and the ball becomes loose",()=>{
+  const game=createBasketball({random:()=>0});
+  game.phase="play";game.cpu.x=game.user.x+18;
+  game.cpu.defenseCooldown=0;
+  game.tick(.03,keys);
+  assert.equal(game.ball.owner,-1);
+  assert.equal(game.turnovers,1);
+  assert.equal(game.feedback,"STRIPPED!");
+});
+
+test("Basketball crossover creates space and stuns a nearby defender",()=>{
+  const game=createBasketball({random:()=>0});
+  game.phase="play";game.cpu.x=game.user.x+31;
+  const oldX=game.user.x;
+  game.action("c");
+  assert.ok(game.user.x>oldX);
+  assert.ok(game.cpu.stumble>0);
+  assert.equal(game.ball.owner,0);
+  assert.ok(game.crossoverCooldown>0);
+});
+
+test("Soccer now has a teammate, a second defender and passing",()=>{
+  const game=createSoccer({random:()=>.99});
+  game.phase="play";
+  assert.ok(game.mate&&game.rival);
+  game.cpu.x=430;game.cpu.y=40;
+  game.rival.x=420;game.rival.y=40;
+  game.action("v");
+  assert.equal(game.ball.owner,-1);
+  assert.equal(game.ball.intendedTarget,2);
+  assert.equal(game.feedback,"PASS");
+});
+
+test("Soccer defenders challenge possession instead of only following it",()=>{
+  const game=createSoccer({random:()=>0});
+  game.phase="play";
+  game.cpu.x=game.user.x+12;game.cpu.y=game.user.y;
+  game.cpu.stealCooldown=0;
+  game.rival.x=450;game.rival.y=220;
+  game.tick(.03,keys);
+  assert.equal(game.ball.owner,-1);
+  assert.equal(game.feedback,"TACKLED!");
+});
+
+test("Pixel scenes use crisp custom bitmap lettering",()=>{
+  const calls=[];
+  const fake={fillRect(...args){calls.push(args)},beginPath(){},moveTo(){},lineTo(){},stroke(){},arc(){},strokeRect(){},fillText(){throw Error("Canvas text should not blur pixel labels")}};
+  for(const game of [createSoccer(),createBasketball()]){
+    game.phase="play";
+    game.draw(fake);
+  }
+  assert.ok(calls.length>500,"full pixel scene should be drawn in pixel primitives");
+});
