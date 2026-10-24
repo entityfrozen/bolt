@@ -123,6 +123,14 @@
         body.dir = "auto";
         setRichText(body,message.content);
         node.append(body);
+        if (message.searched) {
+          const status = document.createElement("div");
+          status.className = "bolt-ai-web-status";
+          status.textContent = message.sources?.length
+            ? "Searched " + (message.provider || "the web") + " · " + message.sources.length + " sources"
+            : "Search unavailable · No verified sources";
+          node.append(status);
+        }
         if (Array.isArray(message.sources) && message.sources.length) {
           const refs = document.createElement("div");
           refs.className = "bolt-ai-sources";
@@ -196,7 +204,7 @@
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || "AI request failed");
       if (typeof data.reply !== "string" || !data.reply.trim()) throw new Error("AI returned an empty reply");
-      messages.push({role:"assistant",content:data.reply.trim(),sources:data.sources||[],searchError:data.searchError||null});
+      messages.push({role:"assistant",content:data.reply.trim(),sources:data.sources||[],searchError:data.searchError||null,searched:!!data.searched,provider:data.provider||null});
       saveChat();
       renderChat();
     } catch (error) {
