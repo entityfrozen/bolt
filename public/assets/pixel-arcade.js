@@ -4,8 +4,8 @@ import {createBasketball} from "./pixel-basketball.js?v=5";
 const sports=new Set(["pixelSoccer","pixelBasketball"]);
 const escapeHtml=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
 const games=[
-  {id:"pixelBasketball",type:"pixel",title:"Pixel Basketball",tag:"Solo · CPU",kind:"basketball",description:"Time your release, find space and beat the shot clock.",action:"sportsOpen"},
-  {id:"pixelSoccer",type:"pixel",title:"Pixel Soccer",tag:"Solo · CPU",kind:"soccer",description:"Beat your marker with a fake, bend a strike, or chip the keeper.",action:"sportsOpen"},
+  {id:"pixelBasketball",type:"pixel",title:"Pixel Basketball",tag:"Solo · CPU",kind:"basketball",description:"Create space with crossovers, time your release, and beat the defender.",action:"sportsOpen"},
+  {id:"pixelSoccer",type:"pixel",title:"Pixel Soccer",tag:"Solo · CPU",kind:"soccer",description:"Pass to a teammate, beat two defenders, and find the net.",action:"sportsOpen"},
   {id:"world",type:"strategy",title:"WorldPvP",tag:"Online · Strategy",kind:"world",description:"Choose a starting position. Expand your territory. Take the map.",action:"worldView"},
   {id:"chess",type:"strategy",title:"Chess",tag:"Online · Practice",kind:"chess",description:"Play a match or try your openings against the computer.",action:"chessView"},
   {id:"rps",type:"party",title:"Rock Paper Scissors",tag:"Online · Quick",kind:"rps",description:"A quick match or a tournament against other members.",action:"rpsView"}
@@ -76,11 +76,11 @@ export function installPixelArcade(Hub){
     const difficulty=this.pixelDifficulty||"normal";
     this.header("Pixel "+(soccer?"Soccer":"Basketball"),"Local match vs CPU");
     this.$("#hubContent").innerHTML=
-      '<section class="px-page '+(soccer?"px-soccer":"px-basketball")+'"><div class="px-wrap">'+
+      '<section class="px-page '+(soccer?"px-soccer":"px-basketball")+'"><div class="px-wrap px-wrap-v3">'+
         '<header class="px-head"><div><span class="px-kicker">LIGHTNING / PIXEL SPORTS</span><h2>PIXEL <em>'+title+'</em></h2>'+
-          '<p>Hold X, time your release, then play defense.</p></div><button type="button" class="px-back" data-act="pixelBack">← Arcade</button></header>'+
+          '<p>Move, create space, and pick your moment.</p></div><button type="button" class="px-back" data-act="pixelBack">← Arcade</button></header>'+
         '<div class="px-board"><div class="px-scoreboard">'+
-          '<div class="px-score-team"><span>YOU · '+escapeHtml(this.name||"HOME")+'</span><strong id="pixelHome">0</strong></div>'+
+          '<div class="px-score-team"><span>HOME · '+escapeHtml(this.name||"HOME")+'</span><strong id="pixelHome">0</strong></div>'+
           '<div class="px-center-clock"><span>VS CPU</span><strong id="pixelClock">'+(soccer?"01:40":"01:50")+'</strong><small id="pixelStatus">READY</small></div>'+
           '<div class="px-score-team away"><span>CPU</span><strong id="pixelAway">0</strong></div>'+
         '</div><div class="px-canvas-shell"><div class="px-canvas-stage">'+
@@ -94,14 +94,14 @@ export function installPixelArcade(Hub){
         '<div class="px-controls"><div class="px-controls-label"><span class="px-dot"></span> '+(soccer?"PITCH":"COURT")+' / CPU'+
           (soccer?' <span class="px-stamina">SPRINT <i><b id="pixelStaminaFill"></b></i></span>':'')+
           '</div><div class="px-controls-buttons"><button type="button" data-act="pixelPause" id="pixelPause">Ⅱ PAUSE</button>'+
-          '<button type="button" data-act="pixelRestart">↻ REMATCH</button>'+
+          '<button type="button" data-act="pixelRestart">↻ REMATCH</button><button type="button" data-act="pixelFullscreen">⛶ FULL SCREEN</button>'+
           '<label>DIFFICULTY <select id="pixelDifficulty">'+["easy","normal","hard"].map(d=>
             '<option value="'+d+'"'+(d===difficulty?" selected":"")+'>'+d.toUpperCase()+'</option>').join("")+
           '</select></label></div></div></div>'+
         '<section class="px-instructions">'+
-          '<div><span>01 / MOVE</span><strong>'+ (soccer?"WASD / ARROWS":"A · D / ARROWS")+'</strong><p>'+(soccer?"Shift to sprint; stamina regenerates.":"W / Up jumps. Shift runs faster.")+'</p></div>'+
-          '<div><span>02 / SHOOT</span><strong>HOLD X · RELEASE</strong><p>'+(soccer?"C changes the kick to a lob. A/D adds curve. Space fakes.":"Green goes in unless blocked. Outside green, the percentage is the make chance.")+'</p></div>'+
-          '<div><span>03 / DEFEND</span><strong>'+(soccer?"Z · C":"Z / C")+'</strong><p>'+(soccer?"Z tackles. C jumps or heads a lob.":"Steal with Z or C; a miss leaves you exposed.")+'</p></div>'+
+          '<div><span>01 / MOVE</span><strong>'+ (soccer?"WASD / ARROWS":"A · D / ARROWS")+'</strong><p>'+(soccer?"Shift to sprint, V to pass to your teammate.":"W jumps. Shift sprints. C crosses the ball over.")+'</p></div>'+
+          '<div><span>02 / SHOOT</span><strong>HOLD X · RELEASE</strong><p>'+(soccer?"C changes the kick to a lob. A/D adds curve. Space fakes.":"Green goes in unless blocked; other releases use your timing percentage.")+'</p></div>'+
+          '<div><span>03 / DEFEND</span><strong>'+(soccer?"Z · C":"Z / C")+'</strong><p>'+(soccer?"Z tackles. C jumps or heads a lob.":"Steal with Z. Mistimed reaches leave you off balance.")+'</p></div>'+
         '</section>'+
         '<section class="px-touch" aria-label="Touch controls">'+
           '<div class="px-pad"><button type="button" data-pixel-key="arrowup">▲</button><div>'+
@@ -111,8 +111,8 @@ export function installPixelArcade(Hub){
           '<div class="px-touch-actions">'+
             '<button type="button" data-pixel-key="shift">SPRINT</button>'+
             '<button type="button" data-pixel-key="z">STEAL</button>'+
-            '<button type="button" data-pixel-key="c">'+(soccer?"CHIP / JUMP":"STEAL")+'</button>'+
-            (soccer?'<button type="button" data-pixel-key="space">FAKE</button>':'<button type="button" data-pixel-key="w">JUMP</button>')+
+            '<button type="button" data-pixel-key="c">'+(soccer?"CHIP / JUMP":"CROSSOVER")+'</button>'+
+            (soccer?'<button type="button" data-pixel-key="v">PASS</button><button type="button" data-pixel-key="space">FAKE</button>':'<button type="button" data-pixel-key="w">JUMP</button>')+
             '<button type="button" class="px-touch-shoot" data-pixel-key="x">HOLD X<br>SHOOT</button>'+
           '</div></section>'+
       '</div></section>';
@@ -178,10 +178,9 @@ export function installPixelArcade(Hub){
     });
     const shell=this.$(".px-canvas-shell"),stage=this.$(".px-canvas-stage");
     const fit=()=>{
-      const available=shell.clientWidth;
-      const scale=available>=960?2:available>=480?1:available/480;
-      stage.style.width=Math.floor(480*scale)+"px";
-      stage.style.height=Math.floor(270*scale)+"px";
+      const width=Math.max(260,Math.min(shell.clientWidth,1040));
+      stage.style.width=Math.floor(width)+"px";
+      stage.style.height=Math.round(width*270/480)+"px";
     };
     fit();
     if(typeof ResizeObserver!=="undefined"){
@@ -253,6 +252,7 @@ export function installPixelArcade(Hub){
     if(action==="sportsOpen"){this.show(button.dataset.game);return;}
     if(action==="pixelBack"){this.show("games");return;}
     if(action==="pixelRestart"){this.pixelScreen(this.view);return;}
+    if(action==="pixelFullscreen"){this.$(".px-canvas-stage")?.requestFullscreen?.();return;}
     if(action==="pixelPause"){this.pixelPaused=!this.pixelPaused;this.pixelPauseUi();return;}
     return originalAct.call(this,action,button);
   };
