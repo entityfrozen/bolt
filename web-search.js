@@ -85,6 +85,26 @@ async function bing(query, fetcher) {
   return parseBingRss(await responseText(response, 300000));
 }
 
+async function wikipedia(query, fetcher) {
+  const url = new URL("https://en.wikipedia.org/w/api.php");
+  url.searchParams.set("action", "query");
+  url.searchParams.set("list", "search");
+  url.searchParams.set("srsearch", query);
+  url.searchParams.set("srlimit", "5");
+  url.searchParams.set("format", "json");
+  url.searchParams.set("origin", "*");
+  const response = await fetcher(url, {
+    headers:{"Accept":"application/json"},
+    signal:AbortSignal.timeout(7000)
+  });
+  const data = JSON.parse(await responseText(response, 200000));
+  return (data.query?.search || []).slice(0, 5).map(item => ({
+    title:String(item.title || "").slice(0, 180),
+    url:"https://en.wikipedia.org/?curid=" + Number(item.pageid),
+    snippet:String(item.snippet || "").replace(/<[^>]*>/g, "").slice(0, 600)
+  })).filter(item => item.title && Number.isSafeInteger(Number(new URL(item.url).searchParams.get("curid"))));
+}
+
 export function needsWebSearch(message) {
   const text = String(message || "").trim();
   if (!text) return false;
@@ -96,6 +116,10 @@ export async function searchWeb(query, {fetcher=fetch, braveKey=process.env.BRAV
   if (!text) return {sources:[],provider:null,error:"No search query provided."};
   const providers = braveKey ? [["Brave",()=>brave(text,fetcher,braveKey)]] : [];
   providers.push(["Bing",()=>bing(text,fetcher)]);
+  // Wikipedia is a narrower fallback, not a substitute for recent news.
+  if (!/\b(latest|today|news|breaking|this week|price|weather|current)\b/i.test(text)) {
+    providers.push(["Wikipedia",()=>wikipedia(text,fetcher)]);
+  }
   for (const [provider, run] of providers) {
     try {
       const sources = await run();
