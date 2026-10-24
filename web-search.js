@@ -1,0 +1,108 @@
+// Only trusted search services are contacted. We never fetch a URL supplied
+// by the model or by search results.
+const BING = "https://www.bing.com/search";
+const BRAVE = "https://api.search.brave.com/res/v1/web/search";
+
+function unescapeXml(value = "") {
+  return value
+    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
+    .replace(/<[^>]*>/g, "")
+    .replace(/&#(x[0-9a-f]+|\d+);/gi, (_, code) =>
+      String.fromCodePoint(code.toLowerCase().startsWith("x") ? parseInt(code.slice(1), 16) : Number(code)))
+    .replace(/&(amp|lt|gt|quot|apos);/g, (_, entity) =>
+      ({amp:"&",lt:"<",gt:">",quot:'"',apos:"'"}[entity]))
+    .replace(/\s+/g, " ").trim();
+}
+
+function validLink(link) {
+  try {
+    const url = new URL(link);
+    if (!["https:", "http:"].includes(url.protocol) || !url.hostname.includes(".")) return null;
+    if (["localhost", "127.0.0.1", "0.0.0.0"].includes(url.hostname)) return null;
+    return url.href;
+  } catch { return null; }
+}
+
+export function parseBingRss(xml) {
+  const entries = [];
+  for (const match of xml.matchAll(/<item>([\s\S]*?)<\/item>/gi)) {
+    const item = match[1];
+    const field = tag => unescapeXml(item.match(new RegExp("<" + tag + ">([\\s\\S]*?)</" + tag + ">","i"))?.[1] || "");
+    const url = validLink(field("link"));
+    if (!url) continue;
+    const title = field("title").slice(0, 180);
+    if (!title) continue;
+    entries.push({title, url, snippet:field("description").slice(0, 600)});
+  }
+  return entries.slice(0, 6);
+}
+
+async function responseText(response, maxBytes) {
+  if (!response.ok) throw new Error("Search provider returned " + response.status);
+  const length = Number(response.headers.get("content-length") || 0);
+  if (length > maxBytes) throw new Error("Search response too large");
+  const reader = response.body?.getReader();
+  if (!reader) return (await response.text()).slice(0, maxBytes);
+  let total = 0, parts = [];
+  try {
+    while (true) {
+      const {value, done} = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > maxBytes) throw new Error("Search response too large");
+      parts.push(value);
+    }
+  } finally { reader.releaseLock(); }
+  return new TextDecoder().decode(
+    Uint8Array.from(parts.flatMap(bytes => [...bytes]))
+  );
+}
+
+async function brave(query, fetcher, key) {
+  const url = new URL(BRAVE);
+  url.searchParams.set("q", query);
+  url.searchParams.set("count", "6");
+  const response = await fetcher(url, {
+    headers:{"Accept":"application/json","X-Subscription-Token":key},
+    signal:AbortSignal.timeout(7000)
+  });
+  const json = JSON.parse(await responseText(response, 450000));
+  return (json.web?.results || []).slice(0, 6).map(result => ({
+    title:String(result.title || "").replace(/<[^>]+>/g, "").slice(0, 180),
+    url:validLink(result.url),
+    snippet:String(result.description || "").replace(/<[^>]+>/g, "").slice(0, 600)
+  })).filter(item => item.url && item.title);
+}
+
+async function bing(query, fetcher) {
+  const url = new URL(BING);
+  url.searchParams.set("format", "rss");
+  url.searchParams.set("q", query);
+  const response = await fetcher(url, {
+    headers:{"Accept":"application/rss+xml, application/xml;q=0.9, text/xml;q=0.8"},
+    signal:AbortSignal.timeout(7000)
+  });
+  return parseBingRss(await responseText(response, 300000));
+}
+
+export function needsWebSearch(message) {
+  const text = String(message || "").trim();
+  if (!text) return false;
+  return /\b(search (the )?(web|internet|online)|look (it )?up|browse|google|sources?|citation|latest|current|recent|today|yesterday|this week|breaking|news|weather|price|stock price|as of now|2026)\b/i.test(text);
+}
+
+export async function searchWeb(query, {fetcher=fetch, braveKey=process.env.BRAVE_SEARCH_API_KEY}={}) {
+  const text = String(query || "").replace(/\s+/g, " ").trim().slice(0, 180);
+  if (!text) return {sources:[],provider:null,error:"No search query provided."};
+  const providers = braveKey ? [["Brave",()=>brave(text,fetcher,braveKey)]] : [];
+  providers.push(["Bing",()=>bing(text,fetcher)]);
+  for (const [provider, run] of providers) {
+    try {
+      const sources = await run();
+      if (sources.length) return {sources,provider,error:null};
+    } catch (err) {
+      console.warn("Lightning search:",provider,err?.message||"request failed");
+    }
+  }
+  return {sources:[],provider:null,error:"Live web search is temporarily unavailable. No current sources could be verified."};
+}
