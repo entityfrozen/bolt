@@ -396,9 +396,11 @@ export function installArenaPolish(Hub){
         sign:"+",kind:"added",title:"Added",
         items:[
           "WorldPvP now runs the official OpenFront game on a dedicated Lightning server.",
+          "Pixel Basketball and Pixel Soccer now have playable CPU matches, scores and timers.",
           "Chess now has Resign & Leave, Cancel Queue, and Leave Finished Match.",
           "New Lightning accounts can be created by anyone and enter a manual approval queue.",
           "Chat replies, reactions, typing indicators, mentions and opt-in notifications.",
+          "Arcade categories with a new pixel-sports section and difficulty settings.",
           "A direct-tab option for playing WorldPvP outside the arcade."
         ]
       },
@@ -415,6 +417,8 @@ export function installArenaPolish(Hub){
           "WorldPvP now opens with OpenFront's own lobby, map and spawn-selection interface.",
           "Chess has clearer legal-move highlights and a board refresh option.",
           "Lightning chat has unread channel badges and a redesigned composer.",
+          "Chat layout now supports channel search, message groups, member mentions and quick emoji.",
+          "Arcade cards, match HUDs and touch controls have been rebuilt.",
           "WorldPvP receives your approved Lightning account name inside the game."
         ]
       },
@@ -423,7 +427,8 @@ export function installArenaPolish(Hub){
         items:[
           "Resolved OpenFront's Railway build and Nginx startup problems.",
           "Chess matches can be resigned without preventing another match.",
-          "Account approval is enforced across browser pages, APIs and live chat."
+          "Account approval is enforced across browser pages, APIs and live chat.",
+          "Pixel sports engines validate scoring, movement and match completion."
         ]
       }
     ];
@@ -442,11 +447,11 @@ export function installArenaPolish(Hub){
         '<div class="lc-wrap">'+
           '<div class="lc-header">'+
             '<span class="lc-eyebrow"><span class="lc-pulse"></span> LIGHTNING / CHANGELOG</span>'+
-            '<div class="lc-heading"><h1>Update log<span class="lc-dot">.</span></h1><span class="lc-version">VERSION 2.5.0 <i>•</i> OCT 2026</span></div>'+
+            '<div class="lc-heading"><h1>Update log<span class="lc-dot">.</span></h1><span class="lc-version">VERSION 2.6.0 <i>•</i> OCT 2026</span></div>'+
             '<p>Everything added, removed, improved, and fixed.</p>'+
           '</div>'+
           '<div class="lc-sections">'+sections+'</div>'+
-          '<footer class="lc-footer">LIGHTNING <span>—</span> BUILD 2.5.0</footer>'+
+          '<footer class="lc-footer">LIGHTNING <span>—</span> BUILD 2.6.0</footer>'+
         '</div>'+
       '</main>';
   };
