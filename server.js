@@ -403,6 +403,15 @@ app.post("/api/ai/chat", mustBeSignedIn, sameOrigin, async (req, res) => {
   const web = searchRequested
     ? await searchWeb(latestQuestion)
     : {sources: [], provider: null, error: null};
+  if (searchRequested && !web.sources.length) {
+    return res.json({
+      reply: "Live search couldn't return any verified sources for that request. Your account is using free search fallbacks, which may be blocked or unavailable. An admin can configure BRAVE_SEARCH_API_KEY in Railway for a supported search provider.",
+      searched: true,
+      sources: [],
+      searchError: web.error,
+      provider: null
+    });
+  }
   const evidence = web.sources.map((source, index) =>
     "[" + (index + 1) + "] " + source.title + "\nURL: " + source.url + "\n" + source.snippet
   ).join("\n\n");
