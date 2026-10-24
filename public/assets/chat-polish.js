@@ -11,8 +11,8 @@ export function installChatPolish(Hub){
    if(!head)return;
    this.chatWatermark=beforeRead;
    head.innerHTML=
-     '<div class="chat-room-title"><div class="chat-room-glyph">#</div><div><strong>'+esc(this.channel)+'</strong><small>LIGHTNING COMMUNITY <span class="chat-title-dot">•</span> LIVE CHANNEL</small></div></div>'+
-     '<div class="chat-room-tools"><div class="chat-live-pill"><i></i> CONNECTED</div>'+
+     '<div class="chat-room-title"><div class="chat-room-glyph">#</div><div><strong>'+esc(this.channel)+'</strong><small>LIGHTNING / COMMUNITY</small></div></div>'+
+     '<div class="chat-room-tools"><div class="chat-live-pill"><i></i> Online</div>'+
        '<button id="chatSearchToggle" type="button" aria-label="Search messages" title="Search messages">⌕</button>'+
        '<button id="socialMode" data-social="mode" type="button" title="Toggle notifications">🔔 '+esc(this.notifyMode)+'</button>'+
        '<button id="socialDesktop" data-social="desktop" type="button" title="Desktop notifications">↗</button></div>';
