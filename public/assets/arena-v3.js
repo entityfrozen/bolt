@@ -402,13 +402,16 @@ export function installArenaPolish(Hub){
           "New Lightning accounts can be created by anyone and enter a manual approval queue.",
           "Chat replies, reactions, typing indicators, mentions and opt-in notifications.",
           "Arcade categories with a new pixel-sports section and difficulty settings.",
-          "A direct-tab option for playing WorldPvP outside the arcade.\",\n          \"Shot-timing meters in basketball and soccer.\",\n          \"Soccer fakes, chips, curved shots and sprint stamina."
+          "A direct-tab option for playing WorldPvP outside the arcade.",
+          "Shot-timing meters in basketball and soccer.",
+          "Soccer fakes, chips, curved shots and sprint stamina."
         ]
       },
       {
         sign:"-",kind:"removed",title:"Removed",
         items:[
-          "The old custom WorldPvP prototype from the playable arcade.\",\n          \"Instant shots with no timing mechanic.",
+          "The old custom WorldPvP prototype from the playable arcade.",
+          "Instant shots with no timing mechanic.",
           "Access-code sign-in and temporary access passes."
         ]
       },
@@ -421,7 +424,9 @@ export function installArenaPolish(Hub){
           "Chat layout now supports channel search, message groups, member mentions and quick emoji.",
           "Arcade cards, match HUDs and touch controls have been rebuilt.",
           "Chat and arcade match Lightning’s original dark-and-gold style.",
-          "Pixel games use sharper native-resolution artwork and game previews.\",\n          \"Basketball dribbling, steal reach and recovery animation.\",\n          \"WorldPvP now has a dedicated entry screen and first-match guide.",
+          "Pixel games use sharper native-resolution artwork and game previews.",
+          "Basketball dribbling, steal reach and recovery animation.",
+          "WorldPvP now has a dedicated entry screen and first-match guide.",
           "WorldPvP receives your approved Lightning account name inside the game."
         ]
       },
