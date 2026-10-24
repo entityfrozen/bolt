@@ -91,8 +91,16 @@ export function installWorldPort(Hub){
     if(action==="worldHow"){
       const guide=this.$("#worldGuide");
       if(guide){guide.hidden=!guide.hidden;return;}
-      this.worldStarted=true;this.worldScreen();
-      const shown=this.$("#worldGuide");if(shown)shown.hidden=false;
+      const mount=this.$("#hubWorld");
+      mount.insertAdjacentHTML("beforeend",'<div id="worldGuide" class="wp-guide"><div class="wp-guide-panel" role="dialog" aria-label="WorldPvP guide">'+
+        '<div class="wp-guide-head"><strong>HOW TO PLAY</strong><button data-act="worldHow" type="button">×</button></div>'+
+        '<h2>Before you start</h2><p><b>1.</b> Pick a map and a game mode from the lobby.</p>'+
+        '<p><b>2.</b> Choose a starting location with plenty of open land.</p>'+
+        '<p><b>3.</b> Grow your territory while saving troops for defense.</p>'+
+        '<p><b>4.</b> Select enemy territory to attack, then choose troop commitment.</p>'+
+        '<p><b>5.</b> Watch the leaderboard and make allies as you expand.</p>'+
+        '<button type="button" data-act="worldStart" class="wp-guide-done">START PLAYING →</button>'+
+        '</div></div>');
       return;
     }
     return previousAct.call(this,action,button);
