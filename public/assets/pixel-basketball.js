@@ -1,4 +1,4 @@
-import {drawBasketball} from "./pixel-scenes.js?v=2";
+import {drawBasketball} from "./pixel-scenes.js?v=3";
 
 const GROUND=222, RIM=123, GRAVITY=385;
 const clamp=(value,min,max)=>Math.min(max,Math.max(min,value));
