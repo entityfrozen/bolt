@@ -1,8 +1,8 @@
-import {installArenaPolish} from "./arena-v3.js?v=8";
-import {installWorldPort} from "./openfront-port.js?v=3";
+import {installArenaPolish} from "./arena-v3.js?v=9";
+import {installWorldPort} from "./openfront-port.js?v=4";
 import {installSocial} from "./social-v4.js?v=3";
 import {installChatPolish} from "./chat-polish.js?v=2";
-import {installPixelArcade} from "./pixel-arcade.js?v=4";
+import {installPixelArcade} from "./pixel-arcade.js?v=5";
 
 const E=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const PIECES={K:"♔",Q:"♕",R:"♖",B:"♗",N:"♘",P:"♙",k:"♚",q:"♛",r:"♜",b:"♝",n:"♞",p:"♟"};
@@ -407,10 +407,10 @@ function ensureHubStyles(){
  if(!document.getElementById("lightningHubCss")){
   const css=document.createElement("link");css.id="lightningHubCss";css.rel="stylesheet";css.href="/assets/hub.css?v=3";document.head.append(css);
    const arena=document.createElement("link");arena.id="lightningArenaCss";arena.rel="stylesheet";arena.href="/assets/arena-v3.css?v=3";document.head.append(arena);
-   const port=document.createElement("link");port.id="lightningOpenFrontCss";port.rel="stylesheet";port.href="/assets/openfront-port.css?v=1";document.head.append(port);
+   const port=document.createElement("link");port.id="lightningOpenFrontCss";port.rel="stylesheet";port.href="/assets/openfront-port.css?v=2";document.head.append(port);
   const social=document.createElement("link");social.id="lightningSocialCss";social.rel="stylesheet";social.href="/assets/social-v4.css?v=1";document.head.append(social);
   const polish=document.createElement("link");polish.id="lightningChatPolishCss";polish.rel="stylesheet";polish.href="/assets/chat-polish.css?v=1";document.head.append(polish);
-  const pixel=document.createElement("link");pixel.id="lightningPixelArcadeCss";pixel.rel="stylesheet";pixel.href="/assets/pixel-arcade.css?v=1";document.head.append(pixel);
+  const pixel=document.createElement("link");pixel.id="lightningPixelArcadeCss";pixel.rel="stylesheet";pixel.href="/assets/pixel-arcade.css?v=2";document.head.append(pixel);
   const finish=document.createElement("link");finish.id="lightningFinishCss";finish.rel="stylesheet";finish.href="/assets/lightning-finish.css?v=1";document.head.append(finish);
  }
 }
