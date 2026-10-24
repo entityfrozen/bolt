@@ -4,23 +4,24 @@ import {createBasketball} from "./pixel-basketball.js?v=2";
 const esc=value=>String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const sports=new Set(["pixelSoccer","pixelBasketball"]);
 const catalog=[
- {id:"pixelBasketball",category:"pixel",title:"PIXEL BASKETBALL",tag:"NEW · SOLO VS CPU",kind:"basketball",desc:"Buzzer beaters. Crossovers. Perfect arcs. One tiny court, major competition.",call:"sportsOpen"},
- {id:"pixelSoccer",category:"pixel",title:"PIXEL SOCCER",tag:"NEW · SOLO VS CPU",kind:"soccer",desc:"Own the pitch. Break past defenders, tackle, and bury the winning goal.",call:"sportsOpen"},
- {id:"world",category:"strategy",title:"WORLD PVP",tag:"ONLINE · OPENFRONT",kind:"world",desc:"Claim a starting point, command your armies and conquer the entire world.",call:"worldView"},
- {id:"chess",category:"strategy",title:"CHESS CLUB",tag:"ONLINE · BOT PRACTICE",kind:"chess",desc:"Find a rival, challenge a friend, or outplay the built-in chess AI.",call:"chessView"},
- {id:"rps",category:"party",title:"ROCK PAPER SCISSORS",tag:"ONLINE · TOURNAMENTS",kind:"rps",desc:"Fast rounds, sneaky reads and a bracket ready for your next rival.",call:"rpsView"}
+ {id:"pixelBasketball",category:"pixel",title:"Pixel Basketball",tag:"Solo · New",kind:"basketball",desc:"One court, two players. Make your shots before the clock runs out.",call:"sportsOpen"},
+ {id:"pixelSoccer",category:"pixel",title:"Pixel Soccer",tag:"Solo · New",kind:"soccer",desc:"Get past the keeper, defend your goal and win the match.",call:"sportsOpen"},
+ {id:"world",category:"strategy",title:"WorldPvP",tag:"Online · OpenFront",kind:"world",desc:"Pick where to start and play a full match of OpenFront.",call:"worldView"},
+ {id:"chess",category:"strategy",title:"Chess",tag:"Online · Practice",kind:"chess",desc:"Play another member or practice against the computer.",call:"chessView"},
+ {id:"rps",category:"party",title:"Rock Paper Scissors",tag:"Online · Quick",kind:"rps",desc:"A quick round against another member, or a tournament.",call:"rpsView"}
 ];
 function art(kind){
- if(kind==="basketball")return '<div class="arc-visual arc-visual-basket"><span class="arc-hoop">▤</span><span class="arc-player arc-jersey-orange">▟</span><span class="arc-ball">●</span><span class="arc-lines"></span><em>02 · 03</em></div>';
- if(kind==="soccer")return '<div class="arc-visual arc-visual-soccer"><span class="arc-pitch"></span><span class="arc-player arc-jersey-orange">▟</span><span class="arc-player arc-jersey-blue">▟</span><span class="arc-ball">●</span><em>90:00</em></div>';
- if(kind==="world")return '<div class="arc-visual arc-visual-world"><span class="arc-globe">◉</span><span class="arc-grid-world"></span><em>THE WHOLE PLANET</em></div>';
- if(kind==="chess")return '<div class="arc-visual arc-visual-chess"><span>♞</span><span>♔</span><em>YOUR MOVE</em></div>';
- return '<div class="arc-visual arc-visual-rps"><span>✊</span><span>✋</span><span>✌</span><em>BEST OF THREE</em></div>';
+ if(kind==="basketball"||kind==="soccer")
+   return '<canvas class="arc-game-preview" width="480" height="270" data-preview="'+kind+'" aria-hidden="true"></canvas>';
+ if(kind==="world")return '<div class="arc-visual arc-visual-world"><span class="arc-globe">◉</span><em>OpenFront</em></div>';
+ if(kind==="chess")return '<div class="arc-visual arc-visual-chess"><span>♞</span><span>♔</span></div>';
+ return '<div class="arc-visual arc-visual-rps"><span>✊</span><span>✋</span><span>✌</span></div>';
 }
+
 export function installPixelArcade(Hub){
  const previousRender=Hub.prototype.render,previousShow=Hub.prototype.show,previousClose=Hub.prototype.close,previousAct=Hub.prototype.act;
  Hub.prototype.games=function(){
-   this.header("Arcade","Lightning Network · 5 games and counting");
+   this.header("Arcade","Five games");
    if(!this.arenaFilter)this.arenaFilter="all";
    const filtered=catalog.filter(g=>this.arenaFilter==="all"||g.category===this.arenaFilter);
    const cards=filtered.map((game,i)=>
@@ -29,19 +30,26 @@ export function installPixelArcade(Hub){
        '<div class="arc-game-label">'+esc(game.tag)+'</div></div>'+
        '<div class="arc-game-info"><h3>'+esc(game.title)+'</h3><p>'+esc(game.desc)+'</p>'+
        '<button class="arc-play" data-act="'+game.call+'" '+(game.call==="sportsOpen"?'data-game="'+game.id+'"':'')+' type="button">'+
-       (game.category==="pixel"?"PLAY VS CPU":"ENTER GAME")+' <span>↗</span></button></div>'+
+       (game.category==="pixel"?"Play solo":"Play")+' <span>↗</span></button></div>'+
      '</article>').join("");
-   const filters=[["all","ALL GAMES"],["pixel","PIXEL SPORTS"],["strategy","STRATEGY"],["party","QUICK MATCHES"]];
+   const filters=[["all","All"],["pixel","Pixel sports"],["strategy","Strategy"],["party","Quick matches"]];
    this.$("#hubContent").innerHTML=
      '<section class="arc-page"><div class="arc-page-inner">'+
-       '<section class="arc-intro"><div class="arc-intro-top"><span><i class="arc-pulse"></i> THE LIGHTNING ARCADE</span><span>SEASON 01 / 2026</span></div>'+
-         '<div class="arc-intro-bottom"><div><h1>Pick a game<span>.</span></h1>'+
-         '<p>Five ways to compete. Find a real opponent, conquer a world or take on an arcade CPU.</p></div>'+
+       '<section class="arc-intro"><div class="arc-intro-top"><span><i class="arc-pulse"></i> LIGHTNING / ARCADE</span><span>FIVE GAMES</span></div>'+
+         '<div class="arc-intro-bottom"><div><h1>Find a game<span>.</span></h1>'+
+         '<p>Play online or take on the computer.</p></div>'+
          '<div class="arc-online-stat"><b>'+(this.summary?.users||0)+'</b><span>CONNECTED<br>PLAYERS</span></div></div></section>'+
        '<nav class="arc-tabs" aria-label="Filter games">'+filters.map(([k,n])=>'<button type="button" data-act="arcFilter" data-filter="'+k+'" class="'+(k===this.arenaFilter?"active":"")+'">'+n+'</button>').join("")+'</nav>'+
        '<div class="arc-grid">'+cards+'</div>'+
-       '<footer class="arc-page-footer"><span>LIGHTNING ARCADE / ALL SYSTEMS READY</span><span>PIXEL SPORTS ARE LOCAL CPU MATCHES</span></footer>'+
+       '<footer class="arc-page-footer"><span>LIGHTNING / ARCADE</span><span>Basketball and soccer are solo games</span></footer>'+
      '</div></section>';
+   for(const canvas of this.$(".arc-game-preview")){
+     const game=canvas.dataset.preview==="soccer"?createSoccer():createBasketball();
+     const context=canvas.getContext("2d",{alpha:false});
+     if(!context)continue;
+     game.phase="play";
+     game.draw(context);
+   }
  };
  Hub.prototype.stopPixel=function(){
    if(this.pixelFrame){cancelAnimationFrame(this.pixelFrame);this.pixelFrame=null}
@@ -59,7 +67,7 @@ export function installPixelArcade(Hub){
    this.$("#hubContent").innerHTML=
      '<div class="px-page '+(soccer?"px-soccer":"px-basketball")+'"><div class="px-wrap">'+
        '<header class="px-head"><div><span class="px-kicker">LIGHTNING / PIXEL SPORTS</span><h2>PIXEL <em>'+mode+'</em></h2>'+
-         '<p>Made for the arcade. Quick rounds, instant rematches.</p></div>'+
+         '<p>Short matches against the computer.</p></div>'+
        '<button type="button" class="px-back" data-act="pixelBack">← ALL GAMES</button></header>'+
        '<div class="px-board"><div class="px-scoreboard"><div class="px-score-team"><span>HOME · '+esc(this.name||"YOU")+'</span><strong id="pixelHome">0</strong></div>'+
        '<div class="px-center-clock"><span>VS CPU</span><strong id="pixelClock">01:40</strong><small id="pixelStatus">TIP OFF</small></div>'+
