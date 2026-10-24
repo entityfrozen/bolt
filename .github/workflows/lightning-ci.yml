@@ -37,11 +37,14 @@ jobs:
           node --check public/assets/pixel-soccer.js
           node --check public/assets/pixel-basketball.js
           node --check public/assets/pixel-arcade.js
+          node --check web-search.js
           node --check public/assets/login.js
           test -f node_modules/marked/lib/marked.umd.js
           test -f node_modules/dompurify/dist/purify.min.js
       - name: Test registration and admin approvals
         run: node --test test/auth.test.mjs
+      - name: Test web search
+        run: node --test test/web-search.test.mjs
       - name: Test pixel arcade games
         run: node --test test/pixel-sports.test.mjs
       - name: Test Lightning Live
