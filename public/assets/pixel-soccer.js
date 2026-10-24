@@ -175,6 +175,8 @@ export function createSoccer({difficulty="normal",random=Math.random}={}){
     // The supporting player finds open space instead of stacking on the ball.
     const mateTarget=game.ball.owner===2?
       {x:365,y:clamp(game.mate.y,40,226)}:
+      game.ball.intendedTarget===2&&game.ball.owner===-1?
+      {x:clamp(game.ball.x+game.ball.vx*.13,26,453),y:clamp(game.ball.y+game.ball.vy*.13,26,245)}:
       {x:clamp(game.user.x+72,110,391),y:clamp(game.user.y+(game.user.y>135?-73:73),40,230)};
     const mdx=mateTarget.x-game.mate.x,mdy=mateTarget.y-game.mate.y;
     const md=Math.hypot(mdx,mdy)||1;
@@ -275,7 +277,8 @@ export function createSoccer({difficulty="normal",random=Math.random}={}){
     }
     if(ball.lock<=0){
       for(const [i,player] of [[0,game.user],[1,game.cpu],[2,game.mate],[3,game.rival]]){
-        if(distance(player,ball)<14&&ball.z<player.jump+12){
+        const radius=i===ball.intendedTarget?21:14;
+        if(distance(player,ball)<radius&&ball.z<player.jump+12){
           ball.owner=i;ball.vx=ball.vy=ball.vz=ball.spin=0;ball.intendedTarget=null;
           if(player.jump>10)say("HEADER!");
           return;
