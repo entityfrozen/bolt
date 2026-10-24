@@ -1,3 +1,4 @@
+import { drawSoccer } from "./pixel-scenes.js?v=1";
 // Lightning Pixel Soccer: a self-contained arcade match, no asset downloads.
 const W=480,H=270;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -124,31 +125,7 @@ export function createSoccer(options={}){
    }
   }
  };
- s.draw=g=>{
-  g.imageSmoothingEnabled=false;
-  box(g,0,0,W,H,"#102d2c");box(g,9,12,462,246,"#07332c");
-  for(let j=0;j<8;j++)box(g,16+j*56,19,56,232,j%2===0?"#1e6d52":"#237c5c");
-  box(g,14,16,452,2,"#d4ecc680");box(g,14,250,452,2,"#d4ecc680");
-  for(let j=0;j<26;j++){box(g,0,5+j*10,8,6,"#678f7a");box(g,472,5+j*10,8,6,"#678f7a")}
-  line(g,240,18,240,249,"#d0f3d8",2);
-  g.strokeStyle="#d4eadb";g.lineWidth=2;g.beginPath();g.arc(240,135,38,0,Math.PI*2);g.stroke();
-  g.strokeRect(19,89,67,92);g.strokeRect(394,89,67,92);
-  g.strokeRect(19,114,22,43);g.strokeRect(439,114,22,43);
-  box(g,4,110,10,50,"#e3e5ce");box(g,466,110,10,50,"#e3e5ce");
-  for(let y=114;y<161;y+=8){line(g,5,y,14,y,"#a5b7bb",1);line(g,466,y,474,y,"#a5b7bb",1)}
-  footballer(g,s.keeper[0].x,s.keeper[0].y,"#ffe2a5",1);
-  footballer(g,s.keeper[1].x,s.keeper[1].y,"#c5c4ff",1);
-  footballer(g,s.user.x,s.user.y,"#f0a44f",9);
-  footballer(g,s.cpu.x,s.cpu.y,"#8778f1",7);
-  const b=s.ball;
-  box(g,b.x-4,b.y-4,8,8,"#0b1b23");box(g,b.x-3,b.y-4,6,7,"#f4f5e7");
-  box(g,b.x-1,b.y-1,3,3,"#35343f");box(g,b.x-3,b.y+2,2,2,"#35343f");
-  if(s.phase!=="play"){
-   box(g,135,99,210,58,"#0e1e2ddd");box(g,136,100,208,56,"#112a34");
-   label(g,s.over?s.notice:s.phase==="goal"?s.notice:"READY?",240,125,18,"#f3d69d","center");
-   label(g,s.over?"PRESS REMATCH TO GO AGAIN":s.phase==="countdown"?"STARTING IN "+Math.max(1,Math.ceil(s.countdown)):"GET BACK TO HALF",240,143,9,"#b0cfbf","center");
-  }
- };
+ s.draw = ctx => drawSoccer(ctx, s);
  resetPositions();
  return s;
 }
