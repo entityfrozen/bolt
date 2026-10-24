@@ -108,7 +108,7 @@ async function wikipedia(query, fetcher) {
 export function needsWebSearch(message) {
   const text = String(message || "").trim();
   if (!text) return false;
-  return /\b(search (the )?(web|internet|online)|look (it )?up|browse|google|sources?|citation|latest|current|recent|today|yesterday|this week|breaking|news|weather|price|stock price|as of now|2026)\b/i.test(text);
+  return /\b(websearch|web.search|search (the )?(web|internet|online|for)|can you search|could you search|look (it )?up|browse|google|sources?|citation|latest|current|recent|today|yesterday|this week|breaking|news|weather|price|stock price|as of now|2026)\b/i.test(text);
 }
 
 export async function searchWeb(query, {fetcher=fetch, braveKey=process.env.BRAVE_SEARCH_API_KEY}={}) {
