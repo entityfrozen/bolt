@@ -1,0 +1,304 @@
+/*
+ * One palette for the browser, chat and arcade.
+ * The original Lightning chrome is nearly black with warm brass accents.
+ * Keep sport colors inside the actual game; the surrounding UI is neutral.
+ */
+#hubMount {
+  --ink: #100f0d;
+  --surface: #191714;
+  --raised: #24201a;
+  --raised-hover: #30291e;
+  --stroke: #42382a;
+  --text: #eee6d7;
+  --muted: #a69a86;
+  --brass: #d3b278;
+  --soft-brass: #a88a5c;
+}
+#hubMount .hub-shell {
+  background: var(--ink);
+  color: var(--text);
+}
+#hubMount .hub-rail {
+  background: #15130f;
+  border-right: 1px solid var(--stroke);
+  width: 211px;
+  min-width: 211px;
+}
+#hubMount .hub-logo {
+  padding: 23px 20px 21px;
+  border-color: var(--stroke);
+}
+#hubMount .hub-logo strong,
+#hubMount .hub-shell:has(.social-layout) .hub-logo strong {
+  color: #f0ddba;
+  font: 600 23px/1.12 var(--display,Georgia,serif);
+  letter-spacing: -.025em;
+}
+#hubMount .hub-logo small,
+#hubMount .hub-shell:has(.social-layout) .hub-logo small {color:#978978}
+#hubMount .hub-nav-title,
+#hubMount .hub-shell:has(.social-layout) .hub-nav-title {color:#8c7858}
+#hubMount .hub-link,
+#hubMount .hub-shell:has(.social-layout) .hub-link {
+  border-radius: 7px;
+  color: #baad99;
+  background: transparent;
+  font-weight: 500;
+  border-color: transparent;
+}
+#hubMount .hub-link i,
+#hubMount .hub-shell:has(.social-layout) .hub-link i {color:#ad956e}
+#hubMount .hub-link:hover,
+#hubMount .hub-shell:has(.social-layout) .hub-link:hover {background:#27221a;color:#ecd6af}
+#hubMount .hub-link.active,
+#hubMount .hub-shell:has(.social-layout) .hub-link.active {
+  background: #352b1d;
+  border-color: #625033;
+  color: #f5dfb8;
+}
+#hubMount .hub-head,
+#hubMount .hub-shell:has(.social-layout) .hub-head {
+  background:#1a1712;
+  border-color:var(--stroke);
+  height:62px;
+  min-height:62px;
+}
+#hubMount .hub-head h2,
+#hubMount .hub-shell:has(.social-layout) .hub-head h2 {color:#f0d9ac;font:600 18px var(--display,Georgia,serif)}
+#hubMount .hub-head p,
+#hubMount .hub-shell:has(.social-layout) .hub-head p {color:#91826c}
+#hubMount .hub-pill,
+#hubMount .hub-shell:has(.social-layout) .hub-pill {
+  background:#292219;border-color:#58482f;color:#d7ba87;
+}
+#hubMount .hub-x,
+#hubMount .hub-shell:has(.social-layout) .hub-x {
+  background:#28231c;border-color:#5b4a33;color:#d5bd92;
+}
+/* Community: the content should feel like a room in Lightning, not a separate chat app. */
+#hubMount .social-layout,#hubMount .social-main {background:#16130f}
+#hubMount .social-channel-head {
+  min-height:64px;
+  background:#1d1914;
+  border-color:var(--stroke);
+  padding:0 23px;
+}
+#hubMount .chat-room-glyph {
+  width:34px;height:34px;border-radius:7px;
+  background:#342a1e;border-color:#5c482c;color:#d9b776;
+  font:700 21px var(--display,Georgia,serif);
+}
+#hubMount .chat-room-title strong {color:#eedeC2;font:600 20px var(--display,Georgia,serif)}
+#hubMount .chat-room-title small {color:#968873;letter-spacing:.04em}
+#hubMount .chat-live-pill {color:#c3bb9a}
+#hubMount .chat-live-pill i {background:#abbd93;box-shadow:0 0 6px #abbD934a}
+#hubMount .chat-room-tools button {
+  background:#28221b;
+  border:1px solid #57482f;
+  color:#cdb994;
+  height:32px;
+  border-radius:5px;
+}
+#hubMount .chat-room-tools button:hover{border-color:#ba9a65;color:#f2dfbc}
+#hubMount .social-messages {
+  background:#16130f;
+  padding:14px 23px;
+  scrollbar-color:#514433 transparent;
+}
+#hubMount .social-msg {border-radius:5px;padding:9px 9px;margin:0}
+#hubMount .social-msg:hover {background:#241f18}
+#hubMount .social-msg-meta strong{color:#dfbe86;font-weight:650}
+#hubMount .social-msg-meta time{color:#8f8372}
+#hubMount .social-text {color:#dbd2c2;font:450 12.5px/1.62 var(--font,system-ui)}
+#hubMount .social-avatar {
+  border-radius:7px;
+  background:#3a3023;
+  border:1px solid #635033;
+  color:#e9ce9e;
+}
+#hubMount .social-reference {
+  background:#272219;border-color:#bd9a60;color:#b7a58c
+}
+#hubMount .social-mention {color:#f1d6a5;background:#594225}
+#hubMount .social-reaction{
+  background:#30281f;border-color:#5e4c35;color:#e8d6b8
+}
+#hubMount .social-message-actions{
+  background:#252019;border-color:#5c4b35;box-shadow:0 5px 16px #0006
+}
+#hubMount .social-message-actions button {color:#c9b391}
+#hubMount .social-message-actions button:hover{background:#473825}
+#hubMount .chat-day {color:#8f826e}
+#hubMount .chat-day:before,#hubMount .chat-day:after{background:#463c2d}
+#hubMount .chat-new-divider {color:#d2ab74}
+#hubMount .chat-new-divider:before,#hubMount .chat-new-divider:after{background:#8a6d41}
+#hubMount .chat-searchbar {
+  background:#211c16;
+  border-color:#4c3e2a;
+}
+#hubMount .chat-searchbar>span {color:#c6a46d}
+#hubMount .chat-searchbar input {color:#e5d7bf}
+#hubMount .chat-searchbar button {
+  background:#33291e;border-color:#654e31;color:#e7c58b
+}
+#hubMount .social-compose-outer {
+  background:#1b1712;
+  border-color:#493c2a;
+  padding:12px 21px;
+}
+#hubMount .social-form {
+  border-radius:8px;
+  border-color:#6b5638;
+  background:#2a241b;
+  box-shadow:none;
+}
+#hubMount .social-form:focus-within {border-color:#c7a36a;box-shadow:0 0 0 2px #c6a36419}
+#hubMount .social-form textarea{color:#f2e2c7}
+#hubMount .social-form textarea::placeholder{color:#91826d}
+#hubMount .social-form>button {
+  border-radius:5px;
+  background:#d1ae78;
+  border-color:#dcb982;
+  color:#251b12;
+  font-weight:700;
+}
+#hubMount .social-form>button:hover {background:#edce9f}
+#hubMount .chat-compose-footer span {color:#897c6a}
+#hubMount .chat-composer-right button{color:#ccab78}
+#hubMount .social-typing{color:#bba780}
+#hubMount .chat-emoji-picker{background:#29221b;border-color:#675034}
+#hubMount .chat-emoji-picker button{background:#463826}
+#hubMount .social-members {
+  background:#191611;
+  border-color:var(--stroke);
+  min-width:188px;
+  max-width:206px;
+}
+#hubMount .social-members .hub-label {color:#ad956a}
+#hubMount .social-member{color:#d7c3a2}
+#hubMount .social-member:hover{background:#282219}
+#hubMount .social-member .social-dot{color:#a5bf98}
+#hubMount .chat-side-info{border-color:#403524}
+#hubMount .chat-side-header {color:#bda578}
+#hubMount .chat-side-stats{color:#b7a58f}
+#hubMount .chat-side-stats strong{color:#e5c68e}
+#hubMount .chat-side-info p{color:#93836e}
+#hubMount .chat-side-foot{
+  background:#292219;border-color:#594830;color:#bca27c
+}
+/* Arcade */
+#hubMount .arc-page{
+  background:#13110e;
+  color:#e9dccc;
+}
+#hubMount .arc-page-inner{max-width:1140px;padding:27px 32px 45px}
+#hubMount .arc-intro{
+  padding:27px 30px;
+  background:#201b15;
+  border:1px solid #4b3d29;
+  border-radius:10px;
+}
+#hubMount .arc-intro:after{
+  opacity:.28;background:repeating-linear-gradient(90deg,#ad87591b 0 1px,transparent 1px 28px),
+             repeating-linear-gradient(#ad87591b 0 1px,transparent 1px 28px);
+}
+#hubMount .arc-intro-top{color:#aa8d61;font-size:9px}
+#hubMount .arc-intro-top>span:last-child{color:#827565}
+#hubMount .arc-pulse{background:#ceb17b;box-shadow:none}
+#hubMount .arc-intro h1{
+  color:#f3dfb9;font:600 clamp(38px,5vw,55px)/1.1 var(--display,Georgia,serif);letter-spacing:-.035em;
+}
+#hubMount .arc-intro h1 span{color:#b58c54}
+#hubMount .arc-intro p{color:#a79a87}
+#hubMount .arc-online-stat{border-color:#5d4b32}
+#hubMount .arc-online-stat b{color:#d8b77e}
+#hubMount .arc-online-stat span{color:#98876f}
+#hubMount .arc-tabs{margin:21px 0 17px}
+#hubMount .arc-tabs button{
+  background:transparent;border:1px solid #423828;color:#a59783;
+  text-transform:none;letter-spacing:0;font:600 12px var(--font,system-ui);
+  border-radius:6px;padding:10px 14px;
+}
+#hubMount .arc-tabs button:hover{border-color:#a68a60;color:#efd4a5}
+#hubMount .arc-tabs button.active {background:#4b3821;border-color:#7c603a;color:#f6d9ab}
+#hubMount .arc-grid{gap:13px}
+#hubMount .arc-game {
+  background:#1d1914;border:1px solid #483b2a;
+  border-radius:9px;animation:none;box-shadow:none;
+}
+#hubMount .arc-game:hover {
+  border-color:#ad8752;
+  transform:translateY(-2px);
+  box-shadow:0 14px 36px #0004;
+}
+#hubMount .arc-game-media{height:158px;background:#28221b}
+#hubMount .arc-game-preview{
+  display:block;width:100%;height:100%;object-fit:cover;
+  image-rendering:pixelated;image-rendering:crisp-edges;
+}
+#hubMount .arc-game-label {
+  top:10px;left:10px;
+  color:#e9d1a6;background:#201811e0;
+  border:1px solid #8a6a4090;border-radius:4px;
+  font:600 10px var(--font,system-ui);letter-spacing:0;padding:6px 9px;
+}
+#hubMount .arc-game-info{padding:16px 17px 17px}
+#hubMount .arc-game-info h3{
+  color:#f0dcb9;font:600 24px var(--display,Georgia,serif);
+}
+#hubMount .arc-game-info p{
+  color:#ac9e89;font-size:12px;line-height:1.65;min-height:55px;
+}
+#hubMount .arc-play {
+  background:#2c2419;
+  color:#e1c18d;
+  border:1px solid #6c522f;
+  padding:11px 12px;border-radius:5px;
+  font:650 12px var(--font,system-ui);
+  letter-spacing:0;
+}
+#hubMount .arc-play:hover{background:#ccaa76;color:#261a0b}
+#hubMount .arc-page-footer{color:#81735f;border-color:#403527}
+/* Arena screens */
+#hubMount .px-page {background:#13110e;color:#ead9bd}
+#hubMount .px-wrap{max-width:1000px}
+#hubMount .px-head h2 {color:#efdbb9;font:600 33px var(--display,Georgia,serif)}
+#hubMount .px-head h2 em,
+#hubMount .px-soccer .px-head h2 em{color:#d0ac74}
+#hubMount .px-head p,#hubMount .px-kicker{color:#958774}
+#hubMount .px-board{
+  border:1px solid #655035;border-radius:9px;
+  box-shadow:0 14px 35px #0005;background:#201b15
+}
+#hubMount .px-scoreboard{
+  min-height:69px;background:#201b16;border-color:#57442a
+}
+#hubMount .px-score-team{color:#dfbc81}
+#hubMount .px-score-team.away{color:#bdb1a0}
+#hubMount .px-score-team span{color:#b39f7e}
+#hubMount .px-center-clock{border-color:#5d462d}
+#hubMount .px-center-clock>span{color:#af936b}
+#hubMount .px-center-clock strong{color:#e9d8b8}
+#hubMount .px-center-clock small{color:#ad997e}
+#hubMount .px-canvas-shell{background:#18140e}
+#hubMount .px-controls{background:#221b14;border-color:#5a472d}
+#hubMount .px-controls-label{color:#aa9574}
+#hubMount .px-controls-buttons>button,#hubMount .px-back {
+  color:#e2c59a;background:#33281c;border:1px solid #715734;border-radius:5px
+}
+#hubMount .px-controls-buttons>button:hover,#hubMount .px-back:hover{background:#4c3821}
+#hubMount .px-controls-buttons label{color:#9d8c76}
+#hubMount .px-controls-buttons select{color:#efd7ac;background:#31281d;border-color:#695236}
+#hubMount .px-instructions>div{background:#201a14;border-color:#4a3a27;border-radius:7px}
+#hubMount .px-instructions span,#hubMount .px-instructions p{color:#948572}
+#hubMount .px-instructions strong{color:#dbb77e}
+#hubMount .px-touch button{border-color:#6c5536;background:#30271c;color:#e8cb99}
+#hubMount .px-touch button:active,#hubMount .px-touch button.held{background:#d0ae79;color:#211910}
+#hubMount .px-touch-actions button:last-child,
+#hubMount .px-soccer .px-touch-actions button:last-child {background:#806039;border-color:#c5a273;color:#f8dfad}
+@media(max-width:770px){
+ #hubMount .hub-rail{width:160px;min-width:160px}
+ #hubMount .social-channel-head{padding:0 11px}
+ #hubMount .social-members{display:none}
+ #hubMount .arc-page-inner{padding:15px}
+}
