@@ -37,3 +37,15 @@ test("Web search reports an outage rather than inventing citations", async () =>
   assert.equal(result.sources.length, 0);
   assert.match(result.error, /unavailable/i);
 });
+
+test("News searches use a second independent feed when the first is unavailable", async () => {
+  const xml = '<rss><channel><item><title>OpenFront updated</title><link>https://example.com/news</link><description>New release</description></item></channel></rss>';
+  const fetcher = async url => {
+    if (String(url).startsWith("https://www.bing.com")) return new Response("offline", {status:503});
+    if (String(url).startsWith("https://news.google.com")) return new Response(xml, {status:200});
+    throw new Error("Unexpected provider");
+  };
+  const result = await searchWeb("latest OpenFront news", {fetcher,braveKey:""});
+  assert.equal(result.provider, "Google News");
+  assert.equal(result.sources[0].url, "https://example.com/news");
+});
