@@ -395,40 +395,40 @@ export function installArenaPolish(Hub){
       {
         sign:"+",kind:"added",title:"Added",
         items:[
-          "WorldPvP now runs the official OpenFront game on a dedicated Lightning server.",
+          "WorldPvP uses a standalone strategy server.",
           "Pixel Basketball and Pixel Soccer now have playable CPU matches, scores and timers.",
           "Lightning AI can search the web and show links to sources when results are available.",
           "Chess now has Resign & Leave, Cancel Queue, and Leave Finished Match.",
           "New Lightning accounts can be created by anyone and enter a manual approval queue.",
           "Chat replies, reactions, typing indicators, mentions and opt-in notifications.",
           "Arcade categories with a new pixel-sports section and difficulty settings.",
-          "A direct-tab option for playing WorldPvP outside the arcade."
+          "A direct-tab option for playing WorldPvP outside the arcade.\",\n          \"Shot-timing meters in basketball and soccer.\",\n          \"Soccer fakes, chips, curved shots and sprint stamina."
         ]
       },
       {
         sign:"-",kind:"removed",title:"Removed",
         items:[
-          "The old custom WorldPvP prototype from the playable arcade.",
+          "The old custom WorldPvP prototype from the playable arcade.\",\n          \"Instant shots with no timing mechanic.",
           "Access-code sign-in and temporary access passes."
         ]
       },
       {
         sign:"*",kind:"improved",title:"Improved",
         items:[
-          "WorldPvP now opens with OpenFront's own lobby, map and spawn-selection interface.",
+          "WorldPvP includes maps, game modes and starting-position selection.",
           "Chess has clearer legal-move highlights and a board refresh option.",
           "Lightning chat has unread channel badges and a redesigned composer.",
           "Chat layout now supports channel search, message groups, member mentions and quick emoji.",
           "Arcade cards, match HUDs and touch controls have been rebuilt.",
           "Chat and arcade match Lightning’s original dark-and-gold style.",
-          "Pixel games use clearer sprite artwork and show actual game previews.",
+          "Pixel games use sharper native-resolution artwork and game previews.\",\n          \"Basketball dribbling, steal reach and recovery animation.\",\n          \"WorldPvP now has a dedicated entry screen and first-match guide.",
           "WorldPvP receives your approved Lightning account name inside the game."
         ]
       },
       {
         sign:"!",kind:"fixed",title:"Fixed",
         items:[
-          "Resolved OpenFront's Railway build and Nginx startup problems.",
+          "Resolved the strategy server's Railway startup problems.",
           "Chess matches can be resigned without preventing another match.",
           "Account approval is enforced across browser pages, APIs and live chat.",
           "Pixel sports engines validate scoring, movement and match completion.",
@@ -451,11 +451,11 @@ export function installArenaPolish(Hub){
         '<div class="lc-wrap">'+
           '<div class="lc-header">'+
             '<span class="lc-eyebrow"><span class="lc-pulse"></span> LIGHTNING / CHANGELOG</span>'+
-            '<div class="lc-heading"><h1>Update log<span class="lc-dot">.</span></h1><span class="lc-version">VERSION 2.7.0 <i>•</i> OCT 2026</span></div>'+
+            '<div class="lc-heading"><h1>Update log<span class="lc-dot">.</span></h1><span class="lc-version">VERSION 2.8.0 <i>•</i> OCT 2026</span></div>'+
             '<p>Everything added, removed, improved, and fixed.</p>'+
           '</div>'+
           '<div class="lc-sections">'+sections+'</div>'+
-          '<footer class="lc-footer">LIGHTNING <span>—</span> BUILD 2.7.0</footer>'+
+          '<footer class="lc-footer">LIGHTNING <span>—</span> BUILD 2.8.0</footer>'+
         '</div>'+
       '</main>';
   };
