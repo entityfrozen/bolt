@@ -14,3 +14,78 @@
 .openfront-port-credit a{color:#dbcaab;text-decoration:none}
 .openfront-port-credit a:hover{text-decoration:underline}
 @media(max-width:600px){.hub-openfront-port .openfront-port-bar{height:48px;gap:6px;padding:6px}.openfront-port-identity small{display:none}.openfront-port-icon{display:none}.openfront-port-action{font-size:9px;padding:7px}.openfront-port-credit{font-size:8px;height:auto}}
+
+
+/* WorldPvP's own menu and onboarding; embedded game's original notices remain visible. */
+#hubWorld.hub-openfront-port{background:#100e0b;color:#ead7b7}
+#hubWorld .wp-welcome{
+  flex:1;min-height:0;overflow-y:auto;
+  background:radial-gradient(ellipse at 78% 15%,#8e703328,transparent 45%),#130f0b;
+  scrollbar-color:#634c2d transparent;
+}
+#hubWorld .wp-welcome-inner{max-width:1140px;margin:0 auto;padding:26px clamp(15px,4vw,45px) 18px}
+#hubWorld .wp-welcome-top{display:flex;justify-content:space-between;gap:12px;align-items:center;color:#ab936e;font:750 10px monospace;letter-spacing:.12em;border-bottom:1px solid #51402b;padding-bottom:20px}
+#hubWorld .wp-welcome-top>span:last-child{color:#777060}
+#hubWorld .wp-hero{
+  position:relative;margin-top:23px;padding:46px 45px;
+  border:1px solid #66502e;border-radius:10px;overflow:hidden;
+  background:repeating-linear-gradient(0deg,#5b4c2718 0 1px,transparent 1px 40px),
+             repeating-linear-gradient(90deg,#5b4c2718 0 1px,transparent 1px 40px),#201b14;
+}
+#hubWorld .wp-hero:after{
+  content:"◉";position:absolute;right:5%;top:1%;font:300 240px/1 system-ui;
+  color:#caa56a20;pointer-events:none;
+}
+#hubWorld .wp-eyebrow{color:#cbb18b;font:800 10px monospace;letter-spacing:.13em}
+#hubWorld .wp-hero h1{position:relative;z-index:1;margin:15px 0 12px;max-width:740px;color:#efdcbb;font:600 clamp(37px,5.5vw,67px)/1.08 Georgia,serif;letter-spacing:-.045em}
+#hubWorld .wp-hero h1 em{font-weight:500;color:#d2ae76}
+#hubWorld .wp-hero p{position:relative;z-index:1;max-width:500px;color:#b4a28a;font:450 12px/1.8 system-ui}
+#hubWorld .wp-launch{position:relative;z-index:1;display:flex;gap:10px;flex-wrap:wrap;margin-top:25px}
+#hubWorld .wp-launch button{
+  cursor:pointer;border:1px solid #8b683b;border-radius:6px;background:#d2af79;
+  color:#24170d;padding:15px 19px;font:800 11px monospace;
+}
+#hubWorld .wp-launch button+button{background:#302619;color:#edcb95;border-color:#745838}
+#hubWorld .wp-launch button:hover{filter:brightness(1.13)}
+#hubWorld .wp-launch b{font-size:16px;margin-left:15px}
+#hubWorld .wp-beginner{margin:28px 0 15px}
+#hubWorld .wp-beginner h2{color:#f1dfbc;font:600 25px Georgia,serif;letter-spacing:-.02em;margin:0 0 16px}
+#hubWorld .wp-beginner-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px}
+#hubWorld .wp-beginner-grid section{border:1px solid #4c3d29;background:#201a13;border-radius:7px;padding:16px}
+#hubWorld .wp-beginner-grid section span{display:block;color:#c69e64;font:800 11px monospace;margin-bottom:20px}
+#hubWorld .wp-beginner-grid section strong{display:block;color:#e7d3af;font:650 13px system-ui}
+#hubWorld .wp-beginner-grid section p{margin:9px 0 0;color:#a99b87;font:400 11px/1.65 system-ui}
+#hubWorld .wp-welcome-bottom{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:24px;border-top:1px solid #55452d;padding-top:15px;color:#8e7d67;font:650 9px monospace}
+#hubWorld .wp-welcome-bottom button{background:none;border:0;color:#d8b882;cursor:pointer;font:700 10px monospace}
+#hubWorld .wp-frame-wrap{position:relative;flex:1;min-height:0;background:#12110e;display:flex}
+#hubWorld .wp-frame-wrap iframe{display:block;flex:1;min-width:0;min-height:0;width:100%;height:100%;border:0}
+#hubWorld .openfront-port-bar{border-color:#5c482f;background:#211b13}
+#hubWorld .openfront-port-action{background:#302519;border-color:#745838;color:#edc997}
+#hubWorld .openfront-port-action:hover{background:#56412a;color:#f8dda9}
+#hubWorld .openfront-port-account{color:#caaa7a}
+#hubWorld .openfront-port-identity small{color:#9f8b6f}
+#hubWorld .wp-guide{position:absolute;inset:0;z-index:50;display:grid;place-items:center;background:#090a0bd6;padding:14px}
+#hubWorld .wp-guide[hidden]{display:none}
+#hubWorld .wp-guide-panel{width:min(490px,100%);max-height:95%;overflow:auto;border:1px solid #987147;border-radius:9px;background:#201912;color:#d5c3a8;box-shadow:0 30px 65px #000b;padding:25px}
+#hubWorld .wp-guide-head{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #5f462c;padding-bottom:15px;color:#d2ac76;font:800 11px monospace}
+#hubWorld .wp-guide-head button{background:transparent;border:0;color:#e1c79e;font-size:25px;cursor:pointer}
+#hubWorld .wp-guide-panel h2{font:600 27px Georgia,serif;color:#f1e0c0;margin:18px 0}
+#hubWorld .wp-guide-panel p{font:430 12px/1.75 system-ui;margin:9px 0;color:#c2b198}
+#hubWorld .wp-guide-panel p b{color:#e5bd7c}
+#hubWorld .wp-guide-note{border-left:3px solid #c8a36d;padding:10px 12px;margin:18px 0;color:#e5c996;background:#31271b;font-size:11px}
+#hubWorld .wp-guide-done{border:0;border-radius:5px;background:#d0ae77;padding:12px 24px;color:#291e11;cursor:pointer;font:800 11px monospace}
+#hubWorld .openfront-port-credit{background:#17110c;color:#a7987e;border-color:#483521}
+#hubWorld .openfront-port-credit a{color:#ceb186}
+@media(max-width:800px){
+ #hubWorld .wp-beginner-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #hubWorld .wp-hero{padding:34px 24px}
+}
+@media(max-width:520px){
+ #hubWorld .wp-welcome-inner{padding:15px}
+ #hubWorld .wp-welcome-top{font-size:8px}
+ #hubWorld .wp-hero{padding:24px 18px}
+ #hubWorld .wp-beginner-grid{grid-template-columns:1fr}
+ #hubWorld .wp-welcome-bottom{font-size:8px;flex-wrap:wrap}
+ #hubWorld .openfront-port-bar{gap:4px}
+ #hubWorld .openfront-port-account{display:none}
+}
