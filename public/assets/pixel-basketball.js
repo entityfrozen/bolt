@@ -1,40 +1,10 @@
 import { drawBasketball } from "./pixel-scenes.js?v=1";
-// Lightning Pixel Basketball: original side-view arcade match.
-const W=480,H=270,GROUND=222,RIM=123,GRAVITY=385;
-const clip=(n,lo,hi)=>Math.max(lo,Math.min(hi,n));
-const drawBox=(g,x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))};
-const drawText=(g,text,x,y,size,color,align="left")=>{g.textAlign=align;g.font="bold "+size+"px monospace";g.fillStyle=color;g.fillText(text,x,y)};
-function basketPlayer(g,p,kit,trim,number,clock){
- const x=p.x|0,feet=(GROUND-p.jump)|0,step=Math.sin(clock*11)*Math.min(2,Math.abs(p.vx)*.025);
- drawBox(g,x-10,GROUND+1,21,3,"#1b2224a0");
- drawBox(g,x-6,feet-23,12,12,kit);
- drawBox(g,x-6,feet-28,12,7,"#d49c78");drawBox(g,x-6,feet-29,12,3,"#262839");
- drawBox(g,x-10,feet-21,4,12,"#c98f6e");drawBox(g,x+6,feet-21,4,12,"#c98f6e");
- drawBox(g,x-5,feet-11,10,5,trim);
- drawBox(g,x-5,feet-6,4,6+step,"#f4e9c4");drawBox(g,x+2,feet-6,4,6-step,"#f4e9c4");
- drawText(g,number,x,feet-12,8,"#fff9da","center");
-}
-function hoop(g,x,side){
- const left=side===-1;
- const post=left?x-20:x+17;
- drawBox(g,post,RIM-15,5,110,"#acb6bb");drawBox(g,post+1,RIM-15,2,110,"#5c7889");
- drawBox(g,post+(left?-7:0),RIM-30,13,23,"#f9e6ba");
- drawBox(g,post+(left?-4:3),RIM-27,7,17,"#1b4856");
- drawBox(g,x-10,RIM,20,3,"#f1825e");
- for(let i=0;i<4;i++){
-   const start=x-9+i*6;
-   drawBox(g,start,RIM+4,1,17,"#e0decf");
-   drawBox(g,start+(i%2===0?2:-2),RIM+21,5,1,"#e0decf");
- }
-}
-function ballSprite(g,b){
- const x=b.x|0,y=b.y|0;
- drawBox(g,x-6,y-5,11,11,"#131b28");
- drawBox(g,x-5,y-5,10,10,"#e98f43");
- drawBox(g,x-5,y-1,10,2,"#5a342d");
- drawBox(g,x-1,y-5,2,10,"#5a342d");
- drawBox(g,x-4,y-4,2,2,"#ffba68");
-}
+
+const GROUND = 222;
+const RIM = 123;
+const GRAVITY = 385;
+const clip = (value,min,max) => Math.max(min,Math.min(max,value));
+
 export function createBasketball(options={}){
  const state={
   mode:"basketball",duration:110,time:110,score:[0,0],over:false,
