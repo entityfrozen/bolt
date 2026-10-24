@@ -1,4 +1,4 @@
-import {createSoccer} from "./pixel-soccer.js?v=4";
+import {createSoccer} from "./pixel-soccer.js?v=5";
 import {createBasketball} from "./pixel-basketball.js?v=5";
 
 const sports=new Set(["pixelSoccer","pixelBasketball"]);
