@@ -8,7 +8,7 @@
     '<aside class="bolt-ai-panel" id="boltAiPanel" role="dialog" aria-label="Lightning AI" aria-modal="false" aria-hidden="true">' +
       '<header class="bolt-aux-head"><span class="bolt-aux-brand"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M37 5 14 35h17l-3 24L52 26H36Z"/><path d="M30 20h12l-5 6H25Z" fill="#16130e" opacity=".65"/></svg></span><div><div class="bolt-aux-title">Lightning AI</div><div class="bolt-aux-subtitle">Your browsing companion</div></div><span class="bolt-aux-spacer"></span><button class="bolt-aux-btn" id="boltAiClear" title="New chat">New chat</button><button class="bolt-aux-btn" id="boltAiClose" type="button" aria-label="Close AI" title="Close AI">×</button></header>' +
       '<div class="bolt-ai-messages" id="boltAiMessages" aria-live="polite"></div>' +
-      '<form class="bolt-ai-compose" id="boltAiForm"><div class="bolt-ai-shortcuts"><button type="button" id="boltUseSelection">Use selected text</button><button type="button" id="boltUsePage">Add page link</button></div>' +
+      '<form class="bolt-ai-compose" id="boltAiForm"><div class="bolt-ai-shortcuts"><button type="button" id="boltUseSelection">Use selected text</button><button type="button" id="boltUsePage">Add page link</button><button type="button" id="boltAiWeb" aria-pressed="false" title="Search the web for this answer">Web: auto</button></div>' +
       '<textarea class="bolt-ai-textarea" id="boltAiInput" maxlength="9000" placeholder="Ask Lightning anything..."></textarea><div class="bolt-ai-error" id="boltAiError" role="status"></div><div class="bolt-ai-actions"><span class="bolt-ai-hint">↵ send &nbsp; · &nbsp; shift ↵ newline</span><button class="bolt-ai-send" id="boltAiSend" type="submit">Send ↗</button></div></form></aside>' +
     '<section class="bolt-devdock" id="boltDevDock" aria-label="Lightning DevTools">' +
       '<nav class="bolt-dev-tabs"><button type="button" data-bolt-devtab="elements" class="on">Elements</button><button type="button" data-bolt-devtab="console">Console</button><button type="button" data-bolt-devtab="network">Network</button><button type="button" id="boltDevPick">Pick element</button><span class="bolt-aux-spacer"></span><button type="button" id="boltDevClose" title="Close DevTools">✕</button></nav>' +
@@ -86,6 +86,13 @@
     target.textContent=raw;
   }
 
+  let webMode = "auto";
+  const webButton = el("boltAiWeb");
+  webButton.addEventListener("click", () => {
+    webMode = {auto:"on",on:"off",off:"auto"}[webMode];
+    webButton.textContent = "Web: " + webMode;
+    webButton.setAttribute("aria-pressed",String(webMode==="on"));
+  });
   function renderChat() {
     messageView.replaceChildren();
     if (!messages.length) {
@@ -116,6 +123,29 @@
         body.dir = "auto";
         setRichText(body,message.content);
         node.append(body);
+        if (Array.isArray(message.sources) && message.sources.length) {
+          const refs = document.createElement("div");
+          refs.className = "bolt-ai-sources";
+          const title = document.createElement("strong");
+          title.textContent = "Sources";
+          refs.append(title);
+          for (const [i, source] of message.sources.entries()) {
+            try {
+              const url = new URL(source.url);
+              if (!["https:", "http:"].includes(url.protocol)) continue;
+              const a = document.createElement("a");
+              a.href = url.href;a.target = "_blank";a.rel = "noopener noreferrer";
+              a.textContent = "[" + (i + 1) + "] " + source.title;
+              refs.append(a);
+            } catch {}
+          }
+          node.append(refs);
+        } else if(message.searchError) {
+          const note = document.createElement("small");
+          note.className = "bolt-ai-search-fail";
+          note.textContent = message.searchError;
+          node.append(note);
+        }
         const copy = document.createElement("button");
         copy.className = "bolt-ai-copy";
         copy.type = "button";
@@ -154,19 +184,19 @@
     renderChat();
     busy = true;
     sendButton.disabled = true;
-    sendButton.textContent = "Working...";
+    sendButton.textContent = "Thinking…";
     setError("");
     try {
       const response = await fetch("/api/ai/chat", {
         method: "POST",
         credentials: "same-origin",
         headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({messages: messages.slice(-16)})
+        body: JSON.stringify({messages: messages.slice(-16).map(({role,content})=>({role,content})), webSearch: webMode==="auto"?undefined:webMode==="on"})
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || "AI request failed");
       if (typeof data.reply !== "string" || !data.reply.trim()) throw new Error("AI returned an empty reply");
-      messages.push({role:"assistant",content:data.reply.trim()});
+      messages.push({role:"assistant",content:data.reply.trim(),sources:data.sources||[],searchError:data.searchError||null});
       saveChat();
       renderChat();
     } catch (error) {
