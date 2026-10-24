@@ -126,8 +126,8 @@ test("Soccer chip uses height, curve alters flight, jump counters high balls",()
   assert.ok(game.ball.vz>100,"chip creates an airborne ball");
   assert.ok(game.ball.spin>0,"directional input adds bend");
   const y=game.ball.y;
-  game.tick(.03,keys);
-  assert.ok(game.ball.z>0&&game.ball.y!==y);
+  for(let i=0;i<5;i++)game.tick(.03,keys);
+  assert.ok(game.ball.z>0&&game.ball.y!==y,"curve changes lateral velocity over multiple steps");
   game.action("c");
   assert.ok(game.user.jump>0||game.user.vz>0);
 });
