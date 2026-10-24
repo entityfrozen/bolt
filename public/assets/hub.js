@@ -2,7 +2,7 @@ import {installArenaPolish} from "./arena-v3.js?v=9";
 import {installWorldPort} from "./openfront-port.js?v=4";
 import {installSocial} from "./social-v4.js?v=3";
 import {installChatPolish} from "./chat-polish.js?v=2";
-import {installPixelArcade} from "./pixel-arcade.js?v=6";
+import {installPixelArcade} from "./pixel-arcade.js?v=7";
 
 const E=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const PIECES={K:"♔",Q:"♕",R:"♖",B:"♗",N:"♘",P:"♙",k:"♚",q:"♛",r:"♜",b:"♝",n:"♞",p:"♟"};
@@ -412,6 +412,7 @@ function ensureHubStyles(){
   const polish=document.createElement("link");polish.id="lightningChatPolishCss";polish.rel="stylesheet";polish.href="/assets/chat-polish.css?v=1";document.head.append(polish);
   const pixel=document.createElement("link");pixel.id="lightningPixelArcadeCss";pixel.rel="stylesheet";pixel.href="/assets/pixel-arcade.css?v=2";document.head.append(pixel);
   const finish=document.createElement("link");finish.id="lightningFinishCss";finish.rel="stylesheet";finish.href="/assets/lightning-finish.css?v=1";document.head.append(finish);
+  const feel=document.createElement("link");feel.id="pixelFeelCss";feel.rel="stylesheet";feel.href="/assets/pixel-feel.css?v=1";document.head.append(feel);
  }
 }
 export function openHub(view="chat"){
