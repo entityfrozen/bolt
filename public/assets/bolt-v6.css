@@ -780,3 +780,33 @@ body.bolt-dev-open .bolt-ai-panel{
 .bolt-ai-rich hr{border:0;border-top:1px solid #54432b;margin:16px 0}
 .bolt-ai-copy{display:inline-flex;align-items:center;min-height:26px;gap:5px;margin-top:11px;padding:4px 8px;border:1px solid #4c3c2b;background:#29221a;color:#bea57f;border-radius:7px;cursor:pointer;font:600 10px var(--font)}
 .bolt-ai-copy:hover{color:#f4d5a0;border-color:#85673b}
+
+/* Explicit search state; never imply the model looked something up by itself. */
+.bolt-ai-web-status {
+  margin-top: 12px;
+  padding-top: 9px;
+  border-top: 1px solid #56432a;
+  color: #d1b27b;
+  font: 600 10px/1.6 var(--font,system-ui);
+}
+.bolt-ai-sources {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: 11px;
+  padding: 10px 12px;
+  background: #29231a;
+  border: 1px solid #57482f;
+  border-radius: 8px;
+}
+.bolt-ai-sources strong {color:#e6c994;font-size:10px}
+.bolt-ai-sources a {
+  color: #e5cfab;
+  font-size: 11px;
+  line-height: 1.4;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+.bolt-ai-sources a:hover {text-decoration:underline}
+.bolt-ai-search-fail {display:block;color:#cbb17b;margin-top:8px;font-size:10px}
+#boltAiWeb[aria-pressed="true"] {border-color:#c8aa78;background:#453621;color:#efcf95}
