@@ -138,9 +138,22 @@ export function drawSoccer(ctx, state) {
   soccerPitch(ctx);
   soccerPlayer(ctx,state.keeper[0],"#efd599","#60563e",1);
   soccerPlayer(ctx,state.keeper[1],"#cec0ce","#645364",1);
+  // Animated fake and tackle frames are drawn separately from possession.
+  if(state.user.fake>0){
+    tile(ctx,"#efcc93",state.user.x+state.user.dir*12-3,state.user.y+6,13,3);
+    caption(ctx,"FAKE",state.user.x,state.user.y-24,8,"#f6d7a3");
+  }
+  if(state.user.tackle>0)tile(ctx,"#f4c789",state.user.x+state.user.dir*10,state.user.y+4,14,4);
   soccerPlayer(ctx,state.cpu,"#b0a4c6","#574e6d",7);
   soccerPlayer(ctx,state.user,"#e2ad6a","#60472c",9);
-  ball(ctx,state.ball.x,state.ball.y,false);
+  if(state.ball.z>0){
+    tile(ctx,"#12281987",state.ball.x-6,state.ball.y+1,13,4);
+    ball(ctx,state.ball.x,state.ball.y-state.ball.z*.52,false);
+    if(state.ball.z>14)caption(ctx,"LOB",state.ball.x,state.ball.y-state.ball.z*.52-10,7,"#f3d8a5");
+  }else ball(ctx,state.ball.x,state.ball.y,false);
+  if(state.user.jump>0)caption(ctx,"JUMP",state.user.x,state.user.y-state.user.jump*.4-21,7,"#f3e4b6");
+  if(state.feedbackTime>0&&state.feedback)
+    caption(ctx,state.feedback,240,47,10,"#ffe2a0");
   if(state.phase!=="play"){
     const line=state.over?"FINAL SCORE":state.phase==="goal"?"NEXT KICK OFF":"STARTS IN "+Math.max(1,Math.ceil(state.countdown));
     eventPanel(ctx,state.over||state.phase==="goal"?state.notice:"KICK OFF",line);
@@ -150,9 +163,22 @@ export function drawSoccer(ctx, state) {
 export function drawBasketball(ctx, state) {
   ctx.imageSmoothingEnabled=false;
   basketballCourt(ctx);
+  if(state.user.steal>0){
+    const reach=state.user.face*19;
+    tile(ctx,"#f1c79d",state.user.x+reach-3,203-state.user.jump,14,4);
+    tile(ctx,"#f8deab",state.user.x+reach+8,203-state.user.jump,4,4);
+  }
+  if(state.user.stumble>0)
+    caption(ctx,"RECOVER",state.user.x,170-state.user.jump,8,"#f7bf9c");
   basketballPlayer(ctx,state.cpu,"#a9a0bc","#655978",8,state.clock);
   basketballPlayer(ctx,state.user,"#e2b174","#815732",11,state.clock);
+  // Motion echoes make the ball path and live dribble easier to follow.
+  if(state.ball.owner===-1){
+    tile(ctx,"#8f5c3788",state.ball.x-state.ball.vx*.025-3,state.ball.y-state.ball.vy*.025-3,6,6);
+  }
   ball(ctx,state.ball.x,state.ball.y,true);
+  if(state.feedbackTime>0&&state.feedback)
+    caption(ctx,state.feedback,240,54,10,"#ffe0a0");
   if(state.phase!=="play"){
     const line=state.over?"FINAL SCORE":state.phase==="score"?"NEXT POSSESSION":"STARTS IN "+Math.max(1,Math.ceil(state.countdown));
     eventPanel(ctx,state.over||state.phase==="score"?state.notice:"TIP OFF",line);
