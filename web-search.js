@@ -85,6 +85,19 @@ async function bing(query, fetcher) {
   return parseBingRss(await responseText(response, 300000));
 }
 
+async function googleNews(query, fetcher) {
+  const url = new URL("https://news.google.com/rss/search");
+  url.searchParams.set("q", query + " when:7d");
+  url.searchParams.set("hl", "en-US");
+  url.searchParams.set("gl", "US");
+  url.searchParams.set("ceid", "US:en");
+  const response = await fetcher(url, {
+    headers:{"Accept":"application/rss+xml"},
+    signal:AbortSignal.timeout(7000)
+  });
+  return parseBingRss(await responseText(response, 300000));
+}
+
 async function wikipedia(query, fetcher) {
   const url = new URL("https://en.wikipedia.org/w/api.php");
   url.searchParams.set("action", "query");
@@ -116,6 +129,9 @@ export async function searchWeb(query, {fetcher=fetch, braveKey=process.env.BRAV
   if (!text) return {sources:[],provider:null,error:"No search query provided."};
   const providers = braveKey ? [["Brave",()=>brave(text,fetcher,braveKey)]] : [];
   providers.push(["Bing",()=>bing(text,fetcher)]);
+  if (/\b(news|latest|today|breaking|this week|recent|current)\b/i.test(text)) {
+    providers.push(["Google News",()=>googleNews(text,fetcher)]);
+  }
   // Wikipedia is a narrower fallback, not a substitute for recent news.
   if (!/\b(latest|today|news|breaking|this week|price|weather|current)\b/i.test(text)) {
     providers.push(["Wikipedia",()=>wikipedia(text,fetcher)]);
