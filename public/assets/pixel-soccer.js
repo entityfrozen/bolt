@@ -1,116 +1,207 @@
-import { drawSoccer } from "./pixel-scenes.js?v=1";
+import {drawSoccer} from "./pixel-scenes.js?v=2";
 
-const clamp = (value,min,max) => Math.max(min,Math.min(max,value));
-const approach = (value,target,step) => value + (target-value)*Math.min(1,step);
-const dist = (a,b) => Math.hypot(a.x-b.x,a.y-b.y);
+const clamp=(value,min,max)=>Math.min(max,Math.max(min,value));
+const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 
-export function createSoccer(options={}){
- const s={
-  mode:"soccer",duration:100,time:100,score:[0,0],over:false,phase:"countdown",countdown:2.3,notice:"KICK OFF",
-  user:{x:125,y:135,dir:1},cpu:{x:350,y:135,dir:-1},keeper:[{x:43,y:135},{x:437,y:135}],
-  ball:{x:240,y:135,vx:0,vy:0,owner:-1,lock:0},actionCooldown:0,resetDelay:0,goalFlash:0,clock:0,
-  difficulty:options.difficulty||"normal",lastKick:"",showHelp:true
- };
- const skill=s.difficulty==="hard"?1.23:s.difficulty==="easy"?.83:1;
- const resetPositions=(kickoff=-1)=>{
-  Object.assign(s.user,{x:125,y:135,dir:1});Object.assign(s.cpu,{x:350,y:135,dir:-1});
-  Object.assign(s.ball,{x:kickoff===0?139:kickoff===1?340:240,y:135,vx:0,vy:0,owner:kickoff,lock:0});
-  s.keeper[0].y=s.keeper[1].y=135;
- };
- function score(team){
-  s.score[team]++;s.phase="goal";s.notice=team===0?"GOOOAL! +1":"CPU SCORES";s.goalFlash=1.8;s.resetDelay=1.8;
-  s.ball.vx=s.ball.vy=0;s.ball.owner=-1;
- }
- function kick(who){
-  if(s.over||s.phase!=="play"||s.actionCooldown>0)return false;
-  const self=who===0?s.user:s.cpu,other=who===0?s.cpu:s.user;
-  if(s.ball.owner!==who&&dist(self,s.ball)>20)return false;
-  s.ball.owner=-1;s.ball.lock=.4;s.actionCooldown=who===0?.28:.65;
-  const targetX=who===0?475:5;
-  const targetY=clamp(135+(self.y-135)*.25+(who===1?(Math.random()-.5)*24:0),111,157);
-  let dx=targetX-s.ball.x,dy=targetY-s.ball.y;
-  const length=Math.hypot(dx,dy)||1;
-  const accuracy=who===0?Math.random()*.16-.08:(Math.random()-.5)*(.29/skill);
-  const vx=dx/length,vy=dy/length;
-  s.ball.vx=(vx-vy*accuracy)*265;
-  s.ball.vy=(vy+vx*accuracy)*265;
-  s.ball.x=self.x+vx*12;s.ball.y=self.y+vy*10;
-  s.lastKick=who===0?"SHOT ON GOAL!":"CPU SHOOTS!";
-  return true;
- }
- s.action=key=>{
-  if(key==="space"||key===" "||key==="shoot")kick(0);
-  if(key==="x"||key==="tackle"){
-   if(s.actionCooldown>0)return;
-   if(s.ball.owner===1&&dist(s.user,s.cpu)<23){s.ball.owner=0;s.actionCooldown=.45;s.notice="CLEAN TACKLE!";}
-   else if(s.ball.owner===-1&&dist(s.user,s.ball)<20){s.ball.owner=0;s.actionCooldown=.35}
+/** z is the ball's height above the grass; x/y are its position on the pitch. */
+export function createSoccer({difficulty="normal",random=Math.random}={}){
+  const skill={easy:.8,normal:1,hard:1.24}[difficulty]||1;
+  const game={
+    mode:"soccer",difficulty,duration:100,time:100,score:[0,0],over:false,
+    phase:"countdown",countdown:2,notice:"KICK OFF",clock:0,resetDelay:0,goalFlash:0,
+    user:{x:125,y:135,dir:1,jump:0,vz:0,sprint:100,fake:0,tackle:0},
+    cpu:{x:350,y:135,dir:-1,jump:0,vz:0,fake:0,tackle:0,hesitate:0},
+    keeper:[{x:43,y:135,jump:0},{x:437,y:135,jump:0}],
+    ball:{x:139,y:135,z:0,vx:0,vy:0,vz:0,spin:0,owner:0,lock:0},
+    shot:{active:false,progress:0,greenStart:.68,greenEnd:.83,quality:0,lob:false,curve:0},
+    actionCooldown:0,feedback:"",feedbackTime:0,lastKick:""
+  };
+  function say(value,duration=1){game.feedback=value;game.feedbackTime=duration;game.lastKick=value;}
+  function reset(kickoff=0){
+    Object.assign(game.user,{x:125,y:135,dir:1,jump:0,vz:0,fake:0,tackle:0,sprint:100});
+    Object.assign(game.cpu,{x:350,y:135,dir:-1,jump:0,vz:0,fake:0,tackle:0,hesitate:0});
+    Object.assign(game.ball,{x:kickoff===0?139:kickoff===1?340:240,y:135,z:0,vx:0,vy:0,vz:0,spin:0,owner:kickoff,lock:.15});
+    game.keeper.forEach(k=>{k.y=135;k.jump=0;});
+    game.actionCooldown=0;game.shot.active=false;
   }
- };
- s.tick=(dt,keys)=>{
-  dt=clamp(dt,0,.04);s.clock+=dt;
-  if(s.over)return;
-  if(s.phase==="countdown"){
-   s.countdown-=dt;
-   if(s.countdown<=0){s.phase="play";s.notice="";}return;
+  function score(team){
+    game.score[team]++;game.phase="goal";game.notice=team===0?"GOAL!":"CPU SCORES";
+    game.resetDelay=1.8;game.goalFlash=1.5;
+    game.ball.owner=-1;game.ball.vx=game.ball.vy=game.ball.vz=0;
+    game.shot.active=false;
   }
-  if(s.phase==="goal"){
-   s.resetDelay-=dt;s.goalFlash=Math.max(0,s.goalFlash-dt);
-   if(s.resetDelay<=0){resetPositions(s.score[0]>s.score[1]?1:0);s.phase="countdown";s.countdown=1.2;}return;
+  function windowFor(player){
+    const range=player===game.user?Math.abs(465-player.x):Math.abs(player.x-15);
+    const width=clamp(.24-range/2800,.06,.23);
+    const center=clamp(.75-range/3000,.59,.76);
+    return {start:center-width/2,end:center+width/2};
   }
-  s.time=Math.max(0,s.time-dt);if(s.time===0){s.phase="finished";s.over=true;s.notice=s.score[0]===s.score[1]?"FULL TIME · DRAW":s.score[0]>s.score[1]?"VICTORY!":"DEFEAT";return}
-  s.actionCooldown=Math.max(0,s.actionCooldown-dt);
-  const ux=(Number(keys.has("d")||keys.has("arrowright"))-Number(keys.has("a")||keys.has("arrowleft")));
-  const uy=(Number(keys.has("s")||keys.has("arrowdown"))-Number(keys.has("w")||keys.has("arrowup")));
-  const length=Math.hypot(ux,uy)||1;
-  const sprint=keys.has("shift")?1.32:1;
-  s.user.x=clamp(s.user.x+ux/length*112*sprint*dt,26,454);
-  s.user.y=clamp(s.user.y+uy/length*112*sprint*dt,25,245);
-  if(ux)s.user.dir=ux>0?1:-1;
-  const cpuHas=s.ball.owner===1,userHas=s.ball.owner===0;
-  let tx,ty;
-  if(cpuHas){tx=163;ty=clamp(s.user.y*.22+135*.78,40,230)}
-  else if(userHas){tx=s.user.x+28;ty=s.user.y}
-  else{tx=s.ball.x;ty=s.ball.y}
-  const dx=tx-s.cpu.x,dy=ty-s.cpu.y,dl=Math.hypot(dx,dy)||1;
-  const cpuSpeed=104*skill;
-  s.cpu.x=clamp(s.cpu.x+dx/dl*cpuSpeed*dt,26,454);
-  s.cpu.y=clamp(s.cpu.y+dy/dl*cpuSpeed*dt,25,245);
-  if(dx)s.cpu.dir=dx>0?1:-1;
-  for(let i=0;i<2;i++){
-   const k=s.keeper[i],target=s.ball.owner===-1?s.ball.y:(i===0?s.cpu.y:s.user.y);
-   k.y=clamp(approach(k.y,clamp(target,113,157),dt*2.8),111,159);
+  game.shotWindow=()=>windowFor(game.user);
+  function shoot(team,{progress=.74,lob=false,curve=0}={}){
+    if(game.phase!=="play"||game.actionCooldown>0||game.ball.owner!==team)return false;
+    const player=team===0?game.user:game.cpu;
+    const zone=windowFor(player);
+    const perfect=progress>=zone.start&&progress<=zone.end;
+    const gap=Math.max(0,zone.start-progress,progress-zone.end);
+    const quality=perfect?1:clamp(1-gap/.4,.08,.94);
+    const power=clamp(.66+progress*.45,.52,1.18);
+    const direction=team===0?1:-1;
+    const distanceGoal=team===0?469-player.x:player.x-11;
+    const targetY=clamp(135+(player.y-135)*.24+(random()-.5)*(1-quality)*135,104,166);
+    const dx=direction*Math.max(42,distanceGoal);
+    const dy=targetY-player.y;
+    const length=Math.hypot(dx,dy)||1;
+    const speed=270*power;
+    Object.assign(game.ball,{
+      owner:-1,x:player.x+direction*12,y:player.y+4,z:0,
+      vx:dx/length*speed,vy:dy/length*speed,
+      vz:lob?clamp(145+progress*70,140,230):0,
+      spin:clamp(curve,-1,1)*90,lock:.35
+    });
+    game.actionCooldown=.48;
+    game.shot.active=false;
+    say((perfect?"PERFECT · ":"")+(lob?"CHIP SHOT":curve?"CURVE SHOT":"STRIKE")+(perfect?"":" · "+Math.round(quality*100)+"%"),1);
+    return true;
   }
-  s.ball.lock=Math.max(0,s.ball.lock-dt);
-  if(s.ball.owner!==-1){
-   const p=s.ball.owner===0?s.user:s.cpu;
-   s.ball.x=p.x+p.dir*11;s.ball.y=p.y+6;
-   if(s.ball.owner===1&&s.cpu.x<250&&s.actionCooldown<=0)kick(1);
-   if(s.ball.owner===1&&dist(s.user,s.cpu)<14&&keys.has("x")){s.ball.owner=0;s.actionCooldown=.6}
-  }else{
-   s.ball.x+=s.ball.vx*dt;s.ball.y+=s.ball.vy*dt;
-   const decay=Math.exp(-1.8*dt);s.ball.vx*=decay;s.ball.vy*=decay;
-   if(s.ball.y<23||s.ball.y>247){s.ball.y=clamp(s.ball.y,23,247);s.ball.vy*=-.74}
-   // Goal-line detector checks the mouth before wall bounce.
-   if(s.ball.x>=469){if(s.ball.y>109&&s.ball.y<160){score(0);return}s.ball.x=469;s.ball.vx*=-.55}
-   if(s.ball.x<=11){if(s.ball.y>109&&s.ball.y<160){score(1);return}s.ball.x=11;s.ball.vx*=-.55}
-   // Goalkeepers occupy the near post and bounce moving shots away.
-   for(let i=0;i<2;i++){
-    const k=s.keeper[i];
-    if(Math.abs(s.ball.x-k.x)<9&&Math.abs(s.ball.y-k.y)<10){
-      s.ball.vx=(i===0?1:-1)*Math.max(115,Math.abs(s.ball.vx)*.83);
-      s.ball.vy=(s.ball.y-k.y)*5.5;s.ball.lock=.2;
+  game.press=key=>{
+    if(key!=="x"&&key!=="shoot")return;
+    if(game.phase!=="play"||game.actionCooldown>0||game.ball.owner!==0||game.shot.active)return;
+    const zone=windowFor(game.user);
+    Object.assign(game.shot,{active:true,progress:0,greenStart:zone.start,greenEnd:zone.end,quality:0,lob:false,curve:0});
+    say("HOLD X · RELEASE TO SHOOT",.6);
+  };
+  game.release=key=>{
+    if((key!=="x"&&key!=="shoot")||!game.shot.active)return;
+    shoot(0,game.shot);
+  };
+  game.fake=()=>{
+    if(!game.shot.active||game.ball.owner!==0)return;
+    game.shot.active=false;
+    game.user.fake=.45;game.cpu.hesitate=.7;
+    game.actionCooldown=.13;
+    say("FAKE SHOT",.9);
+  };
+  game.action=key=>{
+    if(key==="shoot"||key==="space"){shoot(0);return;}
+    if(key==="x"){game.press("x");return;}
+    if(key==="fake"||key==="v"||key==="f"){game.fake();return;}
+    if(key==="z"||key==="tackle"){
+      if(game.phase!=="play"||game.actionCooldown>0)return;
+      game.user.tackle=.28;
+      if(game.ball.owner===1&&distance(game.user,game.cpu)<24){
+        game.ball.owner=-1;game.ball.x=(game.user.x+game.cpu.x)/2;
+        game.ball.y=(game.user.y+game.cpu.y)/2;
+        game.ball.z=0;game.ball.vx=game.user.dir*90;game.ball.vy=15;
+        game.ball.lock=.16;game.actionCooldown=.35;say("TACKLED");
+      }else if(game.ball.owner===-1&&distance(game.user,game.ball)<19&&game.ball.z<9){
+        game.ball.owner=0;game.actionCooldown=.15;say("INTERCEPTION");
+      }else{game.actionCooldown=.53;say("MISSED TACKLE",.6);}
     }
-   }
-   if(s.ball.lock<=0){
-    const p=dist(s.user,s.ball),b=dist(s.cpu,s.ball);
-    if(p<14||b<14){
-      s.ball.owner=p<14&&p<=b?0:1;
-      s.ball.vx=s.ball.vy=0;
+    if(key==="c"||key==="jump"){
+      if(game.shot.active){game.shot.lob=!game.shot.lob;say(game.shot.lob?"CHIP ON":"CHIP OFF",.6);return;}
+      if(game.user.jump<=0){game.user.vz=155;say("JUMP",.45);}
     }
-   }
-  }
- };
- s.draw = ctx => drawSoccer(ctx, s);
- resetPositions();
- return s;
+  };
+  game.tick=(dt,keys=new Set())=>{
+    dt=clamp(dt,0,.04);game.clock+=dt;
+    if(game.over)return;
+    if(game.phase==="countdown"){game.countdown-=dt;if(game.countdown<=0){game.phase="play";game.notice="";}return;}
+    if(game.phase==="goal"){
+      game.resetDelay-=dt;game.goalFlash=Math.max(0,game.goalFlash-dt);
+      if(game.resetDelay<=0){reset(game.notice==="GOAL!"?1:0);game.phase="countdown";game.countdown=1;}
+      return;
+    }
+    game.time=Math.max(0,game.time-dt);
+    if(!game.time){game.over=true;game.phase="finished";game.notice=game.score[0]===game.score[1]?"DRAW":game.score[0]>game.score[1]?"YOU WIN":"CPU WINS";return;}
+    game.feedbackTime=Math.max(0,game.feedbackTime-dt);
+    game.actionCooldown=Math.max(0,game.actionCooldown-dt);
+    game.user.fake=Math.max(0,game.user.fake-dt);
+    game.user.tackle=Math.max(0,game.user.tackle-dt);
+    game.cpu.hesitate=Math.max(0,game.cpu.hesitate-dt);
+    game.cpu.tackle=Math.max(0,game.cpu.tackle-dt);
+    const x=Number(keys.has("d")||keys.has("arrowright"))-Number(keys.has("a")||keys.has("arrowleft"));
+    const y=Number(keys.has("s")||keys.has("arrowdown"))-Number(keys.has("w")||keys.has("arrowup"));
+    const magnitude=Math.hypot(x,y)||1;
+    const running=keys.has("shift")&&game.user.sprint>0;
+    const pace=running?162:113;
+    game.user.x=clamp(game.user.x+(x/magnitude)*pace*dt,26,454);
+    game.user.y=clamp(game.user.y+(y/magnitude)*pace*dt,26,245);
+    if(x)game.user.dir=Math.sign(x);
+    if(running&&(x||y))game.user.sprint=Math.max(0,game.user.sprint-dt*21);
+    else game.user.sprint=Math.min(100,game.user.sprint+dt*13);
+    if(game.shot.active){
+      game.shot.progress+=dt*({easy:.88,normal:1.05,hard:1.18}[difficulty]||1);
+      if(game.shot.progress>1.04)game.shot.progress=0;
+      const zone=windowFor(game.user);
+      game.shot.greenStart=zone.start;game.shot.greenEnd=zone.end;
+      const gap=Math.max(0,zone.start-game.shot.progress,game.shot.progress-zone.end);
+      game.shot.quality=game.shot.progress>=zone.start&&game.shot.progress<=zone.end?1:clamp(1-gap/.4,.08,.94);
+      const curve=Number(keys.has("d")||keys.has("arrowright"))-Number(keys.has("a")||keys.has("arrowleft"));
+      if(curve)game.shot.curve=clamp(game.shot.curve+curve*dt*2.2,-1,1);
+    }
+    const cpuOwn=game.ball.owner===1, userOwn=game.ball.owner===0;
+    const target=cpuOwn?{x:155,y:135}:userOwn?{x:game.user.x+28,y:game.user.y}:game.ball;
+    const dx=target.x-game.cpu.x,dy=target.y-game.cpu.y,len=Math.hypot(dx,dy)||1;
+    const speed=game.cpu.hesitate>0?26:106*skill;
+    game.cpu.x=clamp(game.cpu.x+dx/len*speed*dt,27,453);
+    game.cpu.y=clamp(game.cpu.y+dy/len*speed*dt,26,245);
+    if(dx)game.cpu.dir=Math.sign(dx);
+    // Headed balls and goalkeeper jumps are real collision counters to chips.
+    if(game.ball.z>15&&game.ball.owner===-1&&distance(game.cpu,game.ball)<35&&game.cpu.jump<1)game.cpu.vz=185;
+    for(const player of [game.user,game.cpu]){
+      if(player.jump>0||player.vz>0){
+        player.jump+=player.vz*dt;player.vz-=460*dt;
+        if(player.jump<=0){player.jump=0;player.vz=0;}
+      }
+    }
+    for(let i=0;i<2;i++){
+      const keeper=game.keeper[i];
+      const targetY=game.ball.owner===-1?game.ball.y:game.ball.owner===i?game.ball.y:135;
+      keeper.y=clamp(keeper.y+(targetY-keeper.y)*Math.min(1,dt*3.6),113,157);
+      if(game.ball.z>15&&distance(keeper,game.ball)<28)keeper.jump=15;
+      else keeper.jump=Math.max(0,keeper.jump-dt*55);
+    }
+    game.ball.lock=Math.max(0,game.ball.lock-dt);
+    if(game.ball.owner!==-1){
+      const holder=game.ball.owner===0?game.user:game.cpu;
+      game.ball.x=holder.x+holder.dir*(running&&game.ball.owner===0?15:10);
+      game.ball.y=holder.y+6;
+      game.ball.z=0;
+      if(cpuOwn&&game.cpu.x<230&&game.actionCooldown<=0)shoot(1,{progress:.62+random()*.22});
+      return;
+    }
+    const ball=game.ball;
+    const oldZ=ball.z;
+    ball.x+=ball.vx*dt;ball.y+=ball.vy*dt;
+    ball.vy+=ball.spin*dt;
+    ball.spin*=Math.exp(-.85*dt);
+    ball.z=Math.max(0,ball.z+ball.vz*dt);
+    ball.vz-=360*dt;
+    if(ball.z<=0){ball.z=0;if(oldZ>0)ball.vz=Math.max(0,-ball.vz*.34);else ball.vz=0;}
+    const friction=Math.exp(-(ball.z>1?.65:1.6)*dt);
+    ball.vx*=friction;ball.vy*=friction;
+    if(ball.y<23||ball.y>247){ball.y=clamp(ball.y,23,247);ball.vy*=-.72;}
+    if(ball.x>=469){if(ball.y>109&&ball.y<160&&ball.z<26){score(0);return;}ball.x=469;ball.vx*=-.57;}
+    if(ball.x<=11){if(ball.y>109&&ball.y<160&&ball.z<26){score(1);return;}ball.x=11;ball.vx*=-.57;}
+    for(let i=0;i<2;i++){
+      const keeper=game.keeper[i];
+      if(Math.abs(ball.x-keeper.x)<10&&Math.abs(ball.y-keeper.y)<13&&ball.z<keeper.jump+10){
+        ball.vx=(i===0?1:-1)*Math.max(120,Math.abs(ball.vx)*.86);
+        ball.vy=(ball.y-keeper.y)*6;ball.vz=42;ball.lock=.24;
+        if(i===1)say("SAVED!");
+      }
+    }
+    if(ball.lock<=0){
+      for(const [i,player] of [[0,game.user],[1,game.cpu]]){
+        if(distance(player,ball)<14&&ball.z<player.jump+12){
+          ball.owner=i;ball.vx=ball.vy=ball.vz=ball.spin=0;
+          if(player.jump>10)say("HEADER!");
+          return;
+        }
+      }
+    }
+  };
+  game.draw=ctx=>drawSoccer(ctx,game);
+  reset();
+  return game;
 }
