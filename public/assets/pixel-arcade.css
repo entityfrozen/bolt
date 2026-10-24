@@ -108,3 +108,69 @@
 @media(max-width:1040px){.arc-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:690px){.arc-page-inner{padding:15px}.arc-grid{grid-template-columns:1fr}.arc-game{flex-direction:row;min-height:170px}.arc-game-media{height:auto;width:39%;flex:none}.arc-game-info{padding:13px}.arc-game-info h3{font-size:14px}.arc-game-info p{font-size:10px;margin:6px 0 11px;min-height:0}.arc-game-label{top:7px;left:7px;font-size:7px;padding:4px}.arc-visual-basket .arc-hoop{font-size:60px}.arc-intro{padding:17px}.arc-intro-top{font-size:8px}.arc-intro h1{font-size:42px}.arc-online-stat{padding-left:8px}.arc-online-stat b{font-size:27px}.arc-online-stat span{display:none}.arc-tabs button{font-size:9px;padding:9px 11px}.arc-page-footer{font-size:8px}.px-score-team{padding:7px;gap:5px}.px-score-team span{font-size:8px;max-width:73px}.px-score-team strong{font-size:29px}.px-center-clock{min-width:86px}.px-center-clock strong{font-size:18px}.px-instructions{grid-template-columns:1fr}.px-instructions>div{padding:10px}.px-head{align-items:flex-start}.px-head h2{font-size:23px}.px-head p{font-size:9px}}
 @media(prefers-reduced-motion:reduce){.arc-game{animation:none;transition:none}}
+
+
+/* v2.8: native-size pixel stage + release-meter overlay. */
+#hubMount .px-canvas-shell{
+  display:flex;justify-content:center;align-items:center;position:relative;
+  padding:0;background:#0d0b09;min-height:220px;
+}
+#hubMount .px-canvas-stage{
+  position:relative;flex:none;overflow:hidden;
+  box-shadow:0 0 0 1px #493b29;
+}
+#hubMount .px-canvas-stage canvas{
+  display:block;width:100%;height:100%;
+  image-rendering:pixelated;image-rendering:crisp-edges;
+  image-rendering:-moz-crisp-edges;
+  image-rendering:pixelated;
+  transform:none;filter:none;touch-action:none;
+}
+#hubMount .px-shot-overlay{
+  position:absolute;z-index:4;left:50%;bottom:13px;transform:translateX(-50%);
+  width:min(68%,310px);padding:11px 13px 9px;
+  background:#130f0cf2;border:2px solid #d1b07a;color:#f2e3c5;
+  box-shadow:0 5px 0 #090805,0 12px 24px #0009;
+  font-family:monospace;pointer-events:none;
+}
+#hubMount .px-shot-overlay[hidden],#hubMount .px-feedback[hidden]{display:none!important}
+#hubMount .px-shot-label{display:flex;justify-content:space-between;gap:8px;margin-bottom:9px;font:800 11px monospace;letter-spacing:.05em}
+#hubMount .px-shot-label span{color:#f1d196}
+#hubMount .px-shot-track{
+  position:relative;height:18px;width:100%;
+  background:repeating-linear-gradient(90deg,#644431 0 5px,#76523b 5px 10px);
+  border:2px solid #281b13;
+}
+#hubMount .px-shot-green{
+  position:absolute;top:0;bottom:0;background:#6dbd69;
+  box-shadow:inset 0 0 0 2px #98e68a70;
+}
+#hubMount .px-shot-needle{
+  position:absolute;top:-4px;bottom:-5px;width:4px;background:#fff9cf;
+  box-shadow:0 0 0 1px #302211;transform:translateX(-50%);
+}
+#hubMount .px-shot-caption{font:700 8px/1.4 monospace;color:#b2a38d;margin-top:7px;letter-spacing:.025em}
+#hubMount .px-feedback{
+  position:absolute;z-index:3;top:15px;left:50%;transform:translateX(-50%);
+  white-space:nowrap;background:#16100de0;color:#f4dca9;
+  border:1px solid #bd925f;padding:6px 12px;
+  font:800 clamp(10px,1.4vw,13px)/1.1 monospace;
+  text-shadow:0 1px 0 #000;pointer-events:none;
+}
+#hubMount .px-stamina{display:inline-flex;align-items:center;gap:8px;margin-left:9px;color:#d2b285;font:700 9px monospace}
+#hubMount .px-stamina i{display:block;width:82px;height:8px;background:#3b3126;border:1px solid #876d4c;overflow:hidden}
+#hubMount .px-stamina i b{display:block;height:100%;width:100%;background:#86b78e;transition:width .15s}
+#hubMount .px-touch-actions{flex-wrap:wrap;justify-content:flex-end;max-width:400px}
+#hubMount .px-touch-actions button{min-width:67px;min-height:50px;font:800 10px monospace}
+#hubMount .px-touch-actions .px-touch-shoot{min-width:92px;background:#a17a42;border-color:#dbbc7e;color:#fff1c8}
+#hubMount .px-instructions strong{font-size:11px}
+#hubMount .arc-game-preview{image-rendering:pixelated;filter:none}
+@media(max-width:520px){
+ #hubMount .px-canvas-shell{min-height:150px}
+ #hubMount .px-shot-overlay{width:76%;padding:7px 9px;bottom:7px}
+ #hubMount .px-shot-track{height:14px}
+ #hubMount .px-shot-label{font-size:9px;margin-bottom:5px}
+ #hubMount .px-touch{gap:7px}
+ #hubMount .px-touch-actions{max-width:220px}
+ #hubMount .px-touch-actions button{min-width:62px;min-height:43px;font-size:9px}
+}
