@@ -112,7 +112,7 @@ export function installPixelArcade(Hub){
             '<button type="button" data-pixel-key="shift">SPRINT</button>'+
             '<button type="button" data-pixel-key="z">STEAL</button>'+
             '<button type="button" data-pixel-key="c">'+(soccer?"CHIP / JUMP":"STEAL")+'</button>'+
-            (soccer?'<button type="button" data-pixel-key="space">FAKE</button>':'')+
+            (soccer?'<button type="button" data-pixel-key="space">FAKE</button>':'<button type="button" data-pixel-key="w">JUMP</button>')+
             '<button type="button" class="px-touch-shoot" data-pixel-key="x">HOLD X<br>SHOOT</button>'+
           '</div></section>'+
       '</div></section>';
