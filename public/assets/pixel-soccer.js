@@ -1,4 +1,4 @@
-import {drawSoccer} from "./pixel-scenes.js?v=2";
+import {drawSoccer} from "./pixel-scenes.js?v=3";
 
 const clamp=(value,min,max)=>Math.min(max,Math.max(min,value));
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
