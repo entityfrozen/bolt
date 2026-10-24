@@ -14,6 +14,8 @@ test("Extracts a readable title, snippet and safe link from RSS", () => {
 test("Recognizes requests that need information from the web", () => {
   assert.equal(needsWebSearch("What's the latest news about OpenFront?"), true);
   assert.equal(needsWebSearch("Search the web for this error"), true);
+  assert.equal(needsWebSearch("Can you websearch OpenFront updates?"), true);
+  assert.equal(needsWebSearch("Could you search for the latest docs?"), true);
   assert.equal(needsWebSearch("Tell me a short story about a dog"), false);
 });
 
