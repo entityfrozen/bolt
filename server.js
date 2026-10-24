@@ -458,10 +458,10 @@ app.post("/api/ai/chat", mustBeSignedIn, sameOrigin, async (req, res) => {
     }
     const reply = data?.choices?.[0]?.message?.content;
     if (typeof reply !== "string" || !reply.trim()) return res.status(502).json({ error: "The AI provider returned no text." });
-    const unsupportedClaim = /^(?:sorry[,.!]?\\s*)?(?:i (?:can't|cannot|do not|don't|am unable to)|as an ai)\\b.{0,110}(?:search|browse|internet|web)/i.test(reply.trim());
+    const unsupportedClaim = /^(?:sorry[,.!]?\s*)?(?:i (?:can't|cannot|do not|don't|am unable to)|as an ai)\b.{0,110}(?:search|browse|internet|web)/i.test(reply.trim());
     const groundedReply = searchRequested && web.sources.length && unsupportedClaim
-      ? "I found these pages through Lightning's web search. Open the sources below for the details.\\n\\n" +
-        web.sources.slice(0, 4).map((source, index) => "[" + (index+1) + "] " + source.title + " — " + source.snippet).join("\\n\\n")
+      ? "I found these pages through Lightning's web search. Open the sources below for the details.\n\n" +
+        web.sources.slice(0, 4).map((source, index) => "[" + (index+1) + "] " + source.title + " — " + source.snippet).join("\n\n")
       : reply;
     return res.json({ reply: groundedReply.slice(0, 18000), searched: searchRequested, sources: web.sources, searchError: web.error, provider: web.provider });
   } catch (error) {
