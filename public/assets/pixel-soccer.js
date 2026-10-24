@@ -1,24 +1,9 @@
 import { drawSoccer } from "./pixel-scenes.js?v=1";
-// Lightning Pixel Soccer: a self-contained arcade match, no asset downloads.
-const W=480,H=270;
-const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-const approach=(value,target,step)=>value+(target-value)*Math.min(1,step);
-const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
-function box(g,x,y,w,h,color){g.fillStyle=color;g.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h))}
-function line(g,x1,y1,x2,y2,color,width=1){g.strokeStyle=color;g.lineWidth=width;g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.stroke()}
-function label(g,str,x,y,size=9,color="#fff",align="left"){
- g.fillStyle=color;g.font="bold "+size+"px monospace";g.textAlign=align;g.fillText(str,x,y);
-}
-function footballer(g,x,y,kit,number,moving=false){
- const X=Math.round(x),Y=Math.round(y);
- box(g,X-8,Y+6,16,3,"#0a2e21a9");
- box(g,X-5,Y-9,10,12,kit);
- box(g,X-4,Y-13,8,6,"#f2ba91");
- box(g,X-4,Y+3,3,6,"#20273a");box(g,X+1,Y+3,3,6,"#20273a");
- box(g,X-8,Y-8,3,8,"#f0bd91");box(g,X+5,Y-8,3,8,"#f0bd91");
- box(g,X-4,Y-15,8,3,"#292635");
- label(g,String(number),X,Y,7,"#fff7dd","center");
-}
+
+const clamp = (value,min,max) => Math.max(min,Math.min(max,value));
+const approach = (value,target,step) => value + (target-value)*Math.min(1,step);
+const dist = (a,b) => Math.hypot(a.x-b.x,a.y-b.y);
+
 export function createSoccer(options={}){
  const s={
   mode:"soccer",duration:100,time:100,score:[0,0],over:false,phase:"countdown",countdown:2.3,notice:"KICK OFF",
