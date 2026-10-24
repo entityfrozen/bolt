@@ -37,6 +37,8 @@ jobs:
           node --check public/assets/pixel-soccer.js
           node --check public/assets/pixel-basketball.js
           node --check public/assets/pixel-arcade.js
+          node --check public/assets/pixel-font.js
+          node --check public/assets/pixel-scenes.js
           node --check web-search.js
           node --check public/assets/login.js
           test -f node_modules/marked/lib/marked.umd.js
