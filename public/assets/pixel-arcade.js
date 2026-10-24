@@ -1,5 +1,5 @@
-import {createSoccer} from "./pixel-soccer.js?v=2";
-import {createBasketball} from "./pixel-basketball.js?v=3";
+import {createSoccer} from "./pixel-soccer.js?v=3";
+import {createBasketball} from "./pixel-basketball.js?v=4";
 
 const esc=value=>String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const sports=new Set(["pixelSoccer","pixelBasketball"]);
