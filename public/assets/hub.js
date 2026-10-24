@@ -1,4 +1,4 @@
-import {installArenaPolish} from "./arena-v3.js?v=9";
+import {installArenaPolish} from "./arena-v3.js?v=10";
 import {installWorldPort} from "./openfront-port.js?v=4";
 import {installSocial} from "./social-v4.js?v=3";
 import {installChatPolish} from "./chat-polish.js?v=2";
