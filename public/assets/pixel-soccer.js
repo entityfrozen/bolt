@@ -196,9 +196,10 @@ export function createSoccer({difficulty="normal",random=Math.random}={}){
       {x:clamp(defend.x+54,34,450),y:clamp(defend.y-24,34,242)};
     const rx=rivalTarget.x-game.rival.x,ry=rivalTarget.y-game.rival.y;
     const rl=Math.hypot(rx,ry)||1;
-    game.rival.x=clamp(game.rival.x+rx/rl*96*skill*dt,28,452);
-    game.rival.y=clamp(game.rival.y+ry/rl*96*skill*dt,26,245);
-    game.rival.walk=(game.rival.walk||0)+96*skill*dt*.038;
+    const rivalSpeed=game.rival.hesitate>0?38:96*skill;
+    game.rival.x=clamp(game.rival.x+rx/rl*rivalSpeed*dt,28,452);
+    game.rival.y=clamp(game.rival.y+ry/rl*rivalSpeed*dt,26,245);
+    game.rival.walk=(game.rival.walk||0)+rivalSpeed*dt*.038;
     if(rx)game.rival.dir=Math.sign(rx);
 
     // Actual pressure: a defender who gets close can poke the ball away.
@@ -208,7 +209,9 @@ export function createSoccer({difficulty="normal",random=Math.random}={}){
         if(defender.stealCooldown<=0&&distance(defender,carrier)<23){
           defender.stealCooldown=clamp(1.45/skill,1,2.2);
           defender.tackle=.26;
-          if(game.user.fake>0||random()<.53*skill){
+          if(carrier.fake>0||defender.hesitate>0){
+            say("DEFENDER BIT THE FAKE",.7);
+          }else if(random()<.53*skill){
             game.ball.owner=-1;
             game.ball.x=(defender.x+carrier.x)/2;
             game.ball.y=(defender.y+carrier.y)/2;
