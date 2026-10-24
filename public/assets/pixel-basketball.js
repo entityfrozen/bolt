@@ -58,12 +58,13 @@ export function createBasketball(options={}){
    if(state.phase!=="play"||state.cooldown>0||state.ball.owner!==team)return;
    const me=team===0?state.user:state.cpu;
    const targetX=team===0?420:59;
-   const dx=targetX-me.x,travel=clip(Math.abs(dx)/220,.65,1.55);
+   const startX=me.x+Math.sign(targetX-me.x)*10;
+   const dx=targetX-startX,travel=clip(Math.abs(dx)/220,.65,1.55);
    const y0=GROUND-27-me.jump;
    const jitter=(team===0?Math.random()-.5:(Math.random()-.5)/skill)*Math.min(18,Math.abs(dx)/22);
    const targetY=RIM+jitter;
    state.ball.owner=-1;state.ball.shotBy=team;
-   state.ball.x=me.x+Math.sign(dx)*10;state.ball.y=y0;
+   state.ball.x=startX;state.ball.y=y0;
    state.ball.vx=dx/travel;state.ball.vy=(targetY-y0-.5*GRAVITY*travel*travel)/travel;
    state.ball.points=Math.abs(dx)>195?3:2;
    state.ball.lock=.45;state.cooldown=.7;
