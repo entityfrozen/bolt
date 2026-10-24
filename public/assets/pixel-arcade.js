@@ -88,7 +88,7 @@ export function installPixelArcade(Hub){
    const keyboard={
      down:event=>{
        if(this.view!==kind)return;
-       if(event.target.closest("input,textarea,select,[contenteditable]"))return;
+       if(event.target?.closest?.("input,textarea,select,[contenteditable]"))return;
        const key=event.code.toLowerCase().replace(/^key/,"");
        if(!["arrowleft","arrowright","arrowup","arrowdown","w","a","s","d","shiftleft","shiftright","space","x"].includes(key))return;
        event.preventDefault();
