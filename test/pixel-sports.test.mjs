@@ -61,3 +61,83 @@ test("Both pixel games provide a canvas renderer",()=>{
    assert.equal(game.score.length,2);
  }
 });
+
+
+test("Basketball green window shrinks as distance increases",()=>{
+  const game=createBasketball();
+  game.user.x=365;
+  const near=game.shotWindow(),nearWidth=near.end-near.start;
+  game.user.x=55;
+  const deep=game.shotWindow();
+  assert.ok(deep.end-deep.start<nearWidth);
+});
+
+test("Basketball X hold then release controls the shot chance",()=>{
+  const make=createBasketball({random:()=>.99});
+  make.phase="play";
+  make.press("x");
+  assert.equal(make.shot.active,true);
+  for(let i=0;i<180&&make.shot.progress<make.shot.greenStart;i++)make.tick(1/120,keys);
+  assert.ok(make.shot.progress>=make.shot.greenStart);
+  make.release("x");
+  assert.equal(make.shot.active,false);
+  assert.equal(make.ball.owner,-1);
+  assert.equal(make.ball.make,true,"green is guaranteed when not blocked");
+
+  const miss=createBasketball({random:()=>.99});
+  miss.phase="play";
+  miss.press("x");
+  for(let i=0;i<26;i++)miss.tick(1/120,keys);
+  const q=miss.shot.quality;
+  assert.ok(q<1&&q>0,"an early non-green release still has a chance");
+  miss.release("x");
+  assert.equal(miss.ball.make,false,"non-green outcome uses the probability roll");
+});
+
+test("Basketball steal has a reach frame and recovery on a miss",()=>{
+  const game=createBasketball();
+  game.phase="play";
+  game.cpu.x=400;game.action("z");
+  assert.ok(game.user.steal>0);
+  assert.ok(game.user.stumble>0);
+  assert.equal(game.ball.owner,0);
+});
+
+test("Soccer fake cancels the meter and slows the defender",()=>{
+  const game=createSoccer();
+  game.phase="play";
+  game.press("x");
+  game.tick(.03,keys);
+  game.fake();
+  assert.equal(game.shot.active,false);
+  assert.equal(game.ball.owner,0,"a fake keeps possession");
+  assert.ok(game.cpu.hesitate>0);
+});
+
+test("Soccer chip uses height, curve alters flight, jump counters high balls",()=>{
+  const game=createSoccer({random:()=>.5});
+  game.phase="play";
+  game.press("x");
+  game.action("c");
+  assert.equal(game.shot.lob,true);
+  for(let i=0;i<55;i++)game.tick(1/120,new Set(["d"]));
+  assert.ok(game.shot.curve>0);
+  game.release("x");
+  assert.ok(game.ball.vz>100,"chip creates an airborne ball");
+  assert.ok(game.ball.spin>0,"directional input adds bend");
+  const y=game.ball.y;
+  game.tick(.03,keys);
+  assert.ok(game.ball.z>0&&game.ball.y!==y);
+  game.action("c");
+  assert.ok(game.user.jump>0||game.user.vz>0);
+});
+
+test("Soccer sprint consumes stamina and later recovers",()=>{
+  const game=createSoccer();
+  game.phase="play";
+  for(let i=0;i<100;i++)game.tick(.02,new Set(["d","shift"]));
+  assert.ok(game.user.sprint<100);
+  const low=game.user.sprint;
+  for(let i=0;i<50;i++)game.tick(.02,keys);
+  assert.ok(game.user.sprint>low);
+});
