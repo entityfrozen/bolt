@@ -15,18 +15,18 @@ export function createBasketball({difficulty="normal",random=DEFAULT_RANDOM}={})
   const game={
     mode:"basketball",difficulty,duration:110,time:110,score:[0,0],
     over:false,phase:"countdown",countdown:1.8,notice:"TIP OFF",clock:0,resetDelay:0,
-    user:{x:128,jump:0,vy:0,vx:0,face:1,steal:0,stumble:0},
-    cpu:{x:354,jump:0,vy:0,vx:0,face:-1,steal:0,stumble:0},
+    user:{x:128,jump:0,vy:0,vx:0,face:1,steal:0,stumble:0,crossover:0},
+    cpu:{x:354,jump:0,vy:0,vx:0,face:-1,steal:0,stumble:0,defenseCooldown:1.3},
     ball:{x:140,y:GROUND-22,vx:0,vy:0,owner:0,lock:0,shotBy:-1,points:2,make:false},
     shot:{active:false,progress:0,greenStart:0,greenEnd:0,quality:0,perfect:false},
-    feedback:"",feedbackTime:0,cooldown:0,streak:0,possessions:0,dribble:0
+    feedback:"",feedbackTime:0,cooldown:0,streak:0,possessions:0,dribble:0,crossoverCooldown:0,turnovers:0
   };
   function reset(team=0){
-    Object.assign(game.user,{x:128,jump:0,vy:0,vx:0,face:1,steal:0,stumble:0});
-    Object.assign(game.cpu,{x:354,jump:0,vy:0,vx:0,face:-1,steal:0,stumble:0});
+    Object.assign(game.user,{x:128,jump:0,vy:0,vx:0,face:1,steal:0,stumble:0,crossover:0});
+    Object.assign(game.cpu,{x:354,jump:0,vy:0,vx:0,face:-1,steal:0,stumble:0,defenseCooldown:1.3});
     Object.assign(game.ball,{x:team===0?140:340,y:GROUND-22,vx:0,vy:0,owner:team,lock:.25,shotBy:-1,points:2,make:false});
     Object.assign(game.shot,{active:false,progress:0,greenStart:0,greenEnd:0,quality:0,perfect:false});
-    game.cooldown=0;
+    game.cooldown=0;game.crossoverCooldown=0;
   }
   function shotWindow(){
     const range=Math.abs(420-game.user.x);
@@ -98,9 +98,22 @@ export function createBasketball({difficulty="normal",random=DEFAULT_RANDOM}={})
   };
   game.action=key=>{
     if(key==="x"){game.press("x");return;}
+    // A crossover briefly shifts your dribble to the other hand and wrong-foots
+    // a defender who is already in reach. It cannot be spammed.
+    if(key==="c"||key==="crossover"){
+      if(game.phase!=="play"||game.ball.owner!==0||game.crossoverCooldown>0||game.shot.active)return;
+      game.user.crossover=.35;
+      game.crossoverCooldown=.9;
+      game.user.x=clamp(game.user.x+game.user.face*15,35,447);
+      if(distance(game.cpu,game.user)<48){
+        game.cpu.stumble=.48;
+        feedback("ANKLE BREAK",.85);
+      } else feedback("CROSSOVER",.6);
+      return;
+    }
     // Preserve the legacy one-tap API for older callers and replay tests.
     if(key==="space"||key==="shoot"){throwBall(0,.95,true);return;}
-    if(key!=="z"&&key!=="c"&&key!=="steal")return;
+    if(key!=="z"&&key!=="steal")return;
     if(game.phase!=="play"||game.cooldown>0)return;
     game.user.steal=.28;
     const defender=game.cpu;
@@ -128,13 +141,18 @@ export function createBasketball({difficulty="normal",random=DEFAULT_RANDOM}={})
       return;
     }
     game.cooldown=Math.max(0,game.cooldown-dt);
+    game.crossoverCooldown=Math.max(0,game.crossoverCooldown-dt);
+    game.cpu.defenseCooldown=Math.max(0,game.cpu.defenseCooldown-dt);
+    game.user.crossover=Math.max(0,game.user.crossover-dt);
     game.feedbackTime=Math.max(0,game.feedbackTime-dt);
     for(const p of [game.user,game.cpu]){
       p.steal=Math.max(0,p.steal-dt);p.stumble=Math.max(0,p.stumble-dt);
     }
     const input=Number(keys.has("d")||keys.has("arrowright"))-Number(keys.has("a")||keys.has("arrowleft"));
-    const speed=125*(keys.has("shift")?1.25:1)*(game.user.stumble>0?.35:1);
-    game.user.vx=input*speed;
+    const speed=135*(keys.has("shift")?1.3:1)*(game.user.stumble>0?.45:1);
+    const desired=input*speed;
+    const response=input?920:1150;
+    game.user.vx+=clamp(desired-game.user.vx,-response*dt,response*dt);
     game.user.x=clamp(game.user.x+game.user.vx*dt,35,447);
     if(input)game.user.face=Math.sign(input);
     if((keys.has("w")||keys.has("arrowup"))&&game.user.jump===0)game.user.vy=210;
@@ -145,10 +163,31 @@ export function createBasketball({difficulty="normal",random=DEFAULT_RANDOM}={})
       const w=shotWindow();game.shot.greenStart=w.start;game.shot.greenEnd=w.end;
       game.shot.quality=qualityAt(game.shot.progress).quality;
     }
-    const target=game.ball.owner===1?120:game.ball.owner===0?game.user.x+25:game.ball.x;
+    const target=game.ball.owner===1?124:game.ball.owner===0?
+      clamp(game.user.x+38,54,419):game.ball.x;
     const shift=target-game.cpu.x;
-    game.cpu.vx=Math.sign(shift)*Math.min(Math.abs(shift)*4.5,108*cpuSkill);
+    const opponentSpeed=game.cpu.stumble>0?35:126*cpuSkill;
+    game.cpu.vx=Math.sign(shift)*Math.min(Math.abs(shift)*5.2,opponentSpeed);
     game.cpu.x=clamp(game.cpu.x+game.cpu.vx*dt,35,447);
+    // Do not let both players occupy the same pixel column.
+    const overlap=game.cpu.x-game.user.x;
+    if(Math.abs(overlap)<17){
+      game.cpu.x=clamp(game.user.x+(overlap>=0?17:-17),35,447);
+    }
+    if(game.ball.owner===0&&Math.abs(game.cpu.x-game.user.x)<27&&game.cpu.defenseCooldown===0){
+      game.cpu.defenseCooldown=clamp(1.9/cpuSkill,1.1,2.5);
+      if(game.user.crossover===0&&game.cpu.stumble===0&&random()<.46*cpuSkill){
+        game.ball.owner=-1;
+        game.ball.x=(game.cpu.x+game.user.x)/2;
+        game.ball.y=GROUND-26;
+        game.ball.vx=-90;game.ball.vy=-75;game.ball.lock=.18;
+        game.turnovers++;game.shot.active=false;feedback("STRIPPED!",.95);
+        game.cpu.steal=.2;
+      }else{
+        game.cpu.steal=.24;
+        feedback("DEFENDED",.5);
+      }
+    }
     if(shift)game.cpu.face=Math.sign(shift);
     if(game.ball.owner===0&&distance(game.cpu,game.user)<33&&game.cpu.jump===0&&game.clock%1.4<dt)game.cpu.vy=195;
     for(const p of [game.user,game.cpu]){
@@ -162,8 +201,8 @@ export function createBasketball({difficulty="normal",random=DEFAULT_RANDOM}={})
     if(game.ball.owner!==-1){
       const p=game.ball.owner===0?game.user:game.cpu;
       const bounce=Math.abs(Math.sin(game.clock*(Math.abs(p.vx)>90?16:10)))*17;
-      const hand=Math.sin(game.clock*5)>.15?1:-1;
-      game.ball.x=p.x+p.face*(9+3*hand);
+      const hand=p===game.user&&game.user.crossover>0?-1:(Math.sin(game.clock*5)>.15?1:-1);
+      game.ball.x=p.x+p.face*(9+4*hand);
       game.ball.y=GROUND-21-p.jump+bounce;
       if(game.ball.owner===1&&game.cpu.x<236&&game.cooldown<=0)throwBall(1,.53*cpuSkill,false);
     }else{
