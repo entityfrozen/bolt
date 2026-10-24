@@ -148,6 +148,7 @@ export function createSoccer({difficulty="normal",random=Math.random}={}){
     game.cpu.stealCooldown=Math.max(0,game.cpu.stealCooldown-dt);
     game.rival.stealCooldown=Math.max(0,game.rival.stealCooldown-dt);
     game.rival.tackle=Math.max(0,game.rival.tackle-dt);
+    game.rival.hesitate=Math.max(0,(game.rival.hesitate||0)-dt);
     const x=Number(keys.has("d")||keys.has("arrowright"))-Number(keys.has("a")||keys.has("arrowleft"));
     const y=Number(keys.has("s")||keys.has("arrowdown"))-Number(keys.has("w")||keys.has("arrowup"));
     const magnitude=Math.hypot(x,y)||1;
@@ -155,6 +156,7 @@ export function createSoccer({difficulty="normal",random=Math.random}={}){
     const pace=running?162:113;
     game.user.x=clamp(game.user.x+(x/magnitude)*pace*dt,26,454);
     game.user.y=clamp(game.user.y+(y/magnitude)*pace*dt,26,245);
+    if(x||y)game.user.walk=(game.user.walk||0)+dt*pace*.038;
     if(x)game.user.dir=Math.sign(x);
     if(running&&(x||y))game.user.sprint=Math.max(0,game.user.sprint-dt*21);
     else game.user.sprint=Math.min(100,game.user.sprint+dt*13);
@@ -178,6 +180,7 @@ export function createSoccer({difficulty="normal",random=Math.random}={}){
     const md=Math.hypot(mdx,mdy)||1;
     game.mate.x=clamp(game.mate.x+(mdx/md)*105*dt,28,451);
     game.mate.y=clamp(game.mate.y+(mdy/md)*105*dt,26,244);
+    game.mate.walk=(game.mate.walk||0)+105*dt*.038;
     if(mdx)game.mate.dir=Math.sign(mdx);
 
     const target=cpuOwn?{x:155,y:135}:userOwn?
@@ -186,6 +189,7 @@ export function createSoccer({difficulty="normal",random=Math.random}={}){
     const speed=game.cpu.hesitate>0?26:106*skill;
     game.cpu.x=clamp(game.cpu.x+dx/len*speed*dt,27,453);
     game.cpu.y=clamp(game.cpu.y+dy/len*speed*dt,26,245);
+    game.cpu.walk=(game.cpu.walk||0)+speed*dt*.038;
     if(dx)game.cpu.dir=Math.sign(dx);
     const defend=game.ball.owner===0?game.user:game.ball.owner===2?game.mate:game.ball;
     const rivalTarget=cpuOwn?{x:clamp(game.cpu.x-45,35,420),y:game.cpu.y>130?68:195}:
@@ -194,6 +198,7 @@ export function createSoccer({difficulty="normal",random=Math.random}={}){
     const rl=Math.hypot(rx,ry)||1;
     game.rival.x=clamp(game.rival.x+rx/rl*96*skill*dt,28,452);
     game.rival.y=clamp(game.rival.y+ry/rl*96*skill*dt,26,245);
+    game.rival.walk=(game.rival.walk||0)+96*skill*dt*.038;
     if(rx)game.rival.dir=Math.sign(rx);
 
     // Actual pressure: a defender who gets close can poke the ball away.
@@ -203,7 +208,7 @@ export function createSoccer({difficulty="normal",random=Math.random}={}){
         if(defender.stealCooldown<=0&&distance(defender,carrier)<23){
           defender.stealCooldown=clamp(1.45/skill,1,2.2);
           defender.tackle=.26;
-          if(game.user.fake>0||Math.random()<.53*skill){
+          if(game.user.fake>0||random()<.53*skill){
             game.ball.owner=-1;
             game.ball.x=(defender.x+carrier.x)/2;
             game.ball.y=(defender.y+carrier.y)/2;
