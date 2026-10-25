@@ -405,7 +405,7 @@ app.post("/api/ai/chat", mustBeSignedIn, sameOrigin, async (req, res) => {
     : {sources: [], provider: null, error: null};
   if (searchRequested && !web.sources.length) {
     return res.json({
-      reply: "Live search couldn't return any verified sources for that request. Your account is using free search fallbacks, which may be blocked or unavailable. An admin can configure BRAVE_SEARCH_API_KEY in Railway for a supported search provider.",
+      reply: "Live search couldn't return any verified sources for that request. Your account is using free search fallbacks, which may be blocked or unavailable. An admin can configure TAVILY_API_KEY (free monthly credits) or BRAVE_SEARCH_API_KEY in Railway for a more reliable search provider.",
       searched: true,
       sources: [],
       searchError: web.error,

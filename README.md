@@ -15,6 +15,22 @@ NVIDIA_API_KEY=<your own NVIDIA API Catalog key>
 
 Generate your key at https://build.nvidia.com and paste it into Railway, not a chat message or the repository. The app reads the secret server-side. AI replies are disabled until a valid key is present.
 
+## AI web search
+
+Lightning AI includes keyless Bing RSS, Google News, and Wikipedia fallbacks. These are
+best-effort sources and may be blocked or unavailable. For more reliable search, you
+can configure a server-side search API key in Railway:
+
+- `TAVILY_API_KEY` — Tavily's free Researcher tier currently includes 1,000 API credits
+  monthly without a credit card. Lightning uses basic searches and falls back to
+  other providers if Tavily cannot be reached.
+- `BRAVE_SEARCH_API_KEY` — optional Brave Search API key. Brave currently offers
+  monthly free credits, but requires a card for signup.
+
+Search only runs when AI web search is requested or enabled by the user's
+message. These keys stay in Railway environment variables, never frontend JavaScript.
+A separate `NVIDIA_API_KEY` is still required for model-generated answers.
+
 ## Hosted About:Blank launcher
 
 Visit `/launch` (also stored as `public/launch.html`). The page attempts to open a new `about:blank` tab containing the Lightning site in an iframe. Chromium may block the popup or the embedded session. Use **Open Lightning** or **Open directly** if necessary. The local downloadable launcher can work independently of the hosted route.

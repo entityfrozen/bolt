@@ -2,6 +2,7 @@
 // by the model or by search results.
 const BING = "https://www.bing.com/search";
 const BRAVE = "https://api.search.brave.com/res/v1/web/search";
+const TAVILY = "https://api.tavily.com/search";
 
 function unescapeXml(value = "") {
   return value
@@ -56,6 +57,22 @@ async function responseText(response, maxBytes) {
   return new TextDecoder().decode(
     Uint8Array.from(parts.flatMap(bytes => [...bytes]))
   );
+}
+
+
+async function tavily(query, fetcher, key) {
+  const response = await fetcher(TAVILY, {
+    method: "POST",
+    headers: {"Authorization": "Bearer " + key, "Content-Type": "application/json", "Accept": "application/json"},
+    body: JSON.stringify({query, search_depth: "basic", max_results: 6, include_answer: false, include_raw_content: false}),
+    signal: AbortSignal.timeout(7000)
+  });
+  const json = JSON.parse(await responseText(response, 450000));
+  return (Array.isArray(json.results) ? json.results : []).slice(0, 6).map(result => ({
+    title: String(result.title || "").replace(/<[^>]+>/g, "").slice(0, 180),
+    url: validLink(result.url),
+    snippet: String(result.content || "").replace(/<[^>]+>/g, "").slice(0, 600)
+  })).filter(item => item.title && item.url);
 }
 
 async function brave(query, fetcher, key) {
@@ -124,10 +141,11 @@ export function needsWebSearch(message) {
   return /\b(websearch|web.search|search (the )?(web|internet|online|for)|can you search|could you search|look (it )?up|browse|google|sources?|citation|latest|current|recent|today|yesterday|this week|breaking|news|weather|price|stock price|as of now|2026)\b/i.test(text);
 }
 
-export async function searchWeb(query, {fetcher=fetch, braveKey=process.env.BRAVE_SEARCH_API_KEY}={}) {
+export async function searchWeb(query, {fetcher=fetch, braveKey=process.env.BRAVE_SEARCH_API_KEY, tavilyKey=process.env.TAVILY_API_KEY}={}) {
   const text = String(query || "").replace(/\s+/g, " ").trim().slice(0, 180);
   if (!text) return {sources:[],provider:null,error:"No search query provided."};
-  const providers = braveKey ? [["Brave",()=>brave(text,fetcher,braveKey)]] : [];
+  const providers = tavilyKey ? [["Tavily",()=>tavily(text,fetcher,tavilyKey)]] : [];
+  if (braveKey) providers.push(["Brave",()=>brave(text,fetcher,braveKey)]);
   providers.push(["Bing",()=>bing(text,fetcher)]);
   if (/\b(news|latest|today|breaking|this week|recent|current)\b/i.test(text)) {
     providers.push(["Google News",()=>googleNews(text,fetcher)]);

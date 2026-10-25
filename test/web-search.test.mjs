@@ -25,7 +25,7 @@ test("Web search accepts evidence from the fixed search endpoint", async () => {
     searched = String(url);
     return new Response(rss, {status:200,headers:{"Content-Type":"application/xml"}});
   };
-  const result = await searchWeb("latest updates", {fetcher,braveKey:""});
+  const result = await searchWeb("latest updates", {fetcher,braveKey:"",tavilyKey:""});
   assert.equal(result.provider, "Bing");
   assert.ok(searched.startsWith("https://www.bing.com/search?"));
   assert.equal(result.sources.length, 1);
@@ -33,7 +33,7 @@ test("Web search accepts evidence from the fixed search endpoint", async () => {
 
 test("Web search reports an outage rather than inventing citations", async () => {
   const fetcher = async () => { throw new Error("Offline"); };
-  const result = await searchWeb("anything", {fetcher,braveKey:""});
+  const result = await searchWeb("anything", {fetcher,braveKey:"",tavilyKey:""});
   assert.equal(result.sources.length, 0);
   assert.match(result.error, /unavailable/i);
 });
@@ -45,7 +45,34 @@ test("News searches use a second independent feed when the first is unavailable"
     if (String(url).startsWith("https://news.google.com")) return new Response(xml, {status:200});
     throw new Error("Unexpected provider");
   };
-  const result = await searchWeb("latest OpenFront news", {fetcher,braveKey:""});
+  const result = await searchWeb("latest OpenFront news", {fetcher,braveKey:"",tavilyKey:""});
   assert.equal(result.provider, "Google News");
   assert.equal(result.sources[0].url, "https://example.com/news");
+});
+
+test("Tavily's free-tier API uses authenticated, fixed-endpoint searches", async () => {
+  let request;
+  const fetcher = async (url, options) => {
+    request = {url: String(url), ...options};
+    return new Response(JSON.stringify({results:[
+      {title:"Documentation",url:"https://example.com/docs",content:"Official guide"},
+      {title:"Blocked",url:"javascript:alert(1)",content:"Untrusted protocol"}
+    ]}), {status:200, headers:{"Content-Type":"application/json"}});
+  };
+  const result = await searchWeb("search docs", {fetcher,braveKey:"",tavilyKey:"test-key"});
+  assert.equal(result.provider,"Tavily");
+  assert.deepEqual(result.sources,[{title:"Documentation",url:"https://example.com/docs",snippet:"Official guide"}]);
+  assert.equal(request.url,"https://api.tavily.com/search");
+  assert.equal(request.method,"POST");
+  assert.equal(request.headers.Authorization,"Bearer test-key");
+  assert.equal(JSON.parse(request.body).search_depth,"basic");
+});
+
+test("If Tavily is down, search continues to the free RSS fallback", async () => {
+  const fetcher = async url => String(url).includes("api.tavily.com")
+    ? new Response("error",{status:429})
+    : new Response(rss,{status:200,headers:{"Content-Type":"application/xml"}});
+  const result = await searchWeb("search docs",{fetcher,braveKey:"",tavilyKey:"test-key"});
+  assert.equal(result.provider,"Bing");
+  assert.equal(result.sources.length,1);
 });
