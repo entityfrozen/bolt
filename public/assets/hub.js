@@ -1,25 +1,19 @@
-import {installArenaPolish} from "./arena-v3.js?v=10";
+import {installArenaPolish} from "./arena-v3.js?v=11";
 import {installWorldPort} from "./openfront-port.js?v=4";
 import {installSocial} from "./social-v4.js?v=3";
 import {installChatPolish} from "./chat-polish.js?v=2";
-import {installPixelArcade} from "./pixel-arcade.js?v=7";
+import {installArcade} from "./arcade.js?v=1";
 
 const E=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const PIECES={K:"♔",Q:"♕",R:"♖",B:"♗",N:"♘",P:"♙",k:"♚",q:"♛",r:"♜",b:"♝",n:"♞",p:"♟"};
-const UPDATES=[
-["Lightning Social","Discord-inspired channels for community discussion, game coordination and feature suggestions. Messages and sign-ins use existing Lightning accounts."],
-["The Arcade","Chess offers queued matches and direct challenges, with legal moves validated on the server. Rock Paper Scissors includes 1v1 matchmaking and four-player tournaments."],
-["WorldPvP Alpha","A shared, real-time territory-conquest match with troops, gold, attacking, cities, factories, forts, coastal ports, allies and nuclear strikes. Reach 80% global control to win."],
-["Browser & AI","Faster initial load via lazy-loaded games, improved AI formatting/copy controls, suggestions and removal of the separate video player."]
-];
 let INSTANCE=null;
 class Hub{
  constructor(root){
   this.root=root;this.view="chat";this.channel="general";this.name="";this.id="";this.users=[];this.history={};this.summary={users:0};this.socket=null;this.active=false;this.chess=null;this.rps=null;this.world=null;this.tile=null;this.selectedSquare=null;this.worldQueueing=false;this.worldActive=false;this.worldGeometry=null;this.camera={zoom:1,x:0,y:0};this.pointers=new Map();
-  root.innerHTML='<div class="hub-shell"><aside class="hub-rail"><div class="hub-logo"><span class="hub-label">LIGHTNING NETWORK</span><strong>Community</strong><small>Chat and games.</small></div><nav class="hub-nav"><div class="hub-nav-title">CHANNELS</div>'+
+  root.innerHTML='<div class="hub-shell"><aside class="hub-rail"><div class="hub-logo"><strong>Community</strong><small>Chat and games.</small></div><nav class="hub-nav"><div class="hub-nav-title">CHANNELS</div>'+
    ["general","games","suggestions","support"].map(c=>'<button class="hub-link" data-view="chat" data-channel="'+c+'"><i>#</i><span>'+c+'</span></button>').join("")+
    '<div class="hub-nav-title">EXPLORE</div><button class="hub-link" data-view="games"><i>♞</i><span>Multiplayer games</span></button><button class="hub-link" data-view="updates"><i>↗</i><span>Update log</span></button></nav><div class="hub-user"><div class="hub-avatar" id="hubAvatar">L</div><div><strong id="hubUsername">Lightning user</strong><span id="hubConnection">Connecting…</span></div></div></aside>'+
-   '<main class="hub-main"><header class="hub-head"><div><h2 id="hubTitle"># general</h2><p id="hubSubtitle">The Lightning network</p></div><span class="hub-spacer"></span><span class="hub-pill" id="hubOnline">0 online</span><button class="hub-x" data-act="close" aria-label="Close hub">×</button></header><div class="hub-content" id="hubContent"></div></main>'+
+   '<main class="hub-main"><header class="hub-head"><div><h2 id="hubTitle"># general</h2><p id="hubSubtitle">Community chat</p></div><span class="hub-spacer"></span><span class="hub-pill" id="hubOnline">0 online</span><button class="hub-x" data-act="close" aria-label="Close hub">×</button></header><div class="hub-content" id="hubContent"></div></main>'+
    '<div id="hubWorld" class="hub-world" hidden></div><div id="hubToast" class="hub-toast" hidden></div></div>';
   root.addEventListener("click",e=>{
    const nav=e.target.closest("[data-view]");
@@ -127,13 +121,8 @@ class Hub{
   ].map(x=>'<article class="hub-game-card"><div><div class="hub-game-icon">'+x[0]+'</div><h3>'+x[1]+'</h3><p>'+x[2]+'</p></div><div><small>'+x[4]+'</small><br><button class="hub-btn primary" data-act="'+x[3]+'">Play now ↗</button></div></article>').join("")+'</div></section>';
  }
  updates(){
-  this.header("What's New","Lightning · Releases");
-  const patches=[
-   {version:"2.1",tag:"WORLD EXPANSION",date:"October 2026",title:"A world worth conquering.",desc:"A real global coastline, zoom-and-pan controls, matchmaking, AI nations and inland/naval attack rules.",items:["WorldPvP · Queue and play lobby","360 × 180 global strategy map","Bot nations and coastal naval landings","Chess move highlights and AI opponent"]},
-   {version:"2.0",tag:"MULTIPLAYER ALPHA",date:"October 2026",title:"Lightning goes live.",desc:"The first version of Lightning's competitive and community multiplayer hub.",items:["Live community channels and suggestions","Chess matchmaking and RPS tournaments","WorldPvP proof of concept","Better AI Markdown and browser loading"]},
-   {version:"1.9",tag:"BROWSER",date:"Earlier",title:"A quieter browser.",desc:"The foundation: proxy browsing, tabs, music, design polish and Lightning AI.",items:["Gold-on-obsidian redesign","Core browsing and AI tools"]}
-  ];
-  this.$("#hubContent").innerHTML='<section class="hub-release-scroll"><div class="hub-release-hero"><span class="hub-label">THE LIGHTNING CHANGELOG</span><h1>Built to get<br><em>better.</em></h1><p>Every release, a stronger browser and a better place to play.</p><div class="hub-release-badges"><span>✦ CURRENT · 2.1 ALPHA</span><span>⚡ LIVE NETWORK</span></div></div><div class="hub-release-list">'+patches.map((p,i)=>'<article class="hub-release"><div class="hub-release-meta"><span class="hub-release-version">'+E(p.version)+'</span><div><span class="hub-label">'+E(p.tag)+'</span><small>'+E(p.date)+'</small></div></div><div class="hub-release-body"><span class="hub-release-number">0'+(i+1)+'</span><h2>'+E(p.title)+'</h2><p>'+E(p.desc)+'</p><div class="hub-release-items">'+p.items.map(x=>'<div><span>↗</span>'+E(x)+'</div>').join("")+'</div></div></article>').join("")+'</div></section>';
+  this.header("Updates","Lightning · Changelog");
+  this.$("#hubContent").innerHTML='<main class="lightning-changelog"><div class="lc-wrap"><div class="lc-header"><span class="lc-eyebrow">LIGHTNING / CHANGELOG</span><div class="lc-heading"><h1>Update log<span class="lc-dot">.</span></h1></div><p>No updates yet.</p></div></div></main>';
  }
  chessScreen(){
   this.header("Chess","Live matches · Real rules · Bot practice");
@@ -402,7 +391,7 @@ installArenaPolish(Hub);
 installWorldPort(Hub);
 installSocial(Hub);
 installChatPolish(Hub);
-installPixelArcade(Hub);
+installArcade(Hub);
 function ensureHubStyles(){
  if(!document.getElementById("lightningHubCss")){
   const css=document.createElement("link");css.id="lightningHubCss";css.rel="stylesheet";css.href="/assets/hub.css?v=3";document.head.append(css);
@@ -410,9 +399,8 @@ function ensureHubStyles(){
    const port=document.createElement("link");port.id="lightningOpenFrontCss";port.rel="stylesheet";port.href="/assets/openfront-port.css?v=2";document.head.append(port);
   const social=document.createElement("link");social.id="lightningSocialCss";social.rel="stylesheet";social.href="/assets/social-v4.css?v=1";document.head.append(social);
   const polish=document.createElement("link");polish.id="lightningChatPolishCss";polish.rel="stylesheet";polish.href="/assets/chat-polish.css?v=1";document.head.append(polish);
-  const pixel=document.createElement("link");pixel.id="lightningPixelArcadeCss";pixel.rel="stylesheet";pixel.href="/assets/pixel-arcade.css?v=2";document.head.append(pixel);
+  const arcade=document.createElement("link");arcade.id="lightningArcadeCss";arcade.rel="stylesheet";arcade.href="/assets/arcade.css?v=1";document.head.append(arcade);
   const finish=document.createElement("link");finish.id="lightningFinishCss";finish.rel="stylesheet";finish.href="/assets/lightning-finish.css?v=1";document.head.append(finish);
-  const feel=document.createElement("link");feel.id="pixelFeelCss";feel.rel="stylesheet";feel.href="/assets/pixel-feel.css?v=1";document.head.append(feel);
  }
 }
 export function openHub(view="chat"){
