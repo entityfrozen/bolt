@@ -34,11 +34,7 @@ jobs:
           node --check public/assets/openfront-port.js
           node --check public/assets/social-v4.js
           node --check public/assets/chat-polish.js
-          node --check public/assets/pixel-soccer.js
-          node --check public/assets/pixel-basketball.js
-          node --check public/assets/pixel-arcade.js
-          node --check public/assets/pixel-font.js
-          node --check public/assets/pixel-scenes.js
+          node --check public/assets/arcade.js
           node --check web-search.js
           node --check public/assets/login.js
           test -f node_modules/marked/lib/marked.umd.js
@@ -47,8 +43,8 @@ jobs:
         run: node --test test/auth.test.mjs
       - name: Test web search
         run: node --test test/web-search.test.mjs
-      - name: Test pixel arcade games
-        run: node --test test/pixel-sports.test.mjs
+      - name: Test Arcade interface
+        run: node --test test/arcade.test.mjs
       - name: Test Lightning Live
         run: node --test test/live.test.mjs
       - name: Test click layers and overlays
