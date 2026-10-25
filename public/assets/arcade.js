@@ -14,13 +14,13 @@ export function installArcade(Hub){
   const originalAct=Hub.prototype.act;
   const originalClose=Hub.prototype.close;
   Hub.prototype.games=function(){
-    this.header("Arcade","Three games");
+    this.header("Arcade","");
     const filters=[["all","All"],["strategy","Strategy"],["party","Quick matches"]];
     const filter=filters.some(([key])=>key===this.arenaFilter)?this.arenaFilter:"all";
     const visible=games.filter(game=>filter==="all"||game.type===filter);
     this.$("#hubContent").innerHTML=
       '<section class="arc-page"><div class="arc-page-inner">'+
-      '<section class="arc-intro"><div class="arc-intro-top"><span>LIGHTNING / ARCADE</span><span>THREE GAMES</span></div>'+
+      '<section class="arc-intro"><div class="arc-intro-top"><span>ARCADE</span></div>'+
       '<div class="arc-intro-bottom"><div><h1>Find a game<span>.</span></h1><p>Play online or against the computer.</p></div>'+
       '<div class="arc-online-stat"><b>'+(this.summary?.users||0)+'</b><span>CONNECTED<br>PLAYERS</span></div></div></section>'+
       '<nav class="arc-tabs" aria-label="Filter games">'+filters.map(([key,title])=>
@@ -30,7 +30,7 @@ export function installArcade(Hub){
         '<div class="arc-game-media">'+gameArt(game.kind)+'<span class="arc-game-label">'+escapeHtml(game.tag)+'</span></div>'+
         '<div class="arc-game-info"><h3>'+escapeHtml(game.title)+'</h3><p>'+escapeHtml(game.description)+'</p>'+
         '<button type="button" class="arc-play" data-act="'+game.action+'">Play <span>↗</span></button></div></article>').join("")+'</div>'+
-      '<footer class="arc-page-footer"><span>LIGHTNING / ARCADE</span><span>Play with the community</span></footer>'+
+      '<footer class="arc-page-footer"><span>Play with the community</span></footer>'+
       '</div></section>';
   };
   Hub.prototype.close=function(){

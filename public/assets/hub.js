@@ -2,7 +2,7 @@ import {installArenaPolish} from "./arena-v3.js?v=11";
 import {installWorldPort} from "./openfront-port.js?v=4";
 import {installSocial} from "./social-v4.js?v=3";
 import {installChatPolish} from "./chat-polish.js?v=2";
-import {installArcade} from "./arcade.js?v=1";
+import {installArcade} from "./arcade.js?v=2";
 
 const E=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const PIECES={K:"♔",Q:"♕",R:"♖",B:"♗",N:"♘",P:"♙",k:"♚",q:"♛",r:"♜",b:"♝",n:"♞",p:"♟"};

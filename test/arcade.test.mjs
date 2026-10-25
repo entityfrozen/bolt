@@ -14,3 +14,10 @@ test("changelog is empty and network heading is gone",()=>{
   assert.doesNotMatch(arena,/Hub\.prototype\.updates=function/);
   assert.doesNotMatch(hub,/LIGHTNING NETWORK|The Lightning network/);
 });
+
+test("arcade labels stay minimal and do not repeat the product name",()=>{
+  assert.match(arcade,/this\.header\("Arcade",""\)/);
+  assert.match(arcade,/<span>ARCADE<\/span>/);
+  assert.doesNotMatch(arcade,/THREE GAMES|Three games|LIGHTNING \/ ARCADE/);
+  assert.equal((arcade.match(/<span>ARCADE<\/span>/g)||[]).length,1);
+});
