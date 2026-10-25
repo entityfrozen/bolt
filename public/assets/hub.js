@@ -2,7 +2,9 @@ import {installArenaPolish} from "./arena-v3.js?v=11";
 import {installWorldPort} from "./openfront-port.js?v=4";
 import {installSocial} from "./social-v4.js?v=3";
 import {installChatPolish} from "./chat-polish.js?v=2";
-import {installArcade} from "./arcade.js?v=2";
+import {installArcade} from "./arcade.js?v=3";
+import {installChessVisuals} from "./chess-visuals.js?v=1";
+import {installRpsVisuals} from "./rps-visuals.js?v=1";
 
 const E=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const PIECES={K:"♔",Q:"♕",R:"♖",B:"♗",N:"♘",P:"♙",k:"♚",q:"♛",r:"♜",b:"♝",n:"♞",p:"♟"};
@@ -82,7 +84,7 @@ class Hub{
   this.$$("#hubWorld")[0].hidden=this.view!=="world";
   this.$$(".hub-link").forEach(b=>b.classList.toggle("active",
    b.dataset.view===this.view&&(!b.dataset.channel||b.dataset.channel===this.channel)||
-   ["chess","rps","world"].includes(this.view)&&b.dataset.view==="games"));
+   ["chess","rps","world","uma"].includes(this.view)&&b.dataset.view==="games"));
  }
  render(){
   if(this.view==="chat")this.chat();
@@ -392,6 +394,8 @@ installWorldPort(Hub);
 installSocial(Hub);
 installChatPolish(Hub);
 installArcade(Hub);
+installChessVisuals(Hub);
+installRpsVisuals(Hub);
 function ensureHubStyles(){
  if(!document.getElementById("lightningHubCss")){
   const css=document.createElement("link");css.id="lightningHubCss";css.rel="stylesheet";css.href="/assets/hub.css?v=3";document.head.append(css);
@@ -401,6 +405,7 @@ function ensureHubStyles(){
   const polish=document.createElement("link");polish.id="lightningChatPolishCss";polish.rel="stylesheet";polish.href="/assets/chat-polish.css?v=1";document.head.append(polish);
   const arcade=document.createElement("link");arcade.id="lightningArcadeCss";arcade.rel="stylesheet";arcade.href="/assets/arcade.css?v=1";document.head.append(arcade);
   const finish=document.createElement("link");finish.id="lightningFinishCss";finish.rel="stylesheet";finish.href="/assets/lightning-finish.css?v=1";document.head.append(finish);
+  const gamePolish=document.createElement("link");gamePolish.id="lightningGamePolishCss";gamePolish.rel="stylesheet";gamePolish.href="/assets/game-polish.css?v=1";document.head.append(gamePolish);
  }
 }
 export function openHub(view="chat"){

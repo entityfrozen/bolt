@@ -22,3 +22,17 @@ test("arcade labels stay minimal and do not repeat the product name",()=>{
   assert.doesNotMatch(arcade,/THREE GAMES|Three games|LIGHTNING \/ ARCADE/);
   assert.equal((arcade.match(/<span>ARCADE<\/span>/g)||[]).length,1);
 });
+
+test("Uma Versus is linked to the creator's browser game",()=>{
+  assert.match(arcade,/title:"Uma Versus"/);
+  assert.match(arcade,/action:"umaView"/);
+  assert.match(arcade,/https:\/\/tiramisuzu701\.github\.io\/uma-versus\//);
+  assert.match(arcade,/Open in new tab/);
+  assert.match(arcade,/fighting","Fighting"/);
+});
+test("Chess and RPS have complete server-backed interaction controls",()=>{
+  const chess=fs.readFileSync(new URL("../public/assets/chess-visuals.js",import.meta.url),"utf8");
+  const rps=fs.readFileSync(new URL("../public/assets/rps-visuals.js",import.meta.url),"utf8");
+  for(const action of ["chessQueue","chessCancelQueue","chessBot","chessDuel","chessRefresh","chessResign","square"])assert.ok(chess.includes(action),action);
+  for(const action of ["rpsQueue","rpsBot","rpsDuel","tournament","rpsPick"])assert.ok(rps.includes(action),action);
+});

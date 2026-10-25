@@ -35,6 +35,8 @@ jobs:
           node --check public/assets/social-v4.js
           node --check public/assets/chat-polish.js
           node --check public/assets/arcade.js
+          node --check public/assets/chess-visuals.js
+          node --check public/assets/rps-visuals.js
           node --check web-search.js
           node --check public/assets/login.js
           test -f node_modules/marked/lib/marked.umd.js
