@@ -7,7 +7,8 @@ const arena=fs.readFileSync(new URL("../public/assets/arena-v3.js",import.meta.u
 test("arcade lists only the three active games",()=>{
   for(const name of ["WorldPvP","Chess","Rock Paper Scissors"])assert.ok(arcade.includes('title:"'+name+'"'));
   assert.doesNotMatch(arcade,/Pixel Basketball|Pixel Soccer|pixelSoccer|pixelBasketball|sportsOpen|Pixel sports/);
-  assert.match(arcade,/THREE GAMES/);
+  assert.match(arcade,/<span>ARCADE<\/span>/);
+  assert.doesNotMatch(arcade,/THREE GAMES|Three games/);
 });
 test("changelog is empty and network heading is gone",()=>{
   assert.match(hub,/No updates yet/);
