@@ -1,0 +1,84 @@
+/* Lightning browser V2: full-screen workspace launcher in browser mode. */
+body.app-page:not(:has(#hubMount:not([hidden]))){background:#07111a}
+body.app-page .bolt-shell{background:#0c1620}
+body.app-page .tabbar{height:64px;min-height:64px;padding:0 15px;background:#101e29;border-bottom:1px solid #29444c}
+body.app-page .bolt-brand{font-family:"Instrument Sans",sans-serif;font-size:17px;letter-spacing:-.045em}
+body.app-page .bolt-brand .brand-symbol{width:35px;height:35px;border-radius:11px;background:#133e34;border-color:#358a67}
+body.app-page .tab{height:39px;background:#182730;border:1px solid transparent;border-radius:10px}
+body.app-page .tab.active{background:#213c3c;color:#f2fff9;border-color:#407969;box-shadow:inset 0 1px #ffffff12}
+body.app-page .tab.active:after{background:#45e8a4}
+body.app-page .tab-title{font-size:12px}
+body.app-page .toolbar{height:59px;min-height:59px;padding:0 16px;background:#0d1a25;border-bottom:1px solid #29414a}
+body.app-page .address-form{height:38px;border:1px solid #355a61!important;border-radius:10px;background:#192d38!important}
+body.app-page .address-form:focus-within{border-color:#51dfa2!important;box-shadow:0 0 0 3px #4ee6ad16}
+body.app-page .address-form input{color:#f1fff8}
+body.app-page .address-go{background:#194837;color:#ccffdf;border-radius:7px}
+body.app-page .tool-button{color:#adc7c5;border-radius:10px}
+body.app-page .tool-button:hover{background:#1e3f3e;color:#b7ffd8}
+body.app-page .workarea{background:#0c1720}
+body.app-page .rail{background:#0a1620;border-right:1px solid #274148;gap:11px;padding-top:18px}
+body.app-page .rail-button{border-radius:12px;color:#92b4b5}
+body.app-page .rail-button.active,body.app-page .rail-button:hover{background:#164536;color:#79f3ba;border-color:#398c69}
+body.app-page .browser-stage{background:#0d1a23}
+body.app-page .v3-browser-home{position:relative;overflow:auto;background:radial-gradient(ellipse at 65% -10%,#164f4b72,transparent 57%),radial-gradient(ellipse at 92% 75%,#1b345479,transparent 50%),#091721;color:#e5fff4}
+body.app-page .v3-browser-home:before{content:"";position:absolute;top:0;right:0;width:60%;height:70%;pointer-events:none;background:repeating-linear-gradient(90deg,transparent 0 42px,#4effd907 42px 43px);mask-image:linear-gradient(to bottom,#000,transparent)}
+body.app-page .v3-browser-dashboard{position:relative;max-width:1420px;margin:0 auto;padding:clamp(25px,5vh,60px) clamp(19px,5vw,70px) 45px;display:grid;grid-template-columns:minmax(0,1.3fr) minmax(260px,.72fr);gap:24px 48px;align-items:start;min-height:100%}
+body.app-page .v3-browser-body{min-width:0}
+body.app-page .v3-browser-kicker{font:850 10px var(--mono,monospace);letter-spacing:.19em;color:#76e5b3;display:flex;gap:8px;align-items:center}
+body.app-page .v3-browser-kicker:before{content:"";height:7px;width:7px;border-radius:50%;background:#50ebad;box-shadow:0 0 14px #50ffb4}
+body.app-page .v3-browser-title{font:850 clamp(62px,7.4vw,110px)/.92 "Instrument Sans",sans-serif;letter-spacing:-.079em;margin:27px 0 17px;color:#f4fffa}
+body.app-page .v3-browser-title span{display:block;color:#52f0b1;text-shadow:0 0 35px #38f1a42b}
+body.app-page .v3-browser-description{font:13px/1.7 "Instrument Sans",sans-serif;color:#a7c5bf;max-width:500px;margin-bottom:29px}
+body.app-page .v3-browser-home .newtab-search{width:100%;height:64px;max-width:760px;border:1px solid #47816e;border-radius:13px;background:#142b34;display:grid;grid-template-columns:57px minmax(0,1fr) auto;align-items:center;margin:0;box-shadow:0 14px 35px #0006}
+body.app-page .v3-browser-home .newtab-search svg{stroke:#69e6b2;width:23px}
+body.app-page .v3-browser-home .newtab-search input{font-size:16px;color:#eafdf7}
+body.app-page .v3-browser-home .newtab-search input::placeholder{color:#84a7a8}
+body.app-page .v3-browser-home .newtab-search:focus-within{border-color:#58e9b4;box-shadow:0 0 0 3px #56e9b31a,0 15px 40px #0006}
+body.app-page .v3-browser-home .newtab-keycap{border-color:#37685f;color:#91c4b9;background:#1c3b3c;font-size:10px}
+body.app-page .v3-browser-shortcuts{display:flex;gap:9px;flex-wrap:wrap;margin-top:17px}
+body.app-page .v3-browser-shortcuts button{border:1px solid #3a6066;color:#bbd9d3;background:#172b34;border-radius:9px;padding:11px 15px;cursor:pointer;font-size:11px;font-weight:770}
+body.app-page .v3-browser-shortcuts button:hover{border-color:#69e6ba;color:#f2fff9;background:#1f4942}
+body.app-page .v3-browser-shortcuts button[data-hub]{background:#1d483c;color:#a3ffe0}
+body.app-page .v3-browser-shortcuts button[data-hub]:first-child{border-color:#449f7a}
+body.app-page .v3-browser-sidebar{display:flex;flex-direction:column;gap:15px}
+body.app-page .v3-browser-feature{position:relative;overflow:hidden;border:1px solid #39856e;border-radius:18px;padding:24px;background:linear-gradient(145deg,#194e3d,#132e3c 75%);min-height:253px}
+body.app-page .v3-browser-feature:before{content:"";position:absolute;right:-55px;top:-60px;width:230px;height:230px;border:30px solid #79ffd812;border-radius:50%;box-shadow:0 0 35px #3afaac16}
+body.app-page .v3-browser-feature>span{position:relative;display:block;font:850 10px var(--mono,monospace);letter-spacing:.15em;color:#9ef2c4}
+body.app-page .v3-browser-feature>strong{position:relative;display:block;font:850 33px/1.03 "Instrument Sans",sans-serif;letter-spacing:-.06em;color:#eafff3;margin:30px 0 13px;max-width:260px}
+body.app-page .v3-browser-feature>p{position:relative;color:#a4c9c3;font-size:12px;line-height:1.6;max-width:250px}
+body.app-page .v3-browser-feature>button{position:relative;margin-top:15px;background:#4defaa;border:1px solid #74ffc7;color:#0b2e21;border-radius:8px;padding:11px 15px;cursor:pointer;font-weight:850}
+body.app-page .v3-browser-guide{border:1px solid #304b57;border-radius:14px;background:#14242f;padding:19px}
+body.app-page .v3-browser-guide>strong{display:block;font-size:12px;color:#e3f6ee;margin-bottom:14px}
+body.app-page .v3-browser-guide>button{display:flex;align-items:center;gap:10px;width:100%;padding:11px 7px;border:0;border-bottom:1px solid #27414a;background:none;text-align:left;color:#c3d6d2;cursor:pointer;font-size:11px}
+body.app-page .v3-browser-guide>button:last-child{border-bottom:0}
+body.app-page .v3-browser-guide>button:hover{color:#6bfab8}
+body.app-page .v3-browser-guide>button>span{display:grid;place-items:center;width:32px;height:32px;border-radius:9px;background:#23463f;color:#70ffbb;font-size:19px}
+body.app-page .v3-browser-history{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:10px}
+body.app-page .v3-browser-history>div{min-width:0;border:1px solid #304f58;border-radius:13px;background:#12232e;padding:19px}
+body.app-page .v3-browser-history .meta-label{font:800 10px var(--mono,monospace);letter-spacing:.14em;color:#7fafa7;display:block;margin-bottom:13px}
+body.app-page .v3-browser-history .recent-list{max-height:200px;overflow-y:auto}
+body.app-page .v3-browser-history .history-item{color:#c2ddd4;border-color:#2e4e56}
+body.app-page .v3-browser-history .history-item:hover{background:#1b393c}
+body.app-page .v3-browser-suggestion{color:#8cb7ac;background:transparent;padding:8px 0;margin-top:19px;border:0;cursor:pointer;font:800 10px var(--mono,monospace);letter-spacing:.09em}
+body.app-page .v3-browser-suggestion:hover{color:#56eeb1}
+body.app-page .v3-browser-footer{grid-column:1/-1;border-top:1px solid #29414b;padding:13px 0;display:flex;justify-content:space-between;gap:10px;color:#779a9f;font:700 9px var(--mono,monospace);letter-spacing:.06em}
+@media(max-width:1050px){
+ body.app-page .v3-browser-dashboard{grid-template-columns:1fr}
+ body.app-page .v3-browser-sidebar{display:grid;grid-template-columns:1fr 1fr}
+ body.app-page .v3-browser-feature{min-height:230px}
+ body.app-page .v3-browser-feature>strong{font-size:27px;margin:25px 0 12px}
+ body.app-page .v3-browser-title{font-size:clamp(70px,10vw,98px)}
+}
+@media(max-width:650px){
+ body.app-page .v3-browser-dashboard{padding:26px 16px}
+ body.app-page .v3-browser-title{font-size:clamp(50px,14vw,77px)}
+ body.app-page .v3-browser-home .newtab-search{height:55px;grid-template-columns:45px minmax(0,1fr)}
+ body.app-page .v3-browser-home .newtab-search input{font-size:13px}
+ body.app-page .v3-browser-sidebar{grid-template-columns:1fr}
+ body.app-page .v3-browser-history{grid-template-columns:1fr}
+ body.app-page .v3-browser-feature{min-height:225px}
+ body.app-page .v3-browser-shortcuts{gap:6px}
+ body.app-page .v3-browser-shortcuts button{padding:10px;font-size:10px}
+ body.app-page .v3-browser-footer{flex-direction:column}
+}
+@media(prefers-reduced-motion:reduce){body.app-page .v3-browser-feature:before{box-shadow:none}}

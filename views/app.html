@@ -14,9 +14,11 @@
 <link rel="stylesheet" href="/assets/bolt-tools.css?v=5">
 <link rel="stylesheet" href="/assets/bolt-v6.css?v=11">
 <link rel="stylesheet" href="/assets/v2.css?v=1">
+<link rel="stylesheet" href="/assets/workspace-v3.css?v=1">
+<link rel="stylesheet" href="/assets/workspace-browser.css?v=1">
 <script src="/bootstrap-init.js"></script>
 
-<script defer src="/assets/app.js?v=32"></script>
+<script defer src="/assets/app.js?v=33"></script>
 <script defer src="/assets/bolt-tools.js?v=12"></script>
 </head>
 <body class="app-page">
@@ -89,27 +91,46 @@
     </nav>
 
     <main class="browser-stage" id="browserStage">
-      <section class="newtab" id="newtabView">
-        <div class="newtab-inner">
-          <div class="hero-seal"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M37 5 14 35h17l-3 24L52 26H36Z"/><path d="M30 20h12l-5 6H25Z" fill="#16130e" opacity=".65"/></svg></div>
-          <button class="newtab-eyebrow lightning-suggest-button" id="lightningSuggestionButton" type="button" title="Suggest a feature">✦ SUGGEST AN IDEA</button>
-          <h1 class="newtab-wordmark">Lightning</h1>
-          <p class="newtab-subtitle">Browse. Connect. Play. Create.</p>
-          <form class="newtab-search" id="newtabForm">
-            <svg><use href="#i-search"/></svg>
-            <input id="newtabInput" autocomplete="off" spellcheck="false" placeholder="Search, discover, go anywhere"><span class="newtab-keycap">ENTER ↵</span>
-          </form>
-          <div class="lightning-shortcuts" aria-label="Quick destinations"><button type="button" class="lightning-quick" data-hub="chat">Community</button><button type="button" class="lightning-quick" data-hub="games">Arcade</button><button type="button" class="lightning-quick" data-lightning-quick="https://www.google.com/">Google</button><button type="button" class="lightning-quick" data-lightning-quick="https://www.youtube.com/">YouTube</button><button type="button" class="lightning-quick" data-lightning-quick="https://www.wikipedia.org/">Wikipedia</button></div>
-          <div class="newtab-lower">
-            <div>
-              <span class="meta-label">RECENT</span>
-              <div class="recent-list" id="recentList"></div>
-            </div>
-            <div>
-              <span class="meta-label">SAVED</span>
-              <div class="recent-list" id="bookmarkList"></div>
-            </div>
+      <section class="newtab v3-browser-home" id="newtabView">
+        <div class="v3-browser-dashboard">
+          <div class="v3-browser-body">
+            <span class="v3-browser-kicker">BROWSER / WORKSPACE</span>
+            <h1 class="v3-browser-title">Go anywhere.<span>Stay connected.</span></h1>
+            <p class="v3-browser-description">Your own corner of the web. Search, open a page, or jump straight back into your communities and games.</p>
+            <form class="newtab-search" id="newtabForm">
+              <svg><use href="#i-search"/></svg>
+              <input id="newtabInput" autocomplete="off" spellcheck="false" placeholder="Search or enter a web address" aria-label="Search or enter a web address">
+              <span class="newtab-keycap">ENTER ↵</span>
+            </form>
+            <nav class="lightning-shortcuts v3-browser-shortcuts" aria-label="Quick destinations">
+              <button type="button" class="lightning-quick" data-hub="overview">⌂ Overview</button>
+              <button type="button" class="lightning-quick" data-hub="chat"># Community</button>
+              <button type="button" class="lightning-quick" data-hub="games">▣ Arcade</button>
+              <button type="button" class="lightning-quick" data-lightning-quick="https://www.google.com/">Google</button>
+              <button type="button" class="lightning-quick" data-lightning-quick="https://www.youtube.com/">YouTube</button>
+              <button type="button" class="lightning-quick" data-lightning-quick="https://www.wikipedia.org/">Wikipedia</button>
+            </nav>
+            <button class="newtab-eyebrow lightning-suggest-button v3-browser-suggestion" id="lightningSuggestionButton" type="button" title="Suggest a feature">✦ SUGGEST AN IDEA ↗</button>
           </div>
+          <aside class="v3-browser-sidebar">
+            <section class="v3-browser-feature">
+              <span>BACK TO YOUR SPACE</span>
+              <strong>There's more than browsing.</strong>
+              <p>Your servers, chats, AI, and favorite games are just one click away.</p>
+              <button type="button" data-hub="overview">Open workspace ↗</button>
+            </section>
+            <section class="v3-browser-guide">
+              <strong>GET THERE FASTER</strong>
+              <button type="button" data-hub="chat"><span>#</span> Open community channels</button>
+              <button type="button" data-hub="games"><span>▣</span> Browse the game library</button>
+              <button type="button" data-hub="overview"><span>⌂</span> Go to your dashboard</button>
+            </section>
+          </aside>
+          <div class="v3-browser-history">
+            <div><span class="meta-label">RECENT PAGES</span><div class="recent-list" id="recentList"></div></div>
+            <div><span class="meta-label">YOUR BOOKMARKS</span><div class="recent-list" id="bookmarkList"></div></div>
+          </div>
+          <footer class="v3-browser-footer"><span>LIGHTNING / YOUR WEB, YOUR WAY</span><span>Ctrl+L for address bar · Ctrl+T for new tab</span></footer>
         </div>
       </section>
       <div class="frame-stack" id="frameStack"></div>
