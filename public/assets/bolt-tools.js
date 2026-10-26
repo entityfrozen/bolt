@@ -6,8 +6,10 @@
   root.id = "boltTools";
   root.innerHTML = '<button type="button" class="bolt-bubble" id="boltBubble" aria-label="Open Lightning AI" aria-expanded="false" aria-controls="boltAiPanel" title="Lightning AI · drag to move"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M37 5 14 35h17l-3 24L52 26H36Z"/><path d="M30 20h12l-5 6H25Z" fill="#16130e" opacity=".65"/></svg></button>' +
     '<aside class="bolt-ai-panel" id="boltAiPanel" role="dialog" aria-label="Lightning AI" aria-modal="false" aria-hidden="true">' +
-      '<header class="bolt-aux-head"><span class="bolt-aux-brand"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M37 5 14 35h17l-3 24L52 26H36Z"/><path d="M30 20h12l-5 6H25Z" fill="#16130e" opacity=".65"/></svg></span><div><div class="bolt-aux-title">Lightning AI</div><div class="bolt-aux-subtitle">Your browsing companion</div></div><span class="bolt-aux-spacer"></span><button class="bolt-aux-btn" id="boltAiClear" title="New chat">New chat</button><button class="bolt-aux-btn" id="boltAiClose" type="button" aria-label="Close AI" title="Close AI">×</button></header>' +
+      '<header class="bolt-aux-head" id="boltAiDrag" tabindex="0" title="Drag to move · Alt+arrow keys to move"><span class="bolt-aux-brand"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M37 5 14 35h17l-3 24L52 26H36Z"/><path d="M30 20h12l-5 6H25Z" fill="#16130e" opacity=".65"/></svg></span><div><div class="bolt-aux-title">Lightning AI</div><div class="bolt-aux-subtitle">Your browsing companion</div></div><span class="bolt-aux-spacer"></span><button class="bolt-aux-btn" id="boltAiClear" title="New chat">New chat</button><button type="button" class="bolt-ai-head-tool" id="boltAiSize" aria-label="Maximize AI" title="Maximize or restore">□</button><button class="bolt-aux-btn" id="boltAiClose" type="button" aria-label="Close AI" title="Close AI">×</button></header>' +
       '<div class="bolt-ai-messages" id="boltAiMessages" aria-live="polite"></div>' +
+      '<div class="bolt-ai-activity" id="boltAiActivity" role="status" hidden><b>ACTIVITY</b><span>Ready</span></div>' +
+      '<span class="bolt-ai-grip" aria-hidden="true"></span>' +
       '<form class="bolt-ai-compose" id="boltAiForm"><div class="bolt-ai-shortcuts"><button type="button" id="boltUseSelection">Use selected text</button><button type="button" id="boltUsePage">Add page link</button><button type="button" id="boltAiWeb" aria-pressed="false" title="Search the web for this answer">Web: auto</button></div>' +
       '<textarea class="bolt-ai-textarea" id="boltAiInput" maxlength="9000" placeholder="Ask Lightning anything..."></textarea><div class="bolt-ai-error" id="boltAiError" role="status"></div><div class="bolt-ai-actions"><span class="bolt-ai-hint">↵ send &nbsp; · &nbsp; shift ↵ newline</span><button class="bolt-ai-send" id="boltAiSend" type="submit">Send ↗</button></div></form></aside>' +
     '<section class="bolt-devdock" id="boltDevDock" aria-label="Lightning DevTools">' +
@@ -180,6 +182,11 @@
     messageView.scrollTop = messageView.scrollHeight;
   }
   function setError(value) { errorView.textContent = value || ""; }
+  function setActivity(value) {
+    const status = el("boltAiActivity");
+    status.hidden = !value;
+    status.querySelector("span").textContent = value || "";
+  }
 
   async function sendMessage(evt) {
     evt.preventDefault();
@@ -194,6 +201,7 @@
     sendButton.disabled = true;
     sendButton.textContent = "Thinking…";
     setError("");
+    setActivity(webMode === "on" ? "Requesting live web sources…" : webMode === "off" ? "Generating answer…" : "Checking whether live sources are useful…");
     try {
       const response = await fetch("/api/ai/chat", {
         method: "POST",
@@ -205,10 +213,12 @@
       if (!response.ok) throw new Error(data.error || "AI request failed");
       if (typeof data.reply !== "string" || !data.reply.trim()) throw new Error("AI returned an empty reply");
       messages.push({role:"assistant",content:data.reply.trim(),sources:data.sources||[],searchError:data.searchError||null,searched:!!data.searched,provider:data.provider||null});
+      setActivity(data.searched ? (data.sources?.length ? "Found " + data.sources.length + " sources" + (data.provider ? " through " + data.provider : "") : "No live sources could be verified") : "Answer received · no live search used");
       saveChat();
       renderChat();
     } catch (error) {
       setError(error.message || "Could not contact the AI server.");
+      setActivity("Request failed · see the error below");
     } finally {
       busy = false;
       sendButton.disabled = false;
@@ -218,7 +228,7 @@
   el("boltAiForm").addEventListener("submit", sendMessage);
   input.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); el("boltAiForm").requestSubmit(); }});
   el("boltAiClose").addEventListener("click", () => { openAI(false); bubble.focus({preventScroll: true}); });
-  el("boltAiClear").addEventListener("click", () => { messages=[];saveChat();setError("");renderChat();input.focus(); });
+  el("boltAiClear").addEventListener("click", () => { messages=[];saveChat();setError("");setActivity("");renderChat();input.focus(); });
 
   function activePage() {
     const iframe = document.querySelector(".proxy-frame.active");
@@ -250,6 +260,65 @@
     setError("");openAI(true);
   });
 
+  // Independent floating assistant. Keyboard: focus title bar, then Alt + arrow keys.
+  const aiPanel = el("boltAiPanel");
+  const aiHandle = el("boltAiDrag");
+  const clamp = (value, min, max) => Math.min(Math.max(value, min), Math.max(min, max));
+  function moveAi(left, top) {
+    const rect = aiPanel.getBoundingClientRect();
+    aiPanel.style.left = clamp(left, 6, innerWidth - rect.width - 6) + "px";
+    aiPanel.style.top = clamp(top, 6, innerHeight - rect.height - 6) + "px";
+    aiPanel.style.right = "auto";
+    aiPanel.style.bottom = "auto";
+  }
+  function saveAiWindow() {
+    if (aiPanel.classList.contains("bolt-ai-maxed")) return;
+    const rect = aiPanel.getBoundingClientRect();
+    try {
+      localStorage.setItem("bolt.ai.window.v2", JSON.stringify({
+        left: rect.left, top: rect.top, width: rect.width, height: rect.height
+      }));
+    } catch {}
+  }
+  try {
+    const pos = JSON.parse(localStorage.getItem("bolt.ai.window.v2") || "null");
+    if (pos && Number.isFinite(pos.left) && Number.isFinite(pos.top)) {
+      if (Number.isFinite(pos.width)) aiPanel.style.width = clamp(pos.width, 310, innerWidth - 12) + "px";
+      if (Number.isFinite(pos.height)) aiPanel.style.height = clamp(pos.height, 350, innerHeight - 12) + "px";
+      moveAi(pos.left, pos.top);
+    }
+  } catch {}
+  el("boltAiSize").addEventListener("click", () => {
+    const maximized = aiPanel.classList.toggle("bolt-ai-maxed");
+    el("boltAiSize").textContent = maximized ? "❐" : "□";
+    el("boltAiSize").setAttribute("aria-label", maximized ? "Restore AI window" : "Maximize AI window");
+    if (!maximized) saveAiWindow();
+  });
+  let windowDrag = null;
+  aiHandle.addEventListener("pointerdown", event => {
+    if (event.button !== 0 || event.target.closest("button") || aiPanel.classList.contains("bolt-ai-maxed")) return;
+    const rect = aiPanel.getBoundingClientRect();
+    windowDrag = {id: event.pointerId, x: event.clientX, y: event.clientY, left: rect.left, top: rect.top};
+    aiHandle.setPointerCapture(event.pointerId);
+  });
+  aiHandle.addEventListener("pointermove", event => {
+    if (!windowDrag || event.pointerId !== windowDrag.id) return;
+    moveAi(windowDrag.left + event.clientX - windowDrag.x, windowDrag.top + event.clientY - windowDrag.y);
+  });
+  const stopDrag = () => {if(windowDrag){windowDrag=null;saveAiWindow();}};
+  aiHandle.addEventListener("pointerup", stopDrag);
+  aiHandle.addEventListener("pointercancel", stopDrag);
+  aiHandle.addEventListener("keydown", event => {
+    if (!event.altKey || !["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"].includes(event.key)) return;
+    event.preventDefault();
+    const rect = aiPanel.getBoundingClientRect();
+    moveAi(rect.left + (event.key === "ArrowLeft" ? -20 : event.key === "ArrowRight" ? 20 : 0),
+      rect.top + (event.key === "ArrowUp" ? -20 : event.key === "ArrowDown" ? 20 : 0));
+    saveAiWindow();
+  });
+  if ("ResizeObserver" in window) new ResizeObserver(() => {
+    if (document.body.classList.contains("bolt-ai-open")) saveAiWindow();
+  }).observe(aiPanel);
   let didMove = false;
   let drag = null;
   try {
