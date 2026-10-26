@@ -26,6 +26,8 @@ jobs:
         run: |
           node --check server.js
           node --check live.js
+          node --check community-v2.js
+          node --check public/assets/v2.js
           node --check public/assets/app.js
           node --check public/assets/bolt-tools.js
           node --check public/assets/hub.js
@@ -47,6 +49,8 @@ jobs:
         run: node --test test/web-search.test.mjs
       - name: Test Arcade interface
         run: node --test test/arcade.test.mjs
+      - name: Test V2 community servers
+        run: node --test test/community-v2.test.mjs
       - name: Test Lightning Live
         run: node --test test/live.test.mjs
       - name: Test click layers and overlays

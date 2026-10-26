@@ -1009,7 +1009,7 @@ async function logout(){
 
 function openLightningHub(view){
   closePanel();
-  import("/assets/hub.js?v=21").then(hub=>hub.openHub(view)).catch(()=>toast("Could not open the Lightning hub."));
+  import("/assets/hub.js?v=22").then(hub=>hub.openHub(view)).catch(()=>toast("Could not open the Lightning hub."));
 }
 
 function bindUi(){
@@ -1072,7 +1072,10 @@ async function start(){
     await loadConfig();
   }catch{return}
   restoreTabs();
-  import("/assets/hub.js?v=21").then(hub=>hub.startHubNotifications()).catch(error=>console.warn("Social connection unavailable:",error));
+  import("/assets/hub.js?v=22").then(hub=>{
+    hub.startHubNotifications();
+    if(new URL(location.href).searchParams.get("view")!=="browser")hub.openHub("chat");
+  }).catch(error=>console.warn("Community unavailable:",error));
   const goto=new URL(location.href).searchParams.get("goto");
   if(goto){
     history.replaceState(null,"",location.pathname);

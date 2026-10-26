@@ -3,6 +3,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 import {WebSocketServer, WebSocket} from "ws";
 import {Chess} from "chess.js";
+import {createCommunityStore} from "./community-v2.js";
 
 const CHANNELS=["general","games","suggestions","support"];
 const LIMIT=1100;
@@ -61,6 +62,7 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir}){
  const sendUser=(id,evt)=>{for(const [socket] of clientOf(id))safeSend(socket,evt)};
  const summary=()=>({users:usersOnline().length,queue:{chess:queues.chess.length,rps:queues.rps.length,world:worldQueue.length},tournaments:[...tournaments.values()].filter(t=>!t.done).map(t=>({id:t.id,players:t.ids.length,max:4,status:t.status})),games:{chess:chessGames.size,rps:rpsGames.size}});
  const presence=()=>sendAll({type:"presence",...summary(),online:usersOnline().map(id=>({id,name:clientOf(id)[0]?.[1]?.name||id}))});
+ const communities=createCommunityStore({dataDir,sendToUser:sendUser,sendAll});
  const validateSend=(ws,msg)=>{
   const u=clients.get(ws);
   if(!u)return false;
@@ -423,6 +425,7 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir}){
   const id=auth.identity.id,u={ws,id,name:nameOf(auth.identity),role:auth.identity.role,last:0,world:false};
   clients.set(ws,u);
   safeSend(ws,{type:"hello",id,name:u.name,channels:CHANNELS,history,online:usersOnline().map(id=>({id,name:clientOf(id)[0]?.[1]?.name||id})),summary:summary()});
+  safeSend(ws,{type:"v2State",...communities.snapshot(u.id)});
   presence();
   ws.on("message",raw=>{
    const current=sessionFromHeaders(req.headers);
@@ -433,6 +436,7 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir}){
    let data;try{data=JSON.parse(raw.toString())}catch{return}
    if(!data||typeof data!=="object")return;
    if(!validateSend(ws,data))return;
+   if(typeof data.type==="string"&&data.type.startsWith("v2")){communities.handle(u,data);return;}
    if(data.type==="chat"){
     const channel=trimText(data.channel,25),message=trimText(data.message,1000);
     if(!CHANNELS.includes(channel)||!message)return;
