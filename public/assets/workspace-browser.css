@@ -82,3 +82,11 @@ body.app-page .v3-browser-footer{grid-column:1/-1;border-top:1px solid #29414b;p
  body.app-page .v3-browser-footer{flex-direction:column}
 }
 @media(prefers-reduced-motion:reduce){body.app-page .v3-browser-feature:before{box-shadow:none}}
+
+/* The previous new-tab grid centered its child at intrinsic width. V2 fills the canvas. */
+body.app-page .newtab.v3-browser-home{display:block!important;place-items:initial!important;overflow-x:hidden;overflow-y:auto}
+body.app-page .v3-browser-home .v3-browser-dashboard{width:100%;max-width:1420px}
+body.app-page .v3-browser-home:before{
+  left:auto;right:0;top:0;transform:none;border:0;box-shadow:none;border-radius:0;
+}
+body.app-page .v3-browser-home:after{display:none}
