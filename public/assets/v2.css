@@ -198,3 +198,11 @@ body.bolt-ai-open .bolt-ai-panel{display:flex}
 @media(max-width:1100px){#hubMount .v2-shell{grid-template-columns:66px 215px minmax(0,1fr)}#hubMount .v2-online-panel{display:none}#hubMount .v2-hero{grid-template-columns:1fr}#hubMount .v2-hero-news{display:none}}
 @media(max-width:710px){#hubMount .v2-shell{grid-template-columns:54px minmax(0,1fr)}#hubMount .v2-servers{padding:12px 4px;gap:8px}#hubMount .v2-servers button{width:42px;height:42px;border-radius:13px}#hubMount .v2-sidebar{position:absolute;z-index:3;left:54px;top:65px;bottom:0;width:min(210px,57vw);transform:translateX(-100%);opacity:0;pointer-events:none;transition:transform .2s,opacity .2s}#hubMount .v2-shell:focus-within .v2-sidebar,#hubMount .v2-shell.v2-nav-open .v2-sidebar{transform:none;opacity:1;pointer-events:auto}#hubMount .v2-main{grid-column:2}#hubMount .v2-topbar{padding:0 11px;gap:6px}#hubMount .v2-search{width:35px;padding:0 8px;transition:width .2s}#hubMount .v2-search:focus-within{width:min(36vw,160px)}#hubMount .v2-search input{min-width:0}#hubMount .hub-pill{display:none}#hubMount .v2-hero-wrap{padding:10px;max-height:290px}#hubMount .v2-hero{padding:19px;min-height:230px}#hubMount .v2-hero-copy h1{font-size:40px}#hubMount .v2-room-intro{padding:16px}#hubMount .v2-room-feed{padding:11px}#hubMount .v2-room-compose{margin:9px}#hubMount .v2-modal{margin:auto}.bolt-ai-panel{top:6px!important;left:6px!important;right:auto!important;width:calc(100vw - 12px)!important;height:calc(100dvh - 12px)!important;resize:none!important;min-width:0}}
 @media(prefers-reduced-motion:reduce){#hubMount .v2-servers button{transition:none}#hubMount .v2-sidebar{transition:none}}
+
+#hubMount .v2-menu-button{display:none;align-items:center;justify-content:center;width:34px;height:34px;border:1px solid #3a665b;border-radius:8px;background:#19342f;color:#9bffd3;font-size:17px;cursor:pointer;flex:none}
+@media(max-width:710px){
+ #hubMount .v2-menu-button{display:inline-flex}
+ #hubMount .v2-sidebar{transform:translateX(-110%)}
+ #hubMount .v2-shell.v2-nav-open .v2-sidebar{transform:none;opacity:1;pointer-events:auto;box-shadow:15px 0 45px #0009}
+ #hubMount .v2-topbar-name h2{font-size:13px}
+}

@@ -26,7 +26,7 @@ class Hub{
   });
   window.addEventListener("resize",()=>{if(this.view==="world")this.draw()});
   document.addEventListener("pointerdown",event=>{
-    if(this.active&&!this.root.contains(event.target)&&!event.target.closest("[data-hub]")&&!event.target.closest("#lightningSuggestionButton"))this.close();
+    if(this.active&&!this.root.contains(event.target)&&!event.target.closest("[data-hub]")&&!event.target.closest("#lightningSuggestionButton")&&!event.target.closest("#boltTools"))this.close();
   });
  }
  $(q){return this.root.querySelector(q)}

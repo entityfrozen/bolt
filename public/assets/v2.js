@@ -22,7 +22,7 @@ export function installV2(Hub){
       '<aside class="hub-rail v2-sidebar"><div class="hub-logo"><span class="v2-mini-label">● COMMUNITY</span><strong id="v2ServerTitle">Lightning <em>V2</em></strong><small id="v2ServerAbout">Your space to connect.</small></div>'+
       '<nav class="hub-nav" id="v2Channels" aria-label="Community channels"></nav>'+
       '<div class="hub-user"><div class="hub-avatar" id="hubAvatar">L</div><div><strong id="hubUsername">Account</strong><span id="hubConnection">Connecting…</span></div><button data-v2="ai" class="v2-account-ai" title="AI workspace">✧</button></div></aside>'+
-      '<main class="hub-main v2-main"><header class="hub-head v2-topbar"><div class="v2-topbar-name"><h2 id="hubTitle"># general</h2><p id="hubSubtitle">Community</p></div><span class="hub-spacer"></span>'+
+      '<main class="hub-main v2-main"><header class="hub-head v2-topbar"><button type="button" class="v2-menu-button" data-v2="toggleNav" aria-label="Toggle channel list" aria-expanded="false">☰</button><div class="v2-topbar-name"><h2 id="hubTitle"># general</h2><p id="hubSubtitle">Community</p></div><span class="hub-spacer"></span>'+
       '<label class="v2-search"><span>⌕</span><input type="search" id="v2Search" placeholder="Search messages or servers" aria-label="Search messages or servers" maxlength="120"></label>'+
       '<button class="v2-ai-button" data-v2="ai">✧ AI</button><span class="hub-pill" id="hubOnline">0 online</span>'+
       '<button class="hub-x" data-act="close" title="Return to browser" aria-label="Return to browser">×</button></header>'+
@@ -36,10 +36,14 @@ export function installV2(Hub){
     this.root.addEventListener("click",event=>{
       const b=event.target.closest("[data-v2]");if(!b)return;
       const act=b.dataset.v2;
-      if(act==="home"){this.v2ServerId=null;this.show("chat","general");}
+      if(act==="toggleNav"){
+        const open=this.$(".v2-shell").classList.toggle("v2-nav-open");
+        b.setAttribute("aria-expanded",String(open));
+      }
+      else if(act==="home"){this.v2ServerId=null;this.show("chat","general");}
       else if(act==="ai")document.getElementById("boltBubble")?.click();
       else if(act==="discover")this.v2Discover();
-      else if(act==="create")this.$("#v2CreateDialog").showModal();
+      else if(act==="create"){this.$("#v2CreateDialog").showModal();this.$("#v2Name").focus();}
       else if(act==="closeModal")this.$("#v2CreateDialog").close();
       else if(act==="server"){
         const s=this.v2Servers.find(s=>s.id===b.dataset.id);
@@ -107,9 +111,15 @@ export function installV2(Hub){
     baseClose.call(this);this.active=false;this.root.hidden=true;
   };
   Hub.prototype.show=function(view,channel){
-    if(view==="room"){this.view="room";this.v2Room();this.v2Nav();return;}
+    if(view==="room"){
+      this.$(".v2-shell")?.classList.remove("v2-nav-open");
+      this.$(".v2-menu-button")?.setAttribute("aria-expanded","false");
+      this.view="room";this.v2Room();this.v2Nav();return;
+    }
     if(view==="directory"){this.view="directory";this.v2Discover(true);return;}
     if(view==="chat")this.v2ServerId=null;
+    this.$(".v2-shell")?.classList.remove("v2-nav-open");
+    this.$(".v2-menu-button")?.setAttribute("aria-expanded","false");
     baseShow.call(this,view,channel);this.v2Nav();
   };
   Hub.prototype.render=function(){
@@ -134,6 +144,8 @@ export function installV2(Hub){
   };
   Hub.prototype.v2Discover=function(refresh=false){
     if(!refresh)this.v2Search="";
+    this.$(".v2-shell")?.classList.remove("v2-nav-open");
+    this.$(".v2-menu-button")?.setAttribute("aria-expanded","false");
     this.view="directory";this.header("Discover","Find your community");
     const owned=new Set(this.v2Servers.map(s=>s.id)),q=this.v2Search||"";
     const found=this.v2Directory.filter(s=>!q||(s.name+" "+s.description).toLowerCase().includes(q));
