@@ -172,6 +172,15 @@ export function installV2(Hub){
     this.v2Messages();
     this.v2Nav();
   };
+  Hub.prototype.v2Members=function(){
+    const panel=this.$(".v2-online-panel");
+    if(!panel)return;
+    panel.querySelector("h3").textContent="ONLINE · "+this.users.length;
+    panel.querySelector("div").innerHTML=this.users.map(user=>
+      '<button class="v2-online-user" data-v2="mention" data-name="'+esc(user.name)+'">'+
+      '<span class="v2-avatar">'+esc(user.name?.[0]?.toUpperCase()||"?")+'</span>'+
+      '<strong>'+esc(user.name)+'</strong><i>●</i></button>').join("");
+  };
   Hub.prototype.v2Messages=function(){
     const el=this.$("#v2RoomMessages"),s=this.v2Servers.find(s=>s.id===this.v2ServerId);
     if(!el||!s)return;
@@ -207,6 +216,7 @@ export function installV2(Hub){
       const rows=this.v2Servers.find(s=>s.id===m.serverId)?.messages?.[m.entry.channel];
       if(rows){const index=rows.findIndex(entry=>entry.id===m.entry.id);if(index>=0)rows[index]=m.entry;}
       if(this.view==="room"&&this.v2ServerId===m.serverId)this.v2Messages();
-    }else if(m.type==="presence"&&this.view==="room")this.v2Room();
+    }else if(m.type==="presence"&&this.view==="room")this.v2Members();
+
   };
 }
