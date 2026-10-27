@@ -1,12 +1,7 @@
-// V2 community experience. Keeps the existing games and classic chat protocol intact.
+// Community screens retain the existing server-backed messaging protocol.
+import {serverIcon} from "./ui-icons.js?v=1";
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const time=t=>new Date(t).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"});
-const updates=[
- ["◈","Reworked interface","An entirely redesigned community, games and browser experience."],
- ["✧","Better AI & chat","A movable AI workspace and more powerful conversations."],
- ["▣","More games","Every Arcade title is right where you need it."],
- ["✳","Fixes and improvements","Cleaner interactions and a faster feeling interface."]
-];
 export function installV2(Hub){
   const baseOpen=Hub.prototype.open,baseClose=Hub.prototype.close,baseShow=Hub.prototype.show;
   const baseRender=Hub.prototype.render,baseChat=Hub.prototype.chat,baseMessage=Hub.prototype.onMessage,baseHeader=Hub.prototype.header;
@@ -142,7 +137,7 @@ export function installV2(Hub){
     const owned=new Set(this.v2Servers.map(s=>s.id)),q=this.v2Search||"";
     const found=this.v2Directory.filter(s=>!q||(s.name+" "+s.description).toLowerCase().includes(q));
     this.$("#hubContent").innerHTML='<section class="v2-directory"><div class="v2-dir-top"><span class="v2-eyebrow">COMMUNITY DIRECTORY</span><h1>Find your people.</h1><p>Join a server, create channels, and talk with real people.</p><button class="v2-primary" data-v2="create">＋ Create a server</button></div><div class="v2-dir-grid">'+
-      found.map((s,i)=>'<article class="v2-dir-card"><div class="v2-dir-icon">'+esc(s.icon||["✦","◆","✳"][i%3])+'</div><h3>'+esc(s.name)+'</h3><p>'+esc(s.description)+'</p><small>'+Number(s.memberCount||0)+' members · '+Number(s.channelCount||0)+' channels</small>'+
+      found.map((s,i)=>'<article class="v2-dir-card"><div class="v2-dir-icon">'+serverIcon(s.icon||"users")+'</div><h3>'+esc(s.name)+'</h3><p>'+esc(s.description)+'</p><small>'+Number(s.memberCount||0)+' members · '+Number(s.channelCount||0)+' channels</small>'+
         (owned.has(s.id)?'<button data-v2="server" data-id="'+esc(s.id)+'">Open server ↗</button>':'<button class="v2-primary" data-v2="join" data-id="'+esc(s.id)+'">Join server →</button>')+'</article>').join("")+
       (!found.length?'<p class="v2-nothing">No servers found yet. Create one to get started.</p>':"")+'</div></section>';
     this.v2Nav();

@@ -148,3 +148,7 @@
  #hubMount .v3-game-picture .ui-icon{width:58px;height:58px}
 }
 @media(prefers-reduced-transparency:reduce){#hubMount .community-manager{backdrop-filter:none;background:#25232d}}
+
+/* Every server card uses the same outline icon language as the workspace. */
+#hubMount .v2-dir-icon{display:grid;place-items:center}
+#hubMount .v2-dir-icon .ui-icon{width:27px;height:27px;stroke-width:1.7}

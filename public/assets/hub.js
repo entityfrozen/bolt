@@ -5,7 +5,7 @@ import {installChatPolish} from "./chat-polish.js?v=2";
 import {installArcade} from "./arcade.js?v=3";
 import {installChessVisuals} from "./chess-visuals.js?v=1";
 import {installRpsVisuals} from "./rps-visuals.js?v=1";
-import {installV2} from "./v2.js?v=2";
+import {installV2} from "./v2.js?v=3";
 import {installWorkspaceV3} from "./workspace-v3.js?v=5";
 import {installCommunityUI} from "./community-ui.js?v=1";
 
