@@ -675,14 +675,18 @@ app.get("/launch", (req, res) => {
 
 app.get("/login", (req, res) => {
   const found = sessionFromRequest(req);
-  if (found) return res.redirect("/");
+  const invite=typeof req.query?.invite==="string"&&/^[a-f0-9]{32}$/.test(req.query.invite)?req.query.invite:null;
+  if (found) return res.redirect(invite?"/?invite="+invite:"/");
   res.setHeader("Cache-Control", "no-store");
   res.sendFile(path.join(here, "views", "login.html"));
 });
 
 app.get("/", (req, res) => {
   const found = sessionFromRequest(req);
-  if (!found) return res.redirect("/login");
+  if (!found) {
+    const invite=typeof req.query?.invite==="string"&&/^[a-f0-9]{32}$/.test(req.query.invite)?req.query.invite:null;
+    return res.redirect(invite?"/login?invite="+invite:"/login");
+  }
   if (state.settings.maintenance && found.identity.role !== "admin") {
     res.status(503);
     res.setHeader("Cache-Control", "no-store");

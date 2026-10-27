@@ -233,3 +233,17 @@ test("YouTube and external app links use Lightning browser tabs",()=>{
  assert.match(apps,/canShareApps/);
  assert.match(apps,/\/api\/apps/);
 });
+
+test("Private servers and deletion controls are exposed in management and discovery",()=>{
+ const ui=fs.readFileSync(new URL("../public/assets/community-ui.js",import.meta.url),"utf8");
+ const nav=fs.readFileSync(new URL("../public/assets/v2.js",import.meta.url),"utf8");
+ const css=fs.readFileSync(new URL("../public/assets/community-modern.css",import.meta.url),"utf8");
+ assert.match(ui,/v2SetPrivacy/);
+ assert.match(ui,/v2RotateInvite/);
+ assert.match(ui,/v2DeleteServer/);
+ assert.match(ui,/data-cm="copy-invite"/);
+ assert.match(nav,/v2JoinInvite/);
+ assert.match(nav,/v2InviteOnly/);
+ assert.match(nav,/new URLSearchParams\(location\.search\)/);
+ assert.match(css,/cm-danger-zone/);
+});

@@ -65,6 +65,28 @@ export function installCommunityUI(Hub){
     const c=s.channels.find(c=>c.id===b.dataset.channel);
     if(c&&!c.protected&&confirm("Delete #"+c.name+" and all its messages?"))this.send({type:"v2DeleteChannel",serverId:s.id,channel:c.id});
    }
+   if(action==="set-invites"){
+    if(s&&!s.permanent)this.send({type:"v2SetPrivacy",serverId:s.id,inviteOnly:b.dataset.inviteOnly==="true"});
+    return;
+   }
+   if(action==="copy-invite"){
+    if(!s?.inviteCode)return this.flash("Enable invite-only first.");
+    const link=new URL("/",location.origin);link.searchParams.set("invite",s.inviteCode);
+    if(navigator.clipboard?.writeText)void navigator.clipboard.writeText(link.href).then(()=>this.flash("Invite link copied.")).catch(()=>prompt("Copy invite link",link.href));
+    else prompt("Copy invite link",link.href);
+    return;
+   }
+   if(action==="rotate-invite"){
+    if(s?.inviteCode&&confirm("Reset invite link? The old link will stop working."))this.send({type:"v2RotateInvite",serverId:s.id});
+    return;
+   }
+   if(action==="delete-server"){
+    if(!s||s.permanent)return;
+    const name=prompt('Type "'+s.name+'" to permanently delete the server, its channels and messages.');
+    if(name!==s.name)return;
+    if(this.send({type:"v2DeleteServer",serverId:s.id})){dialog.close();this.v2ServerId=MAIN;this.v2Channel="announcements";}
+    return;
+   }
    if(action==="rename-role"){
     const r=s.roles.find(r=>r.id===b.dataset.role),name=r&&prompt("Role name",r.name);
     if(name?.trim())this.send({type:"v2EditRole",serverId:s.id,roleId:r.id,name:name.trim()});
@@ -234,7 +256,13 @@ export function installCommunityUI(Hub){
     '<form class="cm-form" data-cm-form="server">'+
     (s.permanent?"":'<label>Server name<input name="name" maxlength="40" value="'+esc(s.name)+'"></label>')+
     '<label class="cm-full">Description<textarea name="description" maxlength="140">'+esc(s.description)+'</textarea></label>'+
-    '<button class="cm-save" type="submit">'+icon("check")+' Save</button></form></section>';
+    '<button class="cm-save" type="submit">'+icon("check")+' Save</button></form></section>'+
+    (s.permanent?"":'<section class="cm-card cm-privacy-card"><h3>Who can join?</h3><p>Invite-only servers are hidden from search. Share the link with friends.</p>'+
+     '<div class="cm-privacy-actions"><button type="button" data-cm="set-invites" data-invite-only="false" class="'+(!s.inviteOnly?"active":"")+'">'+icon("users")+' Public</button>'+
+     '<button type="button" data-cm="set-invites" data-invite-only="true" class="'+(s.inviteOnly?"active":"")+'">'+icon("lock-keyhole")+' Invite only</button></div>'+
+     (s.inviteOnly?'<div class="cm-invite-row"><code>'+esc(s.inviteCode||"Generating…")+'</code><button type="button" data-cm="copy-invite">Copy invite</button><button type="button" data-cm="rotate-invite">Reset link</button></div>':"")+
+     '</section><section class="cm-card cm-danger-zone"><h3>Delete server</h3><p>Deletes all its channels, roles and messages. This cannot be undone.</p>'+
+     '<button type="button" data-cm="delete-server">'+icon("trash-2")+' Delete '+esc(s.name)+'</button></section>');
   }
   this.$("#cmContent").innerHTML=html;
   this.$("#cmContent").scrollTop=previousScroll;

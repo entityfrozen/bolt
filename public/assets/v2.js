@@ -38,7 +38,8 @@ export function installV2(Hub){
       '<dialog id="v2CreateDialog" class="v2-modal" aria-labelledby="v2DialogTitle"><form id="v2CreateForm"><header><div><small>COMMUNITY</small><h2 id="v2DialogTitle">Create a server</h2></div><button type="button" data-v2="closeModal" aria-label="Close">×</button></header>'+
       '<label>Server name<input required id="v2Name" minlength="2" maxlength="40" placeholder="My community"></label>'+
       '<label>Description<input id="v2Description" maxlength="140" placeholder="What is this server for?"></label>'+
-      '<label>Icon<input id="v2Icon" maxlength="4" placeholder="✦"></label><footer><button type="button" data-v2="closeModal">Cancel</button><button class="v2-primary">Create server →</button></footer></form></dialog>'+
+      '<label>Icon<input id="v2Icon" maxlength="4" placeholder="✦"></label>'+
+       '<label class="v2-privacy-option"><input type="checkbox" id="v2InviteOnly"> Invite only — friends need a link</label><footer><button type="button" data-v2="closeModal">Cancel</button><button class="v2-primary">Create server →</button></footer></form></dialog>'+
       '</div>';
     this.root.addEventListener("click",event=>{
       const b=event.target.closest("[data-v2]");if(!b)return;
@@ -57,6 +58,13 @@ export function installV2(Hub){
         if(!s)return;this.v2ServerId=s.id;this.v2Channel=this.v2ChooseChannel(s);this.show("room");
       }else if(act==="channel"){this.v2Channel=b.dataset.channel;this.v2RememberChannel(this.v2ServerId,this.v2Channel);this.show("room");}
       else if(act==="join"){if(this.send({type:"v2Join",serverId:b.dataset.id}))b.disabled=true;}
+       else if(act==="joinInvite"){
+        const response=prompt("Paste a server invite link or code");
+        if(!response?.trim())return;
+        let code=response.trim();
+        try{code=new URL(code).searchParams.get("invite")||code;}catch{}
+        this.send({type:"v2JoinInvite",inviteCode:code.trim()});
+       }
       else if(act==="addChannel"){
         const name=prompt("New channel name");
         if(name?.trim())this.send({type:"v2AddChannel",serverId:this.v2ServerId,name:name.trim(),category:"TEXT"});
@@ -69,7 +77,7 @@ export function installV2(Hub){
     });
     this.$("#v2CreateForm").addEventListener("submit",event=>{
       event.preventDefault();
-      if(this.send({type:"v2Create",name:this.$("#v2Name").value,description:this.$("#v2Description").value,icon:this.$("#v2Icon").value})){
+      if(this.send({type:"v2Create",name:this.$("#v2Name").value,description:this.$("#v2Description").value,icon:this.$("#v2Icon").value,inviteOnly:this.$("#v2InviteOnly").checked})){
         this.$("#v2CreateDialog").close();this.$("#v2CreateForm").reset();
       }
     });
@@ -149,7 +157,7 @@ export function installV2(Hub){
     this.view="directory";this.header("Servers","Find a server");
     const owned=new Set(this.v2Servers.map(s=>s.id)),q=this.v2Search||"";
     const found=this.v2Directory.filter(s=>!q||(s.name+" "+s.description).toLowerCase().includes(q));
-    this.$("#hubContent").innerHTML='<section class="v2-directory"><div class="v2-dir-top"><span class="v2-eyebrow">SERVERS</span><h1>Find a server.</h1><p>Join an existing server or make one.</p><button class="v2-primary" data-v2="create">＋ Create a server</button></div><div class="v2-dir-grid">'+
+    this.$("#hubContent").innerHTML='<section class="v2-directory"><div class="v2-dir-top"><span class="v2-eyebrow">SERVERS</span><h1>Find a server.</h1><p>Join an existing server or make one.</p><button class="v2-primary" data-v2="create">＋ Create a server</button><button class="v2-join-invite" type="button" data-v2="joinInvite">Join with invite</button></div><div class="v2-dir-grid">'+
       found.map((s,i)=>'<article class="v2-dir-card"><div class="v2-dir-icon">'+serverIcon(s.icon||"users")+'</div><h3>'+esc(s.name)+'</h3><p>'+esc(s.description)+'</p><small>'+Number(s.memberCount||0)+' members · '+Number(s.channelCount||0)+' channels</small>'+
         (owned.has(s.id)?'<button data-v2="server" data-id="'+esc(s.id)+'">Open server ↗</button>':'<button class="v2-primary" data-v2="join" data-id="'+esc(s.id)+'">Join server →</button>')+'</article>').join("")+
       (!found.length?'<p class="v2-nothing">No servers found yet. Create one to get started.</p>':"")+'</div></section>';
@@ -197,6 +205,15 @@ export function installV2(Hub){
     if(m.type==="v2State"){
       this.v2Servers=Array.isArray(m.servers)?m.servers:[];
       this.v2Directory=Array.isArray(m.directory)?m.directory:[];
+      if(!this.inviteLinkChecked){
+       this.inviteLinkChecked=true;
+       const params=new URLSearchParams(location.search),invite=params.get("invite");
+       if(invite){
+        const url=new URL(location.href);url.searchParams.delete("invite");
+        history.replaceState(null,"",url.pathname+url.search+url.hash);
+        setTimeout(()=>this.send({type:"v2JoinInvite",inviteCode:invite}),250);
+       }
+      }
       if(m.selected){this.v2ServerId=m.selected;this.v2Channel=this.v2ChooseChannel(this.v2Servers.find(s=>s.id===m.selected));this.show("room");}
       else if(this.v2ServerId&&!this.v2Servers.some(s=>s.id===this.v2ServerId)){this.v2ServerId=null;this.show("chat","general");}
       else if(this.view==="directory")this.v2Discover(true);

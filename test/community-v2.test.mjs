@@ -137,3 +137,62 @@ test("Admins can create roles and delete other members' messages",t=>{
  assert.equal(h.store.snapshot(h.bob).servers.find(s=>s.permanent).messages.general.at(-1).deleted,true);
  assert.ok(h.sent.some(m=>m.type==="v2MessageUpdate"&&m.id==="bob"));
 });
+
+test("Invite-only servers are hidden, restricted, and joinable by an unguessable link",t=>{
+ const h=harness();t.after(()=>fs.rmSync(h.dataDir,{recursive:true,force:true}));
+ h.store.handle(h.alice,{type:"v2Create",name:"Close Friends",inviteOnly:true});
+ const owned=h.store.snapshot(h.alice).servers.find(s=>s.name==="Close Friends");
+ assert.equal(owned.inviteOnly,true);
+ assert.match(owned.inviteCode,/^[a-f0-9]{32}$/);
+ assert.equal(h.store.directory().some(s=>s.name==="Close Friends"),false);
+ assert.equal(h.store.snapshot(h.bob).directory.some(s=>s.name==="Close Friends"),false);
+ h.store.handle(h.bob,{type:"v2Join",serverId:owned.id});
+ assert.equal(h.store.snapshot(h.bob).servers.some(s=>s.id===owned.id),false);
+ h.store.handle(h.bob,{type:"v2JoinInvite",inviteCode:"bad-code"});
+ assert.equal(h.store.snapshot(h.bob).servers.some(s=>s.id===owned.id),false);
+ h.store.handle(h.bob,{type:"v2JoinInvite",inviteCode:owned.inviteCode});
+ const joined=h.store.snapshot(h.bob).servers.find(s=>s.id===owned.id);
+ assert.ok(joined);
+ assert.equal("inviteCode" in joined,false);
+ assert.equal(h.store.snapshot(h.alice).servers.find(s=>s.id===owned.id).memberCount,2);
+ const replay=createCommunityStore({dataDir:h.dataDir,sendToUser:()=>{},sendAll:()=>{}});
+ assert.equal(replay.snapshot(h.alice).servers.find(s=>s.id===owned.id).inviteCode,owned.inviteCode);
+});
+
+test("Owners manage privacy, revoke invites, and delete servers for all members",t=>{
+ const h=harness();t.after(()=>fs.rmSync(h.dataDir,{recursive:true,force:true}));
+ h.store.handle(h.alice,{type:"v2Create",name:"Practice Team"});
+ const owned=h.store.snapshot(h.alice).servers.find(s=>s.name==="Practice Team");
+ h.store.handle(h.bob,{type:"v2Join",serverId:owned.id});
+ h.store.handle(h.bob,{type:"v2SetPrivacy",serverId:owned.id,inviteOnly:true});
+ assert.equal(h.store.snapshot(h.alice).servers.find(s=>s.id===owned.id).inviteOnly,false);
+ h.store.handle(h.alice,{type:"v2SetPrivacy",serverId:owned.id,inviteOnly:true});
+ const original=h.store.snapshot(h.alice).servers.find(s=>s.id===owned.id).inviteCode;
+ assert.ok(original);
+ assert.equal(h.store.directory().some(s=>s.id===owned.id),false);
+ h.store.handle(h.alice,{type:"v2RotateInvite",serverId:owned.id});
+ const replacement=h.store.snapshot(h.alice).servers.find(s=>s.id===owned.id).inviteCode;
+ assert.notEqual(original,replacement);
+ h.store.handle({id:"carol",name:"Carol",role:"user"},{type:"v2JoinInvite",inviteCode:original});
+ assert.equal(h.store.snapshot("carol").servers.some(s=>s.id===owned.id),false);
+ h.store.handle(h.bob,{type:"v2DeleteServer",serverId:owned.id});
+ assert.ok(h.store.snapshot(h.alice).servers.some(s=>s.id===owned.id));
+ h.store.handle(h.alice,{type:"v2DeleteServer",serverId:owned.id});
+ assert.equal(h.store.snapshot(h.alice).servers.some(s=>s.id===owned.id),false);
+ assert.equal(h.store.snapshot(h.bob).servers.some(s=>s.id===owned.id),false);
+ assert.ok(h.sent.some(m=>m.id==="bob"&&m.type==="v2State"&&m.selected==="lightning-main"));
+ assert.ok(!h.store.directory().some(s=>s.id===owned.id));
+ const restarted=createCommunityStore({dataDir:h.dataDir,sendToUser:()=>{},sendAll:()=>{}});
+ assert.equal(restarted.snapshot(h.alice).servers.some(s=>s.id===owned.id),false);
+});
+
+test("Main server can neither be deleted nor made invite-only",t=>{
+ const h=harness();t.after(()=>fs.rmSync(h.dataDir,{recursive:true,force:true}));
+ const admin={id:"root",name:"Root",role:"admin"};
+ h.store.snapshot(admin);
+ h.store.handle(admin,{type:"v2SetPrivacy",serverId:"lightning-main",inviteOnly:true});
+ h.store.handle(admin,{type:"v2DeleteServer",serverId:"lightning-main"});
+ const main=h.store.snapshot(admin).servers.find(s=>s.id==="lightning-main");
+ assert.equal(main.inviteOnly,false);
+ assert.ok(main);
+});

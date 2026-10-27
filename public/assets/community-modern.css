@@ -152,3 +152,25 @@
 /* Every server card uses the same outline icon language as the workspace. */
 #hubMount .v2-dir-icon{display:grid;place-items:center}
 #hubMount .v2-dir-icon .ui-icon{width:27px;height:27px;stroke-width:1.7}
+
+/* Server access controls and invite links */
+#hubMount .v2-dir-top .v2-join-invite{display:inline-flex;align-items:center;margin-left:8px;
+ padding:10px 15px;background:rgba(var(--lg-rgb,163,206,248),.12);border:1px solid rgba(var(--lg-rgb,163,206,248),.43);
+ border-radius:9px;color:#e4f0ff;font:700 12px "Instrument Sans",system-ui;cursor:pointer}
+#hubMount .v2-dir-top .v2-join-invite:hover{background:rgba(var(--lg-rgb,163,206,248),.22)}
+#hubMount .v2-privacy-option{display:flex;align-items:center;gap:9px;cursor:pointer;font:600 12px "Instrument Sans",system-ui;color:#e7f0fd}
+#hubMount .v2-privacy-option input{accent-color:var(--lg-accent,#a3cef8);width:16px;height:16px}
+#hubMount .cm-privacy-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+#hubMount .cm-privacy-actions button{display:inline-flex;align-items:center;gap:8px;padding:11px 14px;
+ border:1px solid #ffffff37;background:#ffffff0d;color:#dee7f6;border-radius:9px;cursor:pointer;font:700 12px "Instrument Sans",system-ui}
+#hubMount .cm-privacy-actions button.active{color:#fff;border-color:var(--lg-accent,#a3cef8);background:rgba(var(--lg-rgb,163,206,248),.2)}
+#hubMount .cm-privacy-actions button .ui-icon{width:16px;height:16px}
+#hubMount .cm-invite-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:14px}
+#hubMount .cm-invite-row code{flex:1;min-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+ padding:12px 10px;background:#111a2a;border:1px solid #ffffff24;border-radius:8px;color:#c8d9ef;font-size:11px}
+#hubMount .cm-invite-row button{padding:10px 12px;color:#ecf3ff;border:1px solid #ffffff40;border-radius:8px;background:#ffffff13;cursor:pointer;font:700 11px "Instrument Sans",system-ui}
+#hubMount .cm-invite-row button:hover{border-color:var(--lg-accent,#a3cef8)}
+#hubMount .cm-danger-zone{border-color:#ed8c922f!important}
+#hubMount .cm-danger-zone h3{color:#f0aeb4!important}
+#hubMount .cm-danger-zone button{border:1px solid #e781876a;background:#ca4b5615;color:#ffcbd0;padding:11px 13px;border-radius:9px;font:700 12px "Instrument Sans",system-ui;cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+#hubMount .cm-danger-zone button:hover{background:#dc60642f}

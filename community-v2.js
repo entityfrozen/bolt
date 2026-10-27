@@ -23,13 +23,14 @@ const makeMain=()=>({
  memberRoles:{},profiles:{},channels:channels.map(c=>({...c})),messages:{},createdAt:Date.now()
 });
 const publicServer=s=>({
- id:s.id,name:s.name,icon:s.icon,description:s.description,permanent:!!s.permanent,
+ id:s.id,name:s.name,icon:s.icon,description:s.description,permanent:!!s.permanent,inviteOnly:!!s.inviteOnly,
  memberCount:s.members.length,channelCount:s.channels.length
 });
 const canManage=(u,s)=>u.role==="admin"||(!s.permanent&&s.owner===u.id);
 const channelAccess=(u,s,c)=>!c.staffOnly||canManage(u,s);
 const memberState=(s,u)=>({
  ...publicServer(s),owner:s.owner,canManage:canManage(u,s),
+  ...(canManage(u,s)&&s.inviteOnly?{inviteCode:s.inviteCode||""}:{}),
  channels:s.channels.filter(c=>channelAccess(u,s,c)).map(c=>({...c})),
  roles:s.roles.map(r=>({...r})),
  members:s.members.slice(-500).map(userId=>({
@@ -55,6 +56,8 @@ export function createCommunityStore({dataDir,sendToUser,sendAll}){
  if(!main.roles.some(r=>r.id==="member")){main.roles.unshift({id:"member",name:"Member",color:"#C5BCA9"});migrated=true;}
  for(const s of servers){
   if(!s.memberRoles){s.memberRoles={};migrated=true;}
+  if(typeof s.inviteOnly!=="boolean"){s.inviteOnly=false;migrated=true;}
+  if(s.inviteOnly&&!s.inviteCode){s.inviteCode=crypto.randomBytes(16).toString("hex");migrated=true;}
   if(!s.profiles){s.profiles={};migrated=true;}
   if(!Array.isArray(s.roles)){s.roles=[{id:"member",name:"Member",color:"#C5BCA9"}];migrated=true;}
   if(!Array.isArray(s.members))s.members=[];
@@ -91,7 +94,8 @@ export function createCommunityStore({dataDir,sendToUser,sendAll}){
   fs.renameSync(temp,filename);
  };
  if(migrated)save();
- const directory=()=>servers.map(publicServer);
+ // Keep unlisted servers out of all directory broadcasts.
+ const directory=()=>servers.filter(s=>!s.inviteOnly||s.permanent).map(publicServer);
  const refreshProfile=u=>{
   if(!u?.id)return false;
   const name=clean(u.name,32)||"Member",isAdmin=u.role==="admin";
@@ -137,6 +141,7 @@ export function createCommunityStore({dataDir,sendToUser,sendAll}){
    if(servers.filter(s=>s.owner===u.id).length>=LIMITS.owned)return err(u,"You can create up to five servers.");
    const s={id:id(),name,icon:clean(data.icon,4)||"users",description:clean(data.description,140)||"A place to meet and talk.",
     owner:u.id,members:[u.id],roles:[{id:"member",name:"Member",color:"#C5BCA9"}],memberRoles:{},
+     inviteOnly:!!data.inviteOnly,inviteCode:data.inviteOnly?crypto.randomBytes(16).toString("hex"):null,
     profiles:{[u.id]:{name:u.name,admin:u.role==="admin"}},channels:[
      {id:"general",name:"general",category:"TEXT"},
      {id:"introductions",name:"introductions",category:"TEXT"},
@@ -146,14 +151,34 @@ export function createCommunityStore({dataDir,sendToUser,sendAll}){
    sendToUser(u.id,{type:"v2State",...snapshot(u),selected:s.id});
    sendAll({type:"v2Directory",directory:directory()});return;
   }
+  if(type==="v2JoinInvite"){
+   const token=clean(data.inviteCode,100).toLowerCase();
+   const invited=servers.find(s=>s.inviteOnly&&s.inviteCode===token&&!s.permanent);
+   if(!invited)return err(u,"Invite is invalid or has expired.");
+   if(!invited.members.includes(u.id)){
+    if(invited.members.length>=500)return err(u,"That server is full.");
+    invited.members.push(u.id);invited.profiles[u.id]={name:u.name,admin:u.role==="admin"};save();
+   }
+   sendToUser(u.id,{type:"v2State",...snapshot(u),selected:invited.id});
+   serverChanged(invited);return;
+  }
   const s=servers.find(s=>s.id===clean(data.serverId,60));
   if(!s)return err(u,"Server not found.");
   const member=s.members.includes(u.id);
   if(type==="v2Join"){
-   if(!member){if(s.members.length>=500&&!s.permanent)return err(u,"That server is full.");
+   if(!member){if(s.inviteOnly)return err(u,"This server requires an invite.");
+    if(s.members.length>=500&&!s.permanent)return err(u,"That server is full.");
     s.members.push(u.id);s.profiles[u.id]={name:u.name,admin:u.role==="admin"};save();}
    sendToUser(u.id,{type:"v2State",...snapshot(u),selected:s.id});
    serverChanged(s);return;
+  }
+  if(type==="v2DeleteServer"){
+   if(s.permanent)return err(u,"The main server cannot be deleted.");
+   if(s.owner!==u.id&&u.role!=="admin")return err(u,"Only the owner or a platform admin can delete this server.");
+   const members=[...s.members];
+   servers=servers.filter(item=>item.id!==s.id);save();
+   for(const uid of members)sendToUser(uid,{type:"v2State",...snapshot(uid),selected:MAIN_SERVER_ID});
+   sendAll({type:"v2Directory",directory:directory()});return;
   }
   if(!member)return err(u,"Join this server before using its channels.");
   if(type==="v2Leave"){
@@ -163,7 +188,7 @@ export function createCommunityStore({dataDir,sendToUser,sendAll}){
    sendToUser(u.id,{type:"v2State",...snapshot(u),selected:MAIN_SERVER_ID});
    serverChanged(s);return;
   }
-  if(["v2AddChannel","v2EditChannel","v2DeleteChannel","v2CreateRole","v2EditRole","v2DeleteRole","v2AssignRole","v2EditServer"].includes(type)){
+  if(["v2AddChannel","v2EditChannel","v2DeleteChannel","v2CreateRole","v2EditRole","v2DeleteRole","v2AssignRole","v2EditServer","v2SetPrivacy","v2RotateInvite"].includes(type)){
    if(!authorized(u,s))return err(u,"Only the server owner or a Lightning admin can manage this server.");
   }
   if(type==="v2AddChannel"){
@@ -223,6 +248,18 @@ export function createCommunityStore({dataDir,sendToUser,sendAll}){
    if(!s.members.includes(memberId))return err(u,"Member not found.");
    if(roleId!=="member"&&!s.roles.some(r=>r.id===roleId))return err(u,"Role not found.");
    if(roleId==="member")delete s.memberRoles[memberId];else s.memberRoles[memberId]=roleId;
+   save();serverChanged(s);return;
+  }
+  if(type==="v2SetPrivacy"){
+   if(s.permanent)return err(u,"The main server must stay public.");
+   if(typeof data.inviteOnly!=="boolean")return err(u,"Choose a privacy setting.");
+   s.inviteOnly=data.inviteOnly;
+   if(s.inviteOnly&&!s.inviteCode)s.inviteCode=crypto.randomBytes(16).toString("hex");
+   save();serverChanged(s);return;
+  }
+  if(type==="v2RotateInvite"){
+   if(s.permanent||!s.inviteOnly)return err(u,"Enable invite-only access first.");
+   s.inviteCode=crypto.randomBytes(16).toString("hex");
    save();serverChanged(s);return;
   }
   if(type==="v2EditServer"){

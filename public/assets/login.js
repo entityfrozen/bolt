@@ -29,7 +29,8 @@ document.getElementById("accountForm").addEventListener("submit",async event=>{
       username:document.getElementById("loginUsername").value,
       password:document.getElementById("loginPassword").value
     });
-    location.replace("/");
+    const invite=new URLSearchParams(location.search).get("invite");
+    location.replace(invite&&/^[a-f0-9]{32}$/.test(invite)?"/?invite="+invite:"/");
   } catch(error) { errorBox.textContent=error.message;button.disabled=false; }
 });
 document.getElementById("registerForm").addEventListener("submit",async event=>{
