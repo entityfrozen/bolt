@@ -65,3 +65,23 @@ test("Lightning island restores the warm brass identity",()=>{
   assert.match(browser,/lightning-island\.css/);
   assert.doesNotMatch(workspace,/#44eda7|#38f0a4|#72c9ff/);
 });
+
+test("Glass appearance engine is shared by browser and workspace",()=>{
+  const runtime=fs.readFileSync(new URL("../public/assets/glass-settings.js",import.meta.url),"utf8");
+  const css=fs.readFileSync(new URL("../public/assets/liquid-glass.css",import.meta.url),"utf8");
+  const studio=fs.readFileSync(new URL("../public/assets/glass-settings.css",import.meta.url),"utf8");
+  assert.match(browser,/glass-settings\.js/);
+  assert.match(browser,/liquid-glass\.css/);
+  assert.match(browser,/glass-settings\.css/);
+  assert.match(browser,/data-glass-settings/);
+  assert.match(runtime,/--lg-accent/);
+  assert.match(runtime,/--accent-rgb/);
+  for(const feature of ["opacity","blur","radius","saturation","wallpaper","sidebar","layout","inspector","dock","contrast","motion","shadows","scale"])
+    assert.ok(runtime.includes(feature),"Missing appearance control "+feature);
+  assert.match(runtime,/localStorage\.setItem/);
+  assert.match(runtime,/JSON\.stringify/);
+  assert.match(runtime,/aria-label/);
+  assert.match(css,/backdrop-filter/);
+  assert.match(studio,/lg-preview/);
+  assert.match(workspace,/window\.LightningGlass\?\.open/);
+});

@@ -6,7 +6,7 @@ import {installArcade} from "./arcade.js?v=3";
 import {installChessVisuals} from "./chess-visuals.js?v=1";
 import {installRpsVisuals} from "./rps-visuals.js?v=1";
 import {installV2} from "./v2.js?v=1";
-import {installWorkspaceV3} from "./workspace-v3.js?v=2";
+import {installWorkspaceV3} from "./workspace-v3.js?v=3";
 
 const E=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const PIECES={K:"♔",Q:"♕",R:"♖",B:"♗",N:"♘",P:"♙",k:"♚",q:"♛",r:"♜",b:"♝",n:"♞",p:"♟"};
@@ -412,6 +412,7 @@ function ensureHubStyles(){
   const gamePolish=document.createElement("link");gamePolish.id="lightningGamePolishCss";gamePolish.rel="stylesheet";gamePolish.href="/assets/game-polish.css?v=1";document.head.append(gamePolish);
   // Load after the on-demand chat and game styles so the palette stays coherent.
   const island=document.createElement("link");island.id="lightningIslandCss";island.rel="stylesheet";island.href="/assets/lightning-island.css?v=1";document.head.append(island);
+  const glass=document.createElement("link");glass.id="lightningLiquidGlass";glass.rel="stylesheet";glass.href="/assets/liquid-glass.css?v=1";document.head.append(glass);
  }
 }
 export function openHub(view="chat"){

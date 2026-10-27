@@ -103,7 +103,7 @@ export function installWorkspaceV3(Hub){
           '<button data-v3="arcade">▣ <span>Games</span></button>'+
           '<button data-v3="browser">◎ <span>Browser</span></button></nav>'+
         '<button class="v3-command-trigger" data-v3="command" title="Command menu (Ctrl or Cmd + K)"><span>⌕</span> Find anything <kbd>⌘ K</kbd></button>'+
-        '<div class="v3-bar-end"><button class="v3-top-icon" data-v3="theme" title="Change theme" aria-label="Change theme">◐</button>'+
+        '<div class="v3-bar-end"><button class="v3-top-icon" data-v3="theme" title="Appearance and settings (Ctrl+,)" aria-label="Appearance and settings">⚙</button>'+
           '<button class="v3-top-icon" data-v3="toggleInspector" title="Toggle activity panel" aria-label="Toggle activity panel">◫</button>'+
           '<button class="v3-top-ai" data-v3="ai">✧ Ask AI <span>↗</span></button></div>'+
       '</header>'+
@@ -148,11 +148,11 @@ export function installWorkspaceV3(Hub){
       else if(action==="ai")document.getElementById("boltBubble")?.click();
       else if(action==="command")this.v3OpenCommand();
       else if(action==="closeCommand")this.$("#v3CommandDialog").close();
-      else if(action==="theme")this.$("#v3ThemeDialog").showModal();
+      else if(action==="theme")window.LightningGlass?.open();
       else if(action==="closeTheme")this.$("#v3ThemeDialog").close();
-      else if(action==="setTheme"){this.v3Theme=button.dataset.theme;setPreference("theme",this.v3Theme);this.v3ApplyPreferences();this.$("#v3ThemeDialog").close();}
-      else if(action==="toggleInspector"){this.v3InspectorVisible=!this.v3InspectorVisible;setPreference("inspector",this.v3InspectorVisible);this.v3ApplyPreferences();}
-      else if(action==="toggleDock"){this.v3DockVisible=!this.v3DockVisible;setPreference("dock",this.v3DockVisible);this.v3ApplyPreferences();}
+      else if(action==="setTheme"){window.LightningGlass?.set("preset",button.dataset.theme);this.$("#v3ThemeDialog").close();}
+      else if(action==="toggleInspector"){const now=window.LightningGlass?.get()?.inspector??this.v3InspectorVisible;this.v3InspectorVisible=!now;window.LightningGlass?.set("inspector",!now);this.v3ApplyPreferences();}
+      else if(action==="toggleDock"){const now=window.LightningGlass?.get()?.dock??this.v3DockVisible;this.v3DockVisible=!now;window.LightningGlass?.set("dock",!now);this.v3ApplyPreferences();}
       else if(action==="favorite"){
         const game=button.dataset.game;
         this.v3Favorites=this.v3Favorites.includes(game)?this.v3Favorites.filter(x=>x!==game):[...this.v3Favorites,game];
@@ -205,14 +205,20 @@ export function installWorkspaceV3(Hub){
     document.addEventListener("keydown",this.v3Keydown);
   };
   Hub.prototype.v3ApplyPreferences=function(){
-    const color=themeColors[this.v3Theme]||themeColors.forest;
+    // One engine controls browser, glass workspace and floating AI.
+    const appearance=window.LightningGlass?.get();
+    const color=appearance?.accent||themeColors[this.v3Theme]||themeColors.classic;
     this.root.style.setProperty("--v3-accent",color);
-    this.root.dataset.theme=this.v3Theme;
+    this.root.dataset.theme="glass";
+    const inspector=appearance?.inspector??this.v3InspectorVisible;
+    const dock=appearance?.dock??this.v3DockVisible;
+    this.v3InspectorVisible=inspector;this.v3DockVisible=dock;
     const shell=this.$(".v3-shell");if(!shell)return;
-    shell.classList.toggle("v3-no-inspector",!this.v3InspectorVisible);
-    shell.classList.toggle("v3-no-dock",!this.v3DockVisible);
+    shell.classList.toggle("v3-no-inspector",!inspector);
+    shell.classList.toggle("v3-no-dock",!dock);
     const collapse=this.$(".v3-dock-toggle");
-    if(collapse){collapse.textContent=this.v3DockVisible?"⌄":"⌃";collapse.title=this.v3DockVisible?"Collapse launcher":"Expand launcher";}
+    if(collapse){collapse.textContent=dock?"⌄":"⌃";collapse.title=dock?"Collapse launcher":"Expand launcher";}
+    window.LightningGlass?.apply();
   };
   Hub.prototype.v3RenderDock=function(){
     const el=this.$("#v3DockGames");if(!el)return;
@@ -263,7 +269,8 @@ export function installWorkspaceV3(Hub){
       '<div class="v3-nav-kicker">WORKSPACE</div>'+
       '<button class="v3-nav-destination'+(this.view==="overview"?" active":"")+'" data-v3="overview"><i>⌂</i><span>Overview</span></button>'+
       '<button class="v3-nav-destination'+(this.view==="games"?" active":"")+'" data-v3="arcade"><i>▣</i><span>Game library</span></button>'+
-      '<button class="v3-nav-destination" data-v3="browser"><i>◎</i><span>Web browser</span></button>');
+      '<button class="v3-nav-destination" data-v3="browser"><i>◎</i><span>Web browser</span></button>'+
+      '<button class="v3-nav-destination" data-v3="theme"><i>⚙</i><span>Appearance & settings</span></button>');
     this.v3Sync();
   };
   Hub.prototype.open=function(view="overview"){
@@ -411,7 +418,7 @@ export function installWorkspaceV3(Hub){
     else if(key==="directory")this.v2Discover();
     else if(key==="browser")this.close();
     else if(key==="ai")document.getElementById("boltBubble")?.click();
-    else if(key==="theme")this.$("#v3ThemeDialog").showModal();
+    else if(key==="theme")window.LightningGlass?.open();
     else if(key.startsWith("channel:"))this.show("chat",key.slice(8));
     else if(key.startsWith("game:"))this.v3Launch(key.slice(5));
     else if(key.startsWith("server:")){

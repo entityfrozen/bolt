@@ -100,6 +100,7 @@ function applyPrefs(){
   const [color,rgb]=accents[prefs.accent]||accents.champagne;
   document.documentElement.style.setProperty("--accent",color);
   document.documentElement.style.setProperty("--accent-rgb",rgb);
+  window.LightningGlass?.apply();
 }
 
 function toast(message){
@@ -997,7 +998,7 @@ function formatDate(value){
 function accountPopover(){
   dom.accountPopover.hidden=false;
   dom.accountPopover.innerHTML=`<div class="popover-head"><strong>${escapeHtml(me.username)}</strong><span>${escapeHtml(me.role)}${me.temporary?" · temporary":""}</span></div><button type="button" id="popoverSettings">Settings</button>${me.role==="admin"?'<button type="button" id="popoverAdmin">Admin</button>':""}<button type="button" id="popoverLogout">Sign out</button>`;
-  $("#popoverSettings").addEventListener("click",()=>{dom.accountPopover.hidden=true;openPanel("settings")});
+  $("#popoverSettings").addEventListener("click",()=>{dom.accountPopover.hidden=true;if(window.LightningGlass)window.LightningGlass.open();else openPanel("settings")});
   $("#popoverAdmin")?.addEventListener("click",()=>{dom.accountPopover.hidden=true;openPanel("admin")});
   $("#popoverLogout").addEventListener("click",logout);
 }
@@ -1009,7 +1010,7 @@ async function logout(){
 
 function openLightningHub(view){
   closePanel();
-  import("/assets/hub.js?v=24").then(hub=>hub.openHub(view)).catch(()=>toast("Could not open the Lightning hub."));
+  import("/assets/hub.js?v=25").then(hub=>hub.openHub(view)).catch(()=>toast("Could not open the Lightning hub."));
 }
 
 function bindUi(){
@@ -1033,7 +1034,8 @@ function bindUi(){
     try{tab?.frame?.reload?.()}catch{navigateTab(tab,tab?.url||"")}
   });
   dom.bookmark.addEventListener("click",toggleBookmark);
-  dom.menu.addEventListener("click",()=>openPanel("settings"));
+  dom.menu.addEventListener("click",()=>window.LightningGlass?.open()||(!window.LightningGlass&&openPanel("settings")));
+  window.addEventListener("lightning:browser-settings",()=>openPanel("settings"));
   dom.panelClose.addEventListener("click",closePanel);
   $$(".rail-button[data-panel]").forEach(button=>button.addEventListener("click",()=>{
     if(panelName===button.dataset.panel)closePanel();else openPanel(button.dataset.panel);
@@ -1072,7 +1074,7 @@ async function start(){
     await loadConfig();
   }catch{return}
   restoreTabs();
-  import("/assets/hub.js?v=24").then(hub=>{
+  import("/assets/hub.js?v=25").then(hub=>{
     hub.startHubNotifications();
     if(new URL(location.href).searchParams.get("view")!=="browser")hub.openHub("overview");
   }).catch(error=>console.warn("Workspace unavailable:",error));
