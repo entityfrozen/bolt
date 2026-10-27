@@ -27,7 +27,7 @@ test("V2 creates persisted community servers with real channel membership",t=>{
   assert.equal(h.store.snapshot("bob").servers.length,1);
   assert.equal(fs.existsSync(path.join(h.dataDir,"lightning-v2-communities.json")),true);
   const restored=createCommunityStore({dataDir:h.dataDir,sendToUser:()=>{},sendAll:()=>{}});
-  assert.equal(restored.snapshot("alice").servers[0].name,"Game Room");
+  assert.equal(restored.snapshot("alice").servers.find(s=>!s.permanent).name,"Game Room");
 });
 test("Only joined members can send messages and only owners add channels",t=>{
   const h=harness();t.after(()=>fs.rmSync(h.dataDir,{recursive:true,force:true}));

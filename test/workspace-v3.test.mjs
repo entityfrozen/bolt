@@ -85,3 +85,14 @@ test("Glass appearance engine is shared by browser and workspace",()=>{
   assert.match(studio,/lg-preview/);
   assert.match(workspace,/window\.LightningGlass\?\.open/);
 });
+
+test("Community icon system and protected announcement navigation are installed",()=>{
+ const c=fs.readFileSync(new URL("../public/assets/community-ui.js",import.meta.url),"utf8");
+ const icons=fs.readFileSync(new URL("../public/assets/ui-icons.js",import.meta.url),"utf8");
+ assert.match(c,/announcements/);
+ assert.match(c,/data-cm="manage"/);
+ assert.match(c,/data-cm-form="role"/);
+ assert.match(icons,/stroke-linecap="round"/);
+ assert.match(workspace,/lightning-main/);
+ assert.doesNotMatch(workspace,/icon:"²"|icon:"✱"|icon:"✊"/);
+});

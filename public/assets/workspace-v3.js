@@ -1,14 +1,15 @@
+import {icon,serverIcon} from "./ui-icons.js?v=1";
 // A desktop-first workspace on top of the existing, server-backed Lightning features.
 // The underlying browser, account system, rooms and multiplayer rules are unchanged.
 const safe=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
 const relative=stamp=>{const delta=Date.now()-Number(stamp||0);return delta<60000?"just now":delta<3600000?Math.floor(delta/60000)+"m ago":delta<86400000?Math.floor(delta/3600000)+"h ago":new Date(stamp).toLocaleDateString([],{month:"short",day:"numeric"});};
 const catalog=[
-  {id:"world",name:"WorldPvP",kind:"Strategy",icon:"◉",note:"Conquer the world in real time.",action:"worldView",className:"territory"},
-  {id:"chess",name:"Chess",kind:"Strategy",icon:"♞",note:"Live chess with verified moves.",action:"chessView",className:"chess"},
-  {id:"rps",name:"Rock Paper Scissors",kind:"Casual",icon:"✊",note:"Quick rounds and tournaments.",action:"rpsView",className:"rps"},
-  {id:"uma",name:"Uma Versus",kind:"Fighting",icon:"⚡",note:"Character battles, solo and online.",action:"umaView",className:"uma"},
-  {id:"2048",name:"2048",kind:"Puzzle",icon:"²",note:"Merge tiles and reach 2048.",action:"v3Play2048",className:"puzzle"},
-  {id:"mines",name:"Minesweeper",kind:"Puzzle",icon:"✱",note:"Clear the field without hitting a mine.",action:"v3PlayMines",className:"mines"}
+  {id:"world",name:"WorldPvP",kind:"Strategy",icon:"compass",note:"Conquer the world in real time.",action:"worldView",className:"territory"},
+  {id:"chess",name:"Chess",kind:"Strategy",icon:"chess-knight",note:"Live chess with verified moves.",action:"chessView",className:"chess"},
+  {id:"rps",name:"Rock Paper Scissors",kind:"Casual",icon:"hand",note:"Quick rounds and tournaments.",action:"rpsView",className:"rps"},
+  {id:"uma",name:"Uma Versus",kind:"Fighting",icon:"swords",note:"Character battles, solo and online.",action:"umaView",className:"uma"},
+  {id:"2048",name:"2048",kind:"Puzzle",icon:"grid-2x2",note:"Merge tiles and reach 2048.",action:"v3Play2048",className:"puzzle"},
+  {id:"mines",name:"Minesweeper",kind:"Puzzle",icon:"bomb",note:"Clear the field without hitting a mine.",action:"v3PlayMines",className:"mines"}
 ];
 const themeColors={classic:"#e2bb75",bronze:"#d3a56b",silver:"#c6bcaa"};
 const themeNames={classic:"Classic gold",bronze:"Warm bronze",silver:"Soft silver"};
@@ -16,7 +17,7 @@ const preference=(key,fallback)=>{try{return JSON.parse(localStorage.getItem("li
 const setPreference=(key,value)=>{try{localStorage.setItem("lightning.v3."+key,JSON.stringify(value))}catch{}};
 const gameCard=(game,featured=false)=>
   '<article class="v3-game-card v3-game-'+game.className+(featured?" v3-featured-game":"")+'">'+
-    '<div class="v3-game-picture" aria-hidden="true"><span>'+game.icon+'</span><i>'+safe(game.kind.toUpperCase())+'</i></div>'+
+    '<div class="v3-game-picture" aria-hidden="true"><span>'+icon(game.icon)+'</span><i>'+safe(game.kind.toUpperCase())+'</i></div>'+
     '<div class="v3-game-bottom"><div><strong>'+safe(game.name)+'</strong><small>'+safe(game.note)+'</small></div>'+
     '<button type="button" data-act="'+game.action+'" aria-label="Play '+safe(game.name)+'">Play <b>↗</b></button></div></article>';
 const sectionHeading=(kicker,title,button)=>
@@ -98,14 +99,14 @@ export function installWorkspaceV3(Hub){
       '<header class="v3-global-bar">'+
         '<div class="v3-global-brand"><span class="v3-brand-flash">ϟ</span><div><strong>Lightning</strong><small>YOUR WORKSPACE</small></div></div>'+
         '<nav class="v3-primary-tabs" aria-label="Workspace">'+
-          '<button data-v3="overview" class="active">⌂ <span>Overview</span></button>'+
-          '<button data-v3="channel"># <span>Community</span></button>'+
-          '<button data-v3="arcade">▣ <span>Games</span></button>'+
-          '<button data-v3="browser">◎ <span>Browser</span></button></nav>'+
+          '<button data-v3="overview" class="active">'+icon("home")+'<span>Overview</span></button>'+
+          '<button data-v3="channel">'+icon("message-circle")+'<span>Community</span></button>'+
+          '<button data-v3="arcade">'+icon("gamepad-2")+'<span>Games</span></button>'+
+          '<button data-v3="browser">'+icon("monitor")+'<span>Browser</span></button></nav>'+
         '<button class="v3-command-trigger" data-v3="command" title="Command menu (Ctrl or Cmd + K)"><span>⌕</span> Find anything <kbd>⌘ K</kbd></button>'+
-        '<div class="v3-bar-end"><button class="v3-top-icon" data-v3="theme" title="Appearance and settings (Ctrl+,)" aria-label="Appearance and settings">⚙</button>'+
-          '<button class="v3-top-icon" data-v3="toggleInspector" title="Toggle activity panel" aria-label="Toggle activity panel">◫</button>'+
-          '<button class="v3-top-ai" data-v3="ai">✧ Ask AI <span>↗</span></button></div>'+
+        '<div class="v3-bar-end"><button class="v3-top-icon" data-v3="theme" title="Appearance and settings (Ctrl+,)" aria-label="Appearance and settings">'+icon("settings")+'</button>'+
+          '<button class="v3-top-icon" data-v3="toggleInspector" title="Toggle activity panel" aria-label="Toggle activity panel">'+icon("panel-right")+'</button>'+
+          '<button class="v3-top-ai" data-v3="ai">'+icon("sparkles")+' Ask AI <span>↗</span></button></div>'+
       '</header>'+
       '<aside class="v3-inspector" aria-label="Activity and members">'+
         '<div class="v3-inspector-header"><span>ACTIVITY</span><button data-v3="toggleInspector" aria-label="Hide activity panel">×</button></div>'+
@@ -142,7 +143,7 @@ export function installWorkspaceV3(Hub){
       if(!button)return;
       const action=button.dataset.v3;
       if(action==="overview")this.show("overview");
-      else if(action==="channel"){this.v2ServerId=null;this.show("chat","general");}
+      else if(action==="channel"){this.v2ServerId="lightning-main";this.v2Channel="announcements";this.show("room");}
       else if(action==="arcade")this.show("games");
       else if(action==="browser"){this.close();document.querySelector("#newtabInput")?.focus();}
       else if(action==="ai")document.getElementById("boltBubble")?.click();
@@ -159,7 +160,7 @@ export function installWorkspaceV3(Hub){
         setPreference("favorites",this.v3Favorites);this.v3RenderDock();
         if(this.view==="games")this.games();
       }else if(action==="play"){this.v3Launch(button.dataset.game);}
-      else if(action==="goChannel"){this.v2ServerId=null;this.show("chat",button.dataset.channel);}
+      else if(action==="goChannel"){this.v2ServerId="lightning-main";this.v2Channel=button.dataset.channel;this.show("room");}
       else if(action==="goServer"){
         const s=this.v2Servers.find(x=>x.id===button.dataset.id);
         if(s){this.v2ServerId=s.id;this.v2Channel=s.channels[0]?.id||"general";this.show("room");}
@@ -224,7 +225,7 @@ export function installWorkspaceV3(Hub){
     const el=this.$("#v3DockGames");if(!el)return;
     const selected=this.v3Favorites.map(id=>catalog.find(g=>g.id===id)).filter(Boolean);
     el.innerHTML=(selected.length?selected:catalog.slice(0,4)).slice(0,5).map(g=>
-      '<button class="v3-dock-game" data-v3="play" data-game="'+g.id+'" title="Play '+safe(g.name)+'"><span class="v3-dock-icon v3-'+g.className+'">'+g.icon+'</span><span>'+safe(g.name)+'</span></button>').join("");
+      '<button class="v3-dock-game" data-v3="play" data-game="'+g.id+'" title="Play '+safe(g.name)+'"><span class="v3-dock-icon v3-'+g.className+'">'+icon(g.icon)+'</span><span>'+safe(g.name)+'</span></button>').join("");
   };
   Hub.prototype.v3RenderInspector=function(){
     const el=this.$("#v3InspectorContent");if(!el)return;
@@ -325,10 +326,10 @@ export function installWorkspaceV3(Hub){
           '<div class="v4-chess-art" aria-hidden="true"><div class="v4-chess-halo"></div><span>♞</span><small>YOUR TURN</small></div></section>'+
           '<section class="v4-quick-panel">'+
             '<div class="v4-panel-heading"><span class="v4-overline">SHORTCUTS</span><strong>Jump right in</strong></div>'+
-            '<button data-v3="channel"><span class="v4-shortcut-icon">#</span><span><strong>Community</strong><small>Chat with everyone</small></span><b>↗</b></button>'+
-            '<button data-v3="ai"><span class="v4-shortcut-icon">✧</span><span><strong>AI assistant</strong><small>Search, write, explore</small></span><b>↗</b></button>'+
-            '<button data-v3="browser"><span class="v4-shortcut-icon">◎</span><span><strong>Browser</strong><small>Open your tabs</small></span><b>↗</b></button>'+
-            '<button data-v3="goDirectory"><span class="v4-shortcut-icon">◈</span><span><strong>Discover servers</strong><small>Find a community</small></span><b>↗</b></button>'+
+            '<button data-v3="channel"><span class="v4-shortcut-icon">'+icon("message-circle")+'</span><span><strong>Community</strong><small>Chat with everyone</small></span><b>↗</b></button>'+
+            '<button data-v3="ai"><span class="v4-shortcut-icon">'+icon("sparkles")+'</span><span><strong>AI assistant</strong><small>Search, write, explore</small></span><b>↗</b></button>'+
+            '<button data-v3="browser"><span class="v4-shortcut-icon">'+icon("monitor")+'</span><span><strong>Browser</strong><small>Open your tabs</small></span><b>↗</b></button>'+
+            '<button data-v3="goDirectory"><span class="v4-shortcut-icon">'+icon("compass")+'</span><span><strong>Discover servers</strong><small>Find a community</small></span><b>↗</b></button>'+
           '</section></div>'+
         '<div class="v4-section-heading"><div><span class="v4-overline">ARCADE</span><h2>Something to play</h2></div>'+
           '<button data-v3="arcade">View all games <span>↗</span></button></div>'+
@@ -342,7 +343,7 @@ export function installWorkspaceV3(Hub){
           '</section>'+
           '<section class="v4-info-panel"><div class="v4-panel-heading"><span class="v4-overline">YOUR COMMUNITY</span><strong>Servers</strong></div>'+
             (this.v2Servers.length?this.v2Servers.slice(0,5).map(s=>
-              '<button class="v3-space-row" data-v3="goServer" data-id="'+safe(s.id)+'"><span>'+safe(s.icon||"✦")+'</span>'+
+              '<button class="v3-space-row" data-v3="goServer" data-id="'+safe(s.id)+'"><span>'+serverIcon(s.icon||"users")+'</span>'+
                 '<div><strong>'+safe(s.name)+'</strong><small>'+s.memberCount+' members · '+s.channels.length+' channels</small></div><b>↗</b></button>').join(""):
               '<div class="v4-empty-info">You haven’t joined a server yet.<button data-v3="goDirectory">Find one ↗</button></div>')+
           '</section></div></div></div>';
@@ -363,7 +364,7 @@ export function installWorkspaceV3(Hub){
           '<button type="button" data-v3filter="'+c+'" class="'+(filter===c?"active":"")+'">'+c+'</button>').join("")+'</div>'+
           '<label class="v3-library-search">⌕ <input id="v3GameSearch" placeholder="Find a game" aria-label="Find a game" value="'+safe(this.v3GameQuery||"")+'"></label></div>'+
         '<div class="v3-game-library-grid">'+games.map(g=>
-          '<article class="v3-game-card v3-game-'+g.className+'"><div class="v3-game-picture"><span>'+g.icon+'</span><i>'+g.kind.toUpperCase()+'</i></div>'+
+          '<article class="v3-game-card v3-game-'+g.className+'"><div class="v3-game-picture"><span>'+icon(g.icon)+'</span><i>'+g.kind.toUpperCase()+'</i></div>'+
             '<div class="v3-game-bottom"><div><strong>'+safe(g.name)+'</strong><small>'+safe(g.note)+'</small></div>'+
             '<div class="v3-card-actions"><button data-v3="favorite" data-game="'+g.id+'" class="v3-star-button" title="'+(this.v3Favorites.includes(g.id)?"Remove from quick launch":"Add to quick launch")+'">'+(this.v3Favorites.includes(g.id)?"★":"☆")+'</button>'+
             '<button data-v3="play" data-game="'+g.id+'">Play ↗</button></div></div></article>').join("")+
@@ -393,33 +394,33 @@ export function installWorkspaceV3(Hub){
   };
   Hub.prototype.v3Commands=function(){
     const basics=[
-      ["overview","⌂","Overview","Open home dashboard","Workspace"],
-      ["chat","＃","Community chat","Open #general","Workspace"],
-      ["directory","◈","Discover servers","Find or create communities","Community"],
-      ["browser","◎","Browser","Switch to browser tabs","Workspace"],
-      ["ai","✧","AI assistant","Open floating AI workspace","Tools"],
-      ["theme","◐","Appearance","Change accent theme","Tools"]
+      ["overview","home","Overview","Open home dashboard","Workspace"],
+      ["chat","message-circle","Community chat","Open #general","Workspace"],
+      ["directory","compass","Discover servers","Find or create communities","Community"],
+      ["browser","monitor","Browser","Switch to browser tabs","Workspace"],
+      ["ai","sparkles","AI assistant","Open floating AI workspace","Tools"],
+      ["theme","settings","Appearance","Change accent theme","Tools"]
     ];
-    const channels=["general","games","suggestions","support"].map(c=>
-      ["channel:"+c,"#","#"+c,"Go to community channel","Channels"]);
+    const channels=["announcements","general","games","suggestions","support"].map(c=>
+      ["channel:"+c,"hash","#"+c,"Go to community channel","Channels"]);
     return [...basics,...channels,...catalog.map(g=>["game:"+g.id,g.icon,g.name,g.kind+" game","Games"]),
-      ...this.v2Servers.map(s=>["server:"+s.id,s.icon||"◆",s.name,"Open your server","Servers"])];
+      ...this.v2Servers.map(s=>["server:"+s.id,"users",s.name,"Open your server","Servers"])];
   };
   Hub.prototype.v3DrawCommands=function(){
     const query=this.$("#v3CommandInput").value.toLowerCase().trim();
     const commands=this.v3Commands().filter(c=>!query||[c[2],c[3],c[4]].join(" ").toLowerCase().includes(query)).slice(0,18);
-    this.$("#v3CommandResults").innerHTML=commands.length?commands.map(([key,icon,name,desc,group])=>
-      '<button data-v3="commandResult" data-key="'+safe(key)+'"><span class="v3-command-icon">'+safe(icon)+'</span><span><strong>'+safe(name)+'</strong><small>'+safe(desc)+'</small></span><em>'+safe(group)+'</em></button>').join(""):
+    this.$("#v3CommandResults").innerHTML=commands.length?commands.map(([key,iconName,name,desc,group])=>
+      '<button data-v3="commandResult" data-key="'+safe(key)+'"><span class="v3-command-icon">'+icon(iconName)+'</span><span><strong>'+safe(name)+'</strong><small>'+safe(desc)+'</small></span><em>'+safe(group)+'</em></button>').join(""):
       '<p>No matches. Try a channel, game or tool.</p>';
   };
   Hub.prototype.v3ExecuteCommand= function(key){
     if(key==="overview")this.show("overview");
-    else if(key==="chat")this.show("chat","general");
+    else if(key==="chat"){this.v2ServerId="lightning-main";this.v2Channel="announcements";this.show("room");}
     else if(key==="directory")this.v2Discover();
     else if(key==="browser")this.close();
     else if(key==="ai")document.getElementById("boltBubble")?.click();
     else if(key==="theme")window.LightningGlass?.open();
-    else if(key.startsWith("channel:"))this.show("chat",key.slice(8));
+    else if(key.startsWith("channel:")){this.v2ServerId="lightning-main";this.v2Channel=key.slice(8);this.show("room");}
     else if(key.startsWith("game:"))this.v3Launch(key.slice(5));
     else if(key.startsWith("server:")){
       const s=this.v2Servers.find(s=>s.id===key.slice(7));
