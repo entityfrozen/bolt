@@ -77,7 +77,7 @@ function initDialog(){
  const dialog=document.createElement("dialog");dialog.id="lgSettings";dialog.className="lg-settings";
  dialog.setAttribute("aria-labelledby","lgSettingsTitle");
  dialog.innerHTML='<div class="lg-shell"><aside class="lg-sidebar">'+
-   '<div class="lg-brand"><i><img class="lightning-mark" src="/assets/lightning-mark.svg?v=1" alt=""></i><span><strong>Lightning</strong><small>Preferences</small></span></div>'+
+   '<div class="lg-brand"><i><img class="lightning-mark" src="/assets/lightning-mark.svg?v=1" alt=""></i><span><strong>Settings</strong><small>Appearance</small></span></div>'+
    '<span class="lg-rail-kicker">PERSONALIZATION</span>'+
    '<nav aria-label="Settings sections"><button data-lg-tab="appearance">◈ <span>Appearance</span></button>'+
    '<button data-lg-tab="layout">▣ <span>Layout & space</span></button>'+
@@ -93,7 +93,7 @@ function initDialog(){
    '<div class="lg-sample-row"><div class="lg-sample-menu"><i></i><i></i><i></i><i></i></div>'+
    '<div class="lg-sample-content"><small>GOOD EVENING</small><strong>Make it yours.</strong><div class="lg-sample-art"></div>'+
    '<div class="lg-sample-bars"><i></i><i></i></div></div></div></div></div>'+
-   '<div class="lg-preview-caption"><strong id="lgPreviewTitle">Champagne</strong><p>Changes apply as you edit.</p></div>'+
+   '<div class="lg-preview-caption"><strong id="lgPreviewTitle">Frost</strong><p>Changes apply as you edit.</p></div>'+
    '<button data-lg-action="reset" class="lg-reset-button">↻ Restore original look</button></aside></div>';
  document.body.append(dialog);
  dialog.addEventListener("click",e=>{
@@ -139,23 +139,23 @@ function initDialog(){
 function draw(tab="appearance"){
  currentTab=["appearance","layout","accessibility","data"].includes(tab)?tab:"appearance";
  const dialog=initDialog(),titles={
-  appearance:["DESIGN STUDIO","Make it yours."],layout:["WORKSPACE","Your space, your rules."],
-  accessibility:["COMFORT","Beautiful and comfortable."],data:["PREFERENCES & DATA","Stay in control."]
+  appearance:["APPEARANCE","Appearance"],layout:["LAYOUT","Layout"],
+  accessibility:["ACCESSIBILITY","Accessibility"],data:["DATA","Data and preferences"]
  };
  $$("[data-lg-tab]",dialog).forEach(b=>{b.classList.toggle("active",b.dataset.lgTab===currentTab);b.setAttribute("aria-current",b.dataset.lgTab===currentTab?"page":"false")});
  $("#lgCategory",dialog).textContent=titles[currentTab][0];$("#lgSettingsTitle",dialog).textContent=titles[currentTab][1];
  let html="";
  if(currentTab==="appearance"){
-  html='<div class="lg-intro"><span>01 · THEME STUDIO</span><h3>Good design. Your signature.</h3><p>Color, light, material and mood—adjusted live.</p></div>'+
-   box("Accent color","Champagne gold by default. Choose your own.",
+  html='<div class="lg-intro"><span>COLORS</span><h3>Theme</h3><p>Choose a color and background.</p></div>'+
+   box("Accent color","Used for buttons and highlights.",
      '<div class="lg-colors">'+COLORS.map(([id,name,color])=>'<button class="'+(prefs.preset===id?"active":"")+'" data-lg-choice="preset" data-value="'+id+'"><i style="--swatch:'+color+'"></i><b>'+name+'</b></button>').join("")+'</div>'+
      '<label class="lg-color-picker">Custom color <input data-lg-setting="accent" type="color" value="'+prefs.accent+'" aria-label="Custom accent color"><code id="lgCustomHex">'+prefs.accent.toUpperCase()+'</code></label>')+
-   box("Atmosphere","Pick the backdrop glowing through your panels.",
+   box("Background","Choose a background.",
      '<div class="lg-wallpapers">'+WALLS.map(([id,name,a,b,c])=>'<button class="'+(prefs.wallpaper===id?"active":"")+'" data-lg-choice="wallpaper" data-value="'+id+'"><i style="--wa:'+a+';--wb:'+b+';--wc:'+c+'"></i><b>'+name+'</b></button>').join("")+'</div>')+
-   box("Liquid glass","Shape the material itself.",
+   box("Glass effect","Change the blur and transparency.",
      '<div class="lg-slider-grid">'+slider("opacity","Transparency","%",20,95)+slider("blur","Glass blur","px",0,48)+slider("saturation","Color richness","%",100,190)+slider("radius","Corner radius","px",8,36)+'</div>');
  }else if(currentTab==="layout"){
-  html='<div class="lg-intro"><span>02 · WORKSPACE</span><h3>Move beyond one layout.</h3><p>Give your favorite tools room to breathe.</p></div>'+
+  html='<div class="lg-intro"><span>LAYOUT</span><h3>Layout</h3><p>Adjust the toolbar and sidebar.</p></div>'+
    box("Top navigation","Choose a floating island or connected app bar.",segment("layout",[["island","◉ Island","Floating controls"],["toolbar","▤ Toolbar","Connected top bar"]]))+
    box("Sidebar","Compact keeps the essentials in reach.",segment("sidebar",[["wide","▣ Full","Servers and channels"],["compact","◫ Compact","Icon navigation"]]))+
    box("Your panels","Only keep the things you use.",toggle("inspector","Activity panel","People and recent messages")+

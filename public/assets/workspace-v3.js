@@ -97,13 +97,13 @@ export function installWorkspaceV3(Hub){
     const shell=this.$(".v2-shell");shell.classList.add("v3-shell");
     shell.insertAdjacentHTML("beforeend",
       '<header class="v3-global-bar">'+
-        '<div class="v3-global-brand"><span class="v3-brand-flash"><img class="lightning-mark" src="/assets/lightning-mark.svg?v=1" alt="" aria-hidden="true"></span><div><strong>Lightning</strong><small>YOUR WORKSPACE</small></div></div>'+
+        '<div class="v3-global-brand"><span class="v3-brand-flash"><img class="lightning-mark" src="/assets/lightning-mark.svg?v=1" alt="" aria-hidden="true"></span><div><strong>Lightning</strong><small>Browser & community</small></div></div>'+
         '<nav class="v3-primary-tabs" aria-label="Workspace">'+
           '<button data-v3="overview" class="active">'+icon("home")+'<span>Overview</span></button>'+
           '<button data-v3="channel">'+icon("message-circle")+'<span>Community</span></button>'+
           '<button data-v3="arcade">'+icon("gamepad-2")+'<span>Games</span></button>'+
           '<button data-v3="browser">'+icon("monitor")+'<span>Browser</span></button></nav>'+
-        '<button class="v3-command-trigger" data-v3="command" title="Command menu (Ctrl or Cmd + K)"><span>⌕</span> Find anything <kbd>⌘ K</kbd></button>'+
+        '<button class="v3-command-trigger" data-v3="command" title="Command menu (Ctrl or Cmd + K)"><span>⌕</span> Search <kbd>⌘ K</kbd></button>'+
         '<div class="v3-bar-end"><button class="v3-top-icon" data-v3="theme" title="Appearance and settings (Ctrl+,)" aria-label="Appearance and settings">'+icon("settings")+'</button>'+
           '<button class="v3-top-icon" data-v3="toggleInspector" title="Toggle activity panel" aria-label="Toggle activity panel">'+icon("panel-right")+'</button>'+
           '<button class="v3-top-ai" data-v3="ai">'+icon("sparkles")+' Ask AI <span>↗</span></button></div>'+
@@ -112,7 +112,7 @@ export function installWorkspaceV3(Hub){
         '<div class="v3-inspector-header"><span>ACTIVITY</span><button data-v3="toggleInspector" aria-label="Hide activity panel">×</button></div>'+
         '<div id="v3InspectorContent"></div></aside>'+
       '<footer class="v3-dock" aria-label="Quick launch">'+
-        '<div class="v3-dock-label"><span>▣</span><div><strong>Quick launch</strong><small>Jump back into a game</small></div></div>'+
+        '<div class="v3-dock-label"><span>▣</span><div><strong>Games</strong><small>Open a game</small></div></div>'+
         '<div id="v3DockGames" class="v3-dock-games"></div>'+
         '<button class="v3-dock-toggle" data-v3="toggleDock" aria-label="Collapse or expand launcher">⌄</button>'+
       '</footer>'+
@@ -124,7 +124,7 @@ export function installWorkspaceV3(Hub){
         '<footer>↑↓ to navigate · Enter to open · Esc to close</footer></dialog>'+
       '<dialog class="v3-theme-dialog" id="v3ThemeDialog" aria-label="Appearance">'+
         '<header><strong>Appearance</strong><button data-v3="closeTheme" aria-label="Close">×</button></header>'+
-        '<p>Choose the accent that feels right.</p><div class="v3-theme-grid">'+
+        '<p>Change the accent color.</p><div class="v3-theme-grid">'+
         Object.entries(themeColors).map(([key,color])=>'<button type="button" data-v3="setTheme" data-theme="'+key+'"><i style="--swatch:'+color+'"></i><span>'+themeNames[key]+'</span></button>').join("")+
         '</div><small>Your theme is saved on this device.</small></dialog>');
     // A single sidebar owns both the server switcher and the channel tree.
@@ -241,11 +241,11 @@ export function installWorkspaceV3(Hub){
       '<section class="v3-inspector-group"><div class="v3-inspector-title">LATEST MESSAGES</div>'+
       (recent.length?recent.map(m=>
         '<button class="v3-inspector-message" data-v3="goChannel" data-channel="'+safe(m.channel)+'"><strong>'+safe(m.by)+'</strong><span>#'+safe(m.channel)+' · '+relative(m.at)+'</span><p>'+safe(m.message.slice(0,85))+'</p></button>').join(""):
-        '<p class="v3-muted">No messages yet. Start the conversation.</p>')+'</section>'+
+        '<p class="v3-muted">No messages yet.</p>')+'</section>'+
       '<section class="v3-inspector-group"><div class="v3-inspector-title">QUICK ACTIONS</div>'+
-      '<button class="v3-side-action" data-v3="command">⌕ <span>Find anything</span><kbd>⌘ K</kbd></button>'+
+      '<button class="v3-side-action" data-v3="command">⌕ <span>Search</span><kbd>⌘ K</kbd></button>'+
       '<button class="v3-side-action" data-v3="ai">✧ <span>Open AI assistant</span><b>↗</b></button>'+
-      '<button class="v3-side-action" data-v3="goDirectory">＋ <span>Join a community</span><b>↗</b></button></section>';
+      '<button class="v3-side-action" data-v3="goDirectory">＋ <span>Find servers</span><b>↗</b></button></section>';
   };
   Hub.prototype.v3Sync=function(){
     const current=this.view;
@@ -255,7 +255,7 @@ export function installWorkspaceV3(Hub){
        view==="channel"&&["chat","room","directory"].includes(current)||
        view==="arcade"&&["games","chess","rps","world","uma","2048","mines"].includes(current));
     });
-    this.$(".v3-global-brand small").textContent=this.v2ServerId?"YOUR COMMUNITY":"YOUR WORKSPACE";
+    this.$(".v3-global-brand small").textContent=this.v2ServerId?"SERVER":"HOME";
     this.v3RenderInspector();
   };
   Hub.prototype.v2Nav=function(){
@@ -263,8 +263,8 @@ export function installWorkspaceV3(Hub){
     if(!this.v3Ready)return;
     const navRoot=this.$("#v2Channels");if(!navRoot)return;
     if(!this.v2ServerId){
-      this.$("#v2ServerTitle").textContent="Your space";
-      this.$("#v2ServerAbout").textContent="Find your people.";
+      this.$("#v2ServerTitle").textContent="Home";
+      this.$("#v2ServerAbout").textContent="Channels and games";
     }
     navRoot.insertAdjacentHTML("afterbegin",
       '<div class="v3-nav-kicker">WORKSPACE</div>'+
@@ -305,7 +305,7 @@ export function installWorkspaceV3(Hub){
     }
   };
   Hub.prototype.v3Overview=function(){
-    this.header("Home","Your space");
+    this.header("Home","Overview");
     const main=this.v2Servers.find(s=>s.id==="lightning-main");
     const channels=main?.channels||[];
     const visible=new Set(channels.map(c=>c.id));
@@ -319,26 +319,26 @@ export function installWorkspaceV3(Hub){
     const displayName=safe(this.name||"there");
     const date=new Intl.DateTimeFormat(undefined,{weekday:"long",month:"long",day:"numeric"}).format(new Date());
     const shortcuts=[
-      ["general","message-circle","General","The main conversation"],
-      ["games","gamepad-2","Games","Talk games and matchups"],
-      ["suggestions","sparkles","Suggestions","Share what comes next"],
-      ["support","shield-check","Support","Get help"]
+      ["general","message-circle","General","General chat"],
+      ["games","gamepad-2","Games","Game chat"],
+      ["suggestions","sparkles","Suggestions","Ideas and feedback"],
+      ["support","shield-check","Support","Questions and help"]
     ].filter(([id])=>visible.has(id));
     const browseGame=catalog.filter(g=>["chess","world","uma","2048"].includes(g.id));
     this.$("#hubContent").innerHTML=
       '<div class="v4-home v5-dashboard"><div class="v5-dashboard-inner">'+
         '<header class="v5-welcome"><div><span class="v5-eyebrow">'+safe(date)+'</span>'+
           '<h1>'+greeting+', <em>'+displayName+'.</em></h1>'+
-          '<p>Everything happening across your communities, in one place.</p></div>'+
-          '<button type="button" class="v5-command" data-v3="command">'+icon("search")+'<span>Search anything</span><kbd>Ctrl K</kbd></button></header>'+
+          '<p>Recent messages, servers, and games.</p></div>'+
+          '<button type="button" class="v5-command" data-v3="command">'+icon("search")+'<span>Search</span><kbd>Ctrl K</kbd></button></header>'+
         '<div class="v5-lead-grid">'+
           '<section class="v5-announcement-card">'+
-            '<div class="v5-announcement-top"><span class="v5-section-label">'+icon("megaphone")+' LIGHTNING COMMUNITY</span>'+
+            '<div class="v5-announcement-top"><span class="v5-section-label">'+icon("megaphone")+' MAIN SERVER</span>'+
               '<span class="v5-official-mark">'+icon("shield-check")+' Official</span></div>'+
             '<h2>Announcements</h2>'+
             (latest?'<div class="v5-latest"><div class="v5-latest-meta"><strong>'+safe(latest.by)+'</strong><span>'+relative(latest.at)+'</span></div>'+
               '<p>'+safe(String(latest.message||"").slice(0,290))+(String(latest.message||"").length>290?"…":"")+'</p></div>':
-              '<p class="v5-no-news">Official updates from the Lightning team will appear here. Follow along for the latest news.</p>')+
+              '<p class="v5-no-news">No announcements yet.</p>')+
             '<div class="v5-announcement-foot"><span>'+icon("lock-keyhole")+' Staff announcements</span>'+
               '<button type="button" data-v3="goChannel" data-channel="announcements">Open announcements '+icon("arrow-up-right")+'</button></div>'+
           '</section>'+
@@ -347,7 +347,7 @@ export function installWorkspaceV3(Hub){
             (shortcuts.length?shortcuts.map(([id,glyph,title,desc])=>
               '<button type="button" class="v5-channel-shortcut" data-v3="goChannel" data-channel="'+id+'">'+
                 '<span class="v5-channel-mark">'+icon(glyph)+'</span><span class="v5-channel-name"><strong>'+title+'</strong><small>'+desc+'</small></span>'+icon("chevron-right")+'</button>').join(""):
-              '<div class="v5-empty-state">Channels will appear when you connect to Lightning Live.</div>')+
+              '<div class="v5-empty-state">No channels available.</div>')+
           '</section>'+
         '</div>'+
         '<div class="v5-middle-grid">'+
@@ -359,7 +359,7 @@ export function installWorkspaceV3(Hub){
                 '<span class="v5-message-content"><span class="v5-message-head"><strong>'+safe(m.by)+'</strong><small>#'+safe(m.channel)+' · '+relative(m.at)+'</small></span>'+
                   '<span class="v5-message-preview">'+safe(String(m.message||"").slice(0,155))+'</span></span>'+
                 icon("chevron-right")+'</button>').join(""):
-              '<div class="v5-empty-state">No conversations yet. Say hello in #general.<button type="button" data-v3="goChannel" data-channel="general">Open general '+icon("arrow-up-right")+'</button></div>')+
+              '<div class="v5-empty-state">No recent messages.<button type="button" data-v3="goChannel" data-channel="general">Open general '+icon("arrow-up-right")+'</button></div>')+
           '</section>'+
           '<section class="v5-content-card"><div class="v5-card-header"><div><span class="v5-eyebrow">YOUR PLACES</span><h2>Servers</h2></div>'+
             '<button type="button" data-v3="goDirectory">Discover '+icon("arrow-up-right")+'</button></div>'+
@@ -367,11 +367,11 @@ export function installWorkspaceV3(Hub){
               '<span class="v5-server-image">'+serverIcon(s.icon||"users")+'</span>'+
               '<span class="v5-server-detail"><strong>'+safe(s.name)+'</strong><small>'+Number(s.memberCount||0)+' members · '+Number(s.channels?.length||s.channelCount||0)+' channels</small></span>'+
               (s.permanent?'<span class="v5-main-pill">Main</span>':icon("chevron-right"))+'</button>').join(""):
-              '<div class="v5-empty-state">Your servers will appear here when connected.</div>')+
+              '<div class="v5-empty-state">No servers available.</div>')+
           '</section>'+
         '</div>'+
         '<section class="v5-game-section">'+
-          '<div class="v5-card-header"><div><span class="v5-eyebrow">TAKE A BREAK</span><h2>Jump into a game</h2></div>'+
+          '<div class="v5-card-header"><div><span class="v5-eyebrow">GAMES</span><h2>Games</h2></div>'+
             '<button data-v3="arcade">All games '+icon("arrow-up-right")+'</button></div>'+
           '<div class="v5-game-row">'+browseGame.map(g=>
             '<button type="button" class="v5-game-launch v5-game-'+safe(g.className)+'" data-v3="play" data-game="'+safe(g.id)+'">'+
@@ -382,15 +382,15 @@ export function installWorkspaceV3(Hub){
     this.v3Sync();
   };
   Hub.prototype.games=function(){
-    this.header("Game library","Six games. One place to play.");
+    this.header("Games","Choose a game");
     const categories=["All","Strategy","Casual","Fighting","Puzzle"];
     const filter=categories.includes(this.v3Filter)?this.v3Filter:"All";
     const games=catalog.filter(g=>filter==="All"||g.kind===filter).filter(g=>
       !this.v3GameQuery||g.name.toLowerCase().includes(this.v3GameQuery));
     this.$("#hubContent").innerHTML=
       '<div class="v3-library"><div class="v3-library-top"><div>'+
-        '<span class="v3-eyebrow">EXPLORE / ARCADE</span><h1>Pick your next<br><em>obsession.</em></h1>'+
-        '<p>Multiplayer favorites, quick matches and new single-player challenges.</p></div>'+
+        '<span class="v3-eyebrow">GAMES</span><h1>Pick your game.</h1>'+
+        '<p>Play online or on your own.</p></div>'+
         '<div class="v3-library-ornament" aria-hidden="true">◈</div></div>'+
         '<div class="v3-library-controls"><div class="v3-category-tabs">'+categories.map(c=>
           '<button type="button" data-v3filter="'+c+'" class="'+(filter===c?"active":"")+'">'+c+'</button>').join("")+'</div>'+
@@ -401,7 +401,7 @@ export function installWorkspaceV3(Hub){
             '<div class="v3-card-actions"><button data-v3="favorite" data-game="'+g.id+'" class="v3-star-button" title="'+(this.v3Favorites.includes(g.id)?"Remove from quick launch":"Add to quick launch")+'">'+(this.v3Favorites.includes(g.id)?"★":"☆")+'</button>'+
             '<button data-v3="play" data-game="'+g.id+'">Play ↗</button></div></div></article>').join("")+
         (!games.length?'<div class="v3-library-empty">No games match that search.</div>':"")+'</div>'+
-        '<div class="v3-library-end">Your favorites show up in the quick launcher below. Pick ★ to customize it.</div></div>';
+        '<div class="v3-library-end">Star a game to add it to the launcher.</div></div>';
     this.$$("#hubContent [data-v3filter]").forEach(b=>b.addEventListener("click",()=>{this.v3Filter=b.dataset.v3filter;this.games();}));
     this.$("#v3GameSearch").addEventListener("input",event=>{
       this.v3GameQuery=event.target.value.toLowerCase().trim();

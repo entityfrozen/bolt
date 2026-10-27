@@ -26,7 +26,7 @@ export function installV2(Hub){
       '<button class="v2-home active" data-v2="home" aria-label="Community home" title="Lightning community"><img class="lightning-mark" src="/assets/lightning-mark.svg?v=1" alt="" aria-hidden="true"></button><div class="v2-rail-divider"></div><div id="v2ServerIcons"></div>'+
       '<button class="v2-add" data-v2="discover" aria-label="Discover servers" title="Discover servers">+</button><div class="v2-rail-spacer"></div>'+
       '<button class="v2-ai-mini" data-v2="ai" title="AI workspace">✧</button></nav>'+
-      '<aside class="hub-rail v2-sidebar"><div class="hub-logo"><span class="v2-mini-label">COMMUNITY</span><strong id="v2ServerTitle">Lightning</strong><small id="v2ServerAbout">Your space to connect.</small></div>'+
+      '<aside class="hub-rail v2-sidebar"><div class="hub-logo"><span class="v2-mini-label">COMMUNITY</span><strong id="v2ServerTitle">Lightning</strong><small id="v2ServerAbout">Chat and channels</small></div>'+
       '<nav class="hub-nav" id="v2Channels" aria-label="Community channels"></nav>'+
       '<div class="hub-user"><div class="hub-avatar" id="hubAvatar">L</div><div><strong id="hubUsername">Account</strong><span id="hubConnection">Connecting…</span></div><button data-v2="ai" class="v2-account-ai" title="AI workspace">✧</button></div></aside>'+
       '<main class="hub-main v2-main"><header class="hub-head v2-topbar"><button type="button" class="v2-menu-button" data-v2="toggleNav" aria-label="Toggle channel list" aria-expanded="false">'+icon("menu")+'</button><div class="v2-topbar-name"><h2 id="hubTitle"># general</h2><p id="hubSubtitle">Community</p></div><span class="hub-spacer"></span>'+
@@ -37,7 +37,7 @@ export function installV2(Hub){
       '<div id="hubWorld" class="hub-world" hidden></div><div id="hubToast" class="hub-toast" hidden></div>'+
       '<dialog id="v2CreateDialog" class="v2-modal" aria-labelledby="v2DialogTitle"><form id="v2CreateForm"><header><div><small>COMMUNITY</small><h2 id="v2DialogTitle">Create a server</h2></div><button type="button" data-v2="closeModal" aria-label="Close">×</button></header>'+
       '<label>Server name<input required id="v2Name" minlength="2" maxlength="40" placeholder="My community"></label>'+
-      '<label>Description<input id="v2Description" maxlength="140" placeholder="What brings everyone together?"></label>'+
+      '<label>Description<input id="v2Description" maxlength="140" placeholder="What is this server for?"></label>'+
       '<label>Icon<input id="v2Icon" maxlength="4" placeholder="✦"></label><footer><button type="button" data-v2="closeModal">Cancel</button><button class="v2-primary">Create server →</button></footer></form></dialog>'+
       '</div>';
     this.root.addEventListener("click",event=>{
@@ -88,7 +88,7 @@ export function installV2(Hub){
     if(!this.v2Ready)return;
     const current=this.v2Servers.find(s=>s.id===this.v2ServerId);
     this.$("#v2ServerTitle").textContent=current?.name||"Lightning";
-    this.$("#v2ServerAbout").textContent=current?current.memberCount+" members · "+current.channels.length+" channels":"A place to make your own.";
+    this.$("#v2ServerAbout").textContent=current?current.memberCount+" members · "+current.channels.length+" channels":"Servers and channels";
     this.$(".v2-home").classList.toggle("active",!current);
     this.$("#v2ServerIcons").innerHTML=this.v2Servers.map((s,i)=>'<button class="v2-server-icon'+(s.id===this.v2ServerId?" active":"")+'" data-v2="server" data-id="'+esc(s.id)+'" title="'+esc(s.name)+'" aria-label="'+esc(s.name)+'">'+esc(s.icon||["✦","◈","◆"][i%3])+'</button>').join("");
     if(current){
@@ -146,10 +146,10 @@ export function installV2(Hub){
     if(!refresh)this.v2Search="";
     this.$(".v2-shell")?.classList.remove("v2-nav-open");
     this.$(".v2-menu-button")?.setAttribute("aria-expanded","false");
-    this.view="directory";this.header("Discover","Find your community");
+    this.view="directory";this.header("Servers","Find a server");
     const owned=new Set(this.v2Servers.map(s=>s.id)),q=this.v2Search||"";
     const found=this.v2Directory.filter(s=>!q||(s.name+" "+s.description).toLowerCase().includes(q));
-    this.$("#hubContent").innerHTML='<section class="v2-directory"><div class="v2-dir-top"><span class="v2-eyebrow">COMMUNITY DIRECTORY</span><h1>Find your people.</h1><p>Join a server, create channels, and talk with real people.</p><button class="v2-primary" data-v2="create">＋ Create a server</button></div><div class="v2-dir-grid">'+
+    this.$("#hubContent").innerHTML='<section class="v2-directory"><div class="v2-dir-top"><span class="v2-eyebrow">SERVERS</span><h1>Find a server.</h1><p>Join an existing server or make one.</p><button class="v2-primary" data-v2="create">＋ Create a server</button></div><div class="v2-dir-grid">'+
       found.map((s,i)=>'<article class="v2-dir-card"><div class="v2-dir-icon">'+serverIcon(s.icon||"users")+'</div><h3>'+esc(s.name)+'</h3><p>'+esc(s.description)+'</p><small>'+Number(s.memberCount||0)+' members · '+Number(s.channelCount||0)+' channels</small>'+
         (owned.has(s.id)?'<button data-v2="server" data-id="'+esc(s.id)+'">Open server ↗</button>':'<button class="v2-primary" data-v2="join" data-id="'+esc(s.id)+'">Join server →</button>')+'</article>').join("")+
       (!found.length?'<p class="v2-nothing">No servers found yet. Create one to get started.</p>':"")+'</div></section>';

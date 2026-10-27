@@ -13,7 +13,7 @@ export function installSplitChat(Hub){
   const aside=document.createElement("aside");
   aside.id="lightningSideChat";aside.className="lightning-side-chat";aside.hidden=true;
   aside.setAttribute("aria-label","Live community chat");
-  aside.innerHTML='<header><div class="sc-header-title"><small>COMMUNITY</small><strong>Chat while you play</strong></div>'+
+  aside.innerHTML='<header><div class="sc-header-title"><small>COMMUNITY</small><strong>Chat</strong></div>'+
     '<button type="button" data-split="close" aria-label="Close side chat">×</button></header>'+
     '<div class="sc-destination"><label for="splitChannelSelect">CHANNEL</label><select id="splitChannelSelect" aria-label="Choose chat channel"></select></div>'+
     '<div class="sc-messages" id="splitMessages" aria-live="polite"></div>'+

@@ -55,6 +55,8 @@ jobs:
         run: node --test test/auth.test.mjs
       - name: Test account profiles, DMs and cross-device history
         run: node --test test/account-space.test.mjs
+      - name: Test interface copy
+        run: node --test test/copy.test.mjs
       - name: Test web search
         run: node --test test/web-search.test.mjs
       - name: Test Arcade interface

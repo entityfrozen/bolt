@@ -173,7 +173,7 @@ export function installCommunityUI(Hub){
   if(!c)return;
   const description=this.$(".v2-room-intro p"),title=this.$(".v2-room-intro h2");
   if(title)title.textContent=c.id==="announcements"?"Official announcements":"#"+c.name;
-  if(description)description.textContent=c.id==="announcements"?"Updates directly from the Lightning team.":"Talk with the members of "+s.name+".";
+  if(description)description.textContent=c.id==="announcements"?"Updates from the admins.":"Channel in "+s.name+".";
   const compose=this.$("#v2ChatForm");
   if(c.readOnly&&!s.canManage&&compose)compose.outerHTML='<div class="cm-readonly">'+icon("lock-keyhole")+
    '<div><strong>Announcement channel</strong><span>Only the team can post here.</span></div></div>';
@@ -207,7 +207,7 @@ export function installCommunityUI(Hub){
     '<label class="cm-check"><input type="checkbox" name="private"> Private channel</label>'+
     '<button class="cm-save" type="submit">'+icon("plus")+' Create channel</button></form></section>';
   }else if(this.manageTab==="roles"){
-   html='<section class="cm-card"><h3>Roles</h3><p>Roles are member labels. Lightning administrator rights cannot be granted here.</p>'+
+   html='<section class="cm-card"><h3>Roles</h3><p>Roles change member labels, not admin permissions.</p>'+
     s.roles.map(role=>row('<span class="cm-role-color" style="--role-color:'+roleColor(role.color)+'"></span>',role.name,
      role.id==="member"?"Default role":"Custom role",
      role.id!=="member"?'<label title="Role color"><input type="color" data-cm-color data-role-id="'+esc(role.id)+'" value="'+roleColor(role.color)+'"></label>'+
@@ -223,7 +223,7 @@ export function installCommunityUI(Hub){
     m.admin?"Platform admin":"Member",'<select data-cm-role data-member="'+esc(m.id)+'" aria-label="Role for '+esc(m.name)+'">'+
     s.roles.map(r=>'<option value="'+esc(r.id)+'"'+(m.role===r.id?" selected":"")+'>'+esc(r.name)+'</option>').join("")+'</select>')).join("")+'</section>';
   }else{
-   html='<section class="cm-card"><h3>Server profile</h3><p>'+ (s.permanent?"The main server stays available to every Lightning account.":"Edit the profile for your server.")+'</p>'+
+   html='<section class="cm-card"><h3>Server profile</h3><p>'+ (s.permanent?"Everyone is a member of this server.":"Change the server name and description.")+'</p>'+
     '<form class="cm-form" data-cm-form="server">'+
     (s.permanent?"":'<label>Server name<input name="name" maxlength="40" value="'+esc(s.name)+'"></label>')+
     '<label class="cm-full">Description<textarea name="description" maxlength="140">'+esc(s.description)+'</textarea></label>'+

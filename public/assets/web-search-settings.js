@@ -11,7 +11,7 @@
  const dialog=document.createElement("dialog");
  dialog.className="ai-search-dialog";dialog.id="aiSearchDialog";
  dialog.setAttribute("aria-labelledby","aiSearchDialogTitle");
- dialog.innerHTML='<section class="ai-search-shell"><header><div><small>LIGHTNING AI · WEB ACCESS</small><h2 id="aiSearchDialogTitle">Connect web search</h2></div>'+
+ dialog.innerHTML='<section class="ai-search-shell"><header><div><small>WEB SEARCH</small><h2 id="aiSearchDialogTitle">Connect web search</h2></div>'+
   '<button id="aiSearchClose" type="button" aria-label="Close search settings">×</button></header>'+
   '<p class="ai-search-description">Search keys are different from the AI model key. Choose a provider, save its API key securely to your account, then test the connection.</p>'+
   '<div class="ai-search-provider-state" id="aiProviderStatus" role="status">Checking search providers…</div>'+

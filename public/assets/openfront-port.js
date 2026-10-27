@@ -46,17 +46,17 @@ export function installWorldPort(Hub){
     if(!ready){
       mount.innerHTML=
         '<div class="wp-welcome"><div class="wp-welcome-inner">'+
-          '<div class="wp-welcome-top"><span>LIGHTNING / WORLD PVP</span><span>GLOBAL STRATEGY</span></div>'+
-          '<div class="wp-hero"><div class="wp-eyebrow">YOUR NEXT MATCH</div><h1>One world.<br><em>Make it yours.</em></h1>'+
+          '<div class="wp-welcome-top"><span>WORLD PVP</span><span>GLOBAL STRATEGY</span></div>'+
+          '<div class="wp-hero"><div class="wp-eyebrow">STRATEGY</div><h1>WorldPvP</h1>'+
           '<p>Start with a small piece of the map. Grow your territory, train troops, and outlast the other nations.</p>'+
-          '<div class="wp-launch"><button type="button" data-act="worldStart">ENTER WORLD PVP <b>↗</b></button>'+
+          '<div class="wp-launch"><button type="button" data-act="worldStart">Play WorldPvP <b>↗</b></button>'+
           '<button type="button" data-act="worldHow">HOW TO PLAY <b>?</b></button></div></div>'+
           '<div class="wp-beginner"><h2>Your first five minutes</h2><div class="wp-beginner-grid">'+
           '<section><span>01</span><strong>Choose your start</strong><p>Pick an open spot on the map when the match begins.</p></section>'+
           '<section><span>02</span><strong>Grow slowly</strong><p>Expand into empty land first. Keep troops in reserve.</p></section>'+
           '<section><span>03</span><strong>Watch the borders</strong><p>Enemies can attack while you expand. Protect the frontline.</p></section>'+
           '<section><span>04</span><strong>Make alliances</strong><p>Team up when a larger neighbor threatens you.</p></section>'+
-          '</div></div><div class="wp-welcome-bottom"><span>TO START: PICK A MAP → CHOOSE A MODE → PICK YOUR START</span><button data-act="back" type="button">← Back to arcade</button></div>'+
+          '</div></div><div class="wp-welcome-bottom"><span>Choose a map, game mode, and starting region</span><button data-act="back" type="button">← Back to arcade</button></div>'+
         '</div></div>'+CREDITS;
       return;
     }

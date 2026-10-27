@@ -9,10 +9,10 @@ export function installRpsVisuals(Hub){
     if(!g){
       host.innerHTML=
         '<section class="rps-fresh rps-fresh-lobby">'+
-          '<div class="rps-kicker"><i></i> HEAD TO HEAD · QUICK MATCHES</div>'+
+          '<div class="rps-kicker"><i></i> ROCK PAPER SCISSORS</div>'+
           '<div class="rps-hero-icons" aria-hidden="true"><span>✊</span><span>✋</span><span>✌️</span></div>'+
-          '<h1>Three moves.<br><em>One winner.</em></h1>'+
-          '<p>Outsmart a friend, face the bot, or enter a tournament. One choice makes the difference.</p>'+
+          '<h1>Rock Paper Scissors</h1>'+
+          '<p>Play another member, try the bot, or join a tournament.</p>'+
           '<div class="rps-lobby-actions"><button class="hub-btn primary" data-act="rpsQueue">Find an opponent ↗</button>'+
           '<button class="hub-btn" data-act="rpsBot">Play against bot</button>'+
           '<button class="hub-btn" data-act="tournament">4-player tournament</button></div>'+

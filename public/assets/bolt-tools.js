@@ -6,12 +6,12 @@
   root.id = "boltTools";
   root.innerHTML = '<button type="button" class="bolt-bubble" id="boltBubble" aria-label="Open Lightning AI" aria-expanded="false" aria-controls="boltAiPanel" title="Lightning AI · drag to move"><img class="lightning-mark" src="/assets/lightning-mark.svg?v=1" alt="" aria-hidden="true"></button>' +
     '<aside class="bolt-ai-panel" id="boltAiPanel" role="dialog" aria-label="Lightning AI" aria-modal="false" aria-hidden="true">' +
-      '<header class="bolt-aux-head" id="boltAiDrag" tabindex="0" title="Drag to move · Alt+arrow keys to move"><span class="bolt-aux-brand"><img class="lightning-mark" src="/assets/lightning-mark.svg?v=1" alt="" aria-hidden="true"></span><div><div class="bolt-aux-title">Lightning AI</div><div class="bolt-aux-subtitle">Your browsing companion</div></div><span class="bolt-aux-spacer"></span><button class="bolt-aux-btn" id="boltAiClear" title="New chat">New chat</button><button type="button" class="bolt-ai-head-tool" id="boltAiSize" aria-label="Maximize AI" title="Maximize or restore">□</button><button class="bolt-aux-btn" id="boltAiClose" type="button" aria-label="Close AI" title="Close AI">×</button></header>' +
+      '<header class="bolt-aux-head" id="boltAiDrag" tabindex="0" title="Drag to move · Alt+arrow keys to move"><span class="bolt-aux-brand"><img class="lightning-mark" src="/assets/lightning-mark.svg?v=1" alt="" aria-hidden="true"></span><div><div class="bolt-aux-title">AI chat</div><div class="bolt-aux-subtitle">Ask a question</div></div><span class="bolt-aux-spacer"></span><button class="bolt-aux-btn" id="boltAiClear" title="New chat">New chat</button><button type="button" class="bolt-ai-head-tool" id="boltAiSize" aria-label="Maximize AI" title="Maximize or restore">□</button><button class="bolt-aux-btn" id="boltAiClose" type="button" aria-label="Close AI" title="Close AI">×</button></header>' +
       '<div class="bolt-ai-messages" id="boltAiMessages" aria-live="polite"></div>' +
       '<div class="bolt-ai-activity" id="boltAiActivity" role="status" hidden><b>ACTIVITY</b><span>Ready</span></div>' +
       '<span class="bolt-ai-grip" aria-hidden="true"></span>' +
       '<form class="bolt-ai-compose" id="boltAiForm"><div class="bolt-ai-shortcuts"><button type="button" id="boltUseSelection">Use selected text</button><button type="button" id="boltUsePage">Add page link</button><button type="button" id="boltAiWeb" aria-pressed="false" title="Search the web for this answer">Web: auto</button></div>' +
-      '<textarea class="bolt-ai-textarea" id="boltAiInput" maxlength="9000" placeholder="Ask Lightning anything..."></textarea><div class="bolt-ai-error" id="boltAiError" role="status"></div><div class="bolt-ai-actions"><span class="bolt-ai-hint">↵ send &nbsp; · &nbsp; shift ↵ newline</span><button class="bolt-ai-send" id="boltAiSend" type="submit">Send ↗</button></div></form></aside>' +
+      '<textarea class="bolt-ai-textarea" id="boltAiInput" maxlength="9000" placeholder="Ask a question..."></textarea><div class="bolt-ai-error" id="boltAiError" role="status"></div><div class="bolt-ai-actions"><span class="bolt-ai-hint">↵ send &nbsp; · &nbsp; shift ↵ newline</span><button class="bolt-ai-send" id="boltAiSend" type="submit">Send ↗</button></div></form></aside>' +
     '<section class="bolt-devdock" id="boltDevDock" aria-label="Lightning DevTools">' +
       '<nav class="bolt-dev-tabs"><button type="button" data-bolt-devtab="elements" class="on">Elements</button><button type="button" data-bolt-devtab="console">Console</button><button type="button" data-bolt-devtab="network">Network</button><button type="button" id="boltDevPick">Pick element</button><span class="bolt-aux-spacer"></span><button type="button" id="boltDevClose" title="Close DevTools">✕</button></nav>' +
       '<div class="bolt-dev-body" id="boltDevBody"></div><form class="bolt-dev-expression" id="boltDevExpr"><span>›</span><input id="boltDevInput" spellcheck="false" autocomplete="off" placeholder="JavaScript expression in active page"><button type="submit">Run</button></form>' +
@@ -104,12 +104,12 @@
       const empty = document.createElement("div");
       empty.className = "bolt-ai-empty";
       empty.innerHTML =
-        '<div class="bolt-ai-intro"><span class="bolt-ai-kicker">A hand when you need one</span>' +
-        '<strong>What can I help with?</strong><p>Get unstuck, find the right words, or untangle something complicated.</p></div>' +
-        '<div class="bolt-ai-suggest-label">A place to start</div>' +
+        '<div class="bolt-ai-intro"><span class="bolt-ai-kicker">AI CHAT</span>' +
+        '<strong>What do you need?</strong><p>Ask a question, search the web, or paste something to work on.</p></div>' +
+        '<div class="bolt-ai-suggest-label">TRY THIS</div>' +
         '<div class="bolt-ai-suggestions">' +
-        '<button class="bolt-ai-suggestion" type="button" data-ai-suggestion="Can you help me improve a paragraph I wrote?">Polish my writing</button>' +
-        '<button class="bolt-ai-suggestion" type="button" data-ai-suggestion="Explain something complicated to me in simple terms.">Explain something simply</button>' +
+        '<button class="bolt-ai-suggestion" type="button" data-ai-suggestion="Can you help me improve a paragraph I wrote?">Edit some text</button>' +
+        '<button class="bolt-ai-suggestion" type="button" data-ai-suggestion="Explain something complicated to me in simple terms.">Explain a topic</button>' +
         '</div>';
       empty.querySelectorAll("[data-ai-suggestion]").forEach(button =>
         button.addEventListener("click", () => {

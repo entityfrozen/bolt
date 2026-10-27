@@ -23,7 +23,7 @@
       <div class="auth-logo"><img src="/assets/lightning-mark.svg?v=1" alt="" class="lightning-mark"></div>
       <div>
         <div class="auth-name">Lightning</div>
-        <p>Your browser, your communities, your space. All in one place.</p>
+        <p>Browse, chat, and play games.</p>
       </div>
       <div class="auth-signature">Made by Amare</div>
     </section>
@@ -35,13 +35,13 @@
       <form class="auth-form active" id="accountForm" data-auth-form="account">
         <label>Username<input id="loginUsername" autocomplete="username" required></label>
         <label>Password<input id="loginPassword" type="password" autocomplete="current-password" required></label><button type="button" class="auth-show-password" data-password-toggle="loginPassword" aria-pressed="false">Show password</button>
-        <button class="auth-submit" type="submit">Enter Lightning →</button>
+        <button class="auth-submit" type="submit">Sign in</button>
       </form>
       <form class="auth-form" id="registerForm" data-auth-form="register">
         <label>Username<input id="registerUsername" autocomplete="username" minlength="3" maxlength="32" pattern="[A-Za-z0-9._-]{3,32}" required placeholder="Choose your name"></label>
         <label>Password<input id="registerPassword" autocomplete="new-password" type="password" minlength="10" maxlength="128" required></label>
         <label>Confirm password<input id="registerConfirm" autocomplete="new-password" type="password" minlength="10" maxlength="128" required></label><button type="button" class="auth-show-password" data-password-toggle="registerPassword,registerConfirm" aria-pressed="false">Show passwords</button>
-        <p class="auth-hint">New accounts need a manual admin approval before they can use Lightning.</p>
+        <p class="auth-hint">An admin needs to approve new accounts.</p>
         <button class="auth-submit" type="submit">Request access →</button>
       </form>
       <div id="authPending" class="auth-pending" role="status" aria-live="polite">
