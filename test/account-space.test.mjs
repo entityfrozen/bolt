@@ -126,3 +126,39 @@ test("Preferences and game scores persist between sessions, isolated by account"
  assert.deepEqual((await request(origin,"/api/account/settings",bob)).data.settings,{});
  assert.equal((await request(origin,"/api/account/settings/secrets",alice,"PUT",{value:"x"})).status,400);
 });
+
+test("Members can change their username and password without losing account data",{timeout:50000},async t=>{
+ const origin=await runServer(t);
+ const admin=await request(origin,"/api/login","","POST",{username:"account-admin",password:"safe-test-admin-password"});
+ const created=await request(origin,"/api/admin/users",admin.cookie,"POST",{username:"old-handle",password:"initial-password-123"});
+ assert.equal(created.status,201);
+ const login=await request(origin,"/api/login","","POST",{username:"old-handle",password:"initial-password-123"});
+ const cookie=login.cookie;
+ const another=await request(origin,"/api/login","","POST",{username:"old-handle",password:"initial-password-123"});
+ const wrong=await request(origin,"/api/account/credentials",cookie,"PATCH",{username:"new-handle",currentPassword:"wrong"});
+ assert.equal(wrong.status,403);
+ const short=await request(origin,"/api/account/credentials",cookie,"PATCH",{username:"new-handle",currentPassword:"initial-password-123",newPassword:"too-short"});
+ assert.equal(short.status,400);
+ const saved=await request(origin,"/api/account/credentials",cookie,"PATCH",{username:"new-handle",currentPassword:"initial-password-123",newPassword:"better-password-789"});
+ assert.equal(saved.status,200);
+ assert.equal(saved.data.user.username,"new-handle");
+ assert.equal((await request(origin,"/api/login","","POST",{username:"old-handle",password:"initial-password-123"})).status,401);
+ assert.equal((await request(origin,"/api/login","","POST",{username:"new-handle",password:"better-password-789"})).status,200);
+ assert.equal((await request(origin,"/api/me",another.cookie)).status,401);
+ assert.equal((await request(origin,"/api/account/profile",cookie)).data.profile.username,"new-handle");
+});
+
+test("Custom Apps are per-account and cannot contain unsafe schemes",{timeout:50000},async t=>{
+ const origin=await runServer(t);
+ const admin=await request(origin,"/api/login","","POST",{username:"account-admin",password:"safe-test-admin-password"});
+ const u=await request(origin,"/api/admin/users",admin.cookie,"POST",{username:"my-apps",password:"test-password-789"});
+ const cookie=(await request(origin,"/api/login","","POST",{username:"my-apps",password:"test-password-789"})).cookie;
+ const app={id:"user-test-a1",name:"My Game",url:"https://example.com/game",category:"Games"};
+ const save=await request(origin,"/api/account/settings/customApps",cookie,"PUT",{value:[app]});
+ assert.equal(save.status,200);
+ assert.deepEqual((await request(origin,"/api/account/settings",cookie)).data.settings.customApps,[app]);
+ assert.equal((await request(origin,"/api/account/settings",admin.cookie)).data.settings.customApps,undefined);
+ assert.equal((await request(origin,"/api/account/settings/customApps",cookie,"PUT",{value:[{...app,url:"javascript:alert(1)"}]})).status,400);
+ assert.equal((await request(origin,"/api/account/settings/customApps",cookie,"PUT",{value:[app,app]})).status,400);
+ assert.deepEqual((await request(origin,"/api/account/settings",cookie)).data.settings.customApps,[app]);
+});

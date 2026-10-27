@@ -90,7 +90,7 @@ export function installWorkspaceV3(Hub){
     this.v3Ready=true;
     this.v3Theme=preference("theme","classic");
     if(!themeColors[this.v3Theme])this.v3Theme="classic";
-    this.v3Favorites=preference("favorites",["chess","world","uma"]);
+    this.v3Favorites=preference("favorites",[]);
     this.v3InspectorVisible=preference("inspector",true);
     this.v3DockVisible=preference("dock",true);
     this.v3QuickSearch="";

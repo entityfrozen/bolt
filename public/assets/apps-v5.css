@@ -1,0 +1,84 @@
+/* Apps library: sections are filterable without rebuilding the page. */
+#hubMount .v3-apps-page{width:100%;height:100%;min-height:0;overflow:auto;overscroll-behavior:contain;padding:clamp(18px,2.7vw,40px);background:transparent;color:#eaf0fa;box-sizing:border-box;scrollbar-color:#55657b transparent}
+#hubMount .v3-apps-page *{box-sizing:border-box}
+#hubMount .v3-apps-header{padding:8px 0 19px;border-bottom:1px solid #ffffff25}
+#hubMount .v3-apps-header>span{font:750 10px ui-monospace,monospace;letter-spacing:.15em;color:var(--lg-accent,#a3cef8)}
+#hubMount .v3-apps-header h1{font:700 clamp(30px,3vw,44px) "Instrument Sans",system-ui;letter-spacing:-.055em;margin:11px 0 7px}
+#hubMount .v3-apps-header p{margin:0;color:#b3bfcb;font-size:12px}
+#hubMount .v3-apps-tabs{display:flex;gap:7px;flex-wrap:wrap;padding:19px 0 10px}
+#hubMount .v3-apps-tabs button{cursor:pointer;border-radius:9px;padding:10px 16px;background:#ffffff0e;border:1px solid #ffffff30;color:#c6cedb;font:700 12px "Instrument Sans",system-ui}
+#hubMount .v3-apps-tabs button.active{background:rgba(var(--lg-rgb,163,206,248),.19);border-color:rgba(var(--lg-rgb,163,206,248),.48);color:#fff}
+#hubMount .v3-apps-search{display:flex;gap:12px;align-items:center;color:#bdc8d7;font:700 11px "Instrument Sans",system-ui;margin:7px 0 27px}
+#hubMount .v3-apps-search input{width:min(360px,100%);min-width:0;padding:11px 12px;color:#f3f6fe;background:#ffffff0e;border:1px solid #ffffff30;border-radius:10px;font:12px "Instrument Sans",system-ui}
+#hubMount .v3-app-category{margin:0 0 30px}
+#hubMount .v3-app-category[hidden],#hubMount .v3-app-tile[hidden],#hubMount .v3-app-empty[hidden]{display:none!important}
+#hubMount .v3-app-category>header{display:flex;align-items:baseline;gap:12px;margin-bottom:13px}
+#hubMount .v3-app-category>header h2,#hubMount .v3-add-app h2{font:700 19px "Instrument Sans",system-ui;letter-spacing:-.03em;color:#f8f9fc;margin:0}
+#hubMount .v3-app-category>header small{font-size:10px;color:#9ca9be}
+#hubMount .v3-app-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(205px,1fr));gap:12px}
+#hubMount .v3-app-tile{min-width:0;min-height:180px;border:1px solid #ffffff2a;border-radius:14px;background:linear-gradient(145deg,#ffffff13,#ffffff07),#19202d;display:flex;flex-direction:column;padding:16px;gap:13px}
+#hubMount .v3-app-tile:hover{border-color:rgba(var(--lg-rgb,163,206,248),.48);background:#ffffff15}
+#hubMount .v3-app-icon{height:42px;width:42px;display:grid;place-items:center;border:1px solid #ffffff2e;background:#ffffff13;border-radius:12px;color:var(--lg-accent,#a3cef8)}
+#hubMount .v3-app-icon .ui-icon{width:24px;height:24px}
+#hubMount .v3-app-info{display:flex;flex-direction:column;min-width:0;gap:5px;flex:1}
+#hubMount .v3-app-info small{font-size:10px;color:#a5b5c7}
+#hubMount .v3-app-info strong{font-size:15px;color:#f7f7fd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#hubMount .v3-app-info span{font-size:11px;color:#b3bece}
+#hubMount .v3-app-actions{display:flex;align-items:center;gap:7px}
+#hubMount .v3-app-actions button{cursor:pointer;border:1px solid #ffffff34;border-radius:8px;padding:8px 11px;background:#ffffff14;color:#e8f0fa;font-size:11px}
+#hubMount .v3-app-actions button[data-app=launch]{background:rgba(var(--lg-rgb,163,206,248),.18);border-color:rgba(var(--lg-rgb,163,206,248),.4);color:#fff}
+#hubMount .v3-app-actions button[data-app=favorite]{font-size:19px;line-height:1;padding:6px 11px;color:var(--lg-accent,#a3cef8)}
+#hubMount .v3-app-actions button:hover{border-color:var(--lg-accent,#a3cef8)}
+#hubMount .v3-app-actions button.v3-app-remove{margin-left:auto;padding:7px;color:#b6c2d2}
+#hubMount .v3-app-empty{padding:17px;color:#aeb9c8;border-radius:11px;border:1px dashed #ffffff2f;background:#ffffff08;font-size:12px}
+#hubMount .v3-add-app{border-top:1px solid #ffffff22;margin:9px 0 15px;padding-top:24px}
+#hubMount .v3-add-app p{color:#b3bfd0;font-size:12px;margin:9px 0 16px}
+#hubMount .v3-add-app form{display:grid;grid-template-columns:minmax(110px,1fr) minmax(180px,2fr) minmax(130px,.9fr) auto;gap:11px;align-items:end}
+#hubMount .v3-add-app label{display:flex;flex-direction:column;gap:7px;font:700 11px "Instrument Sans",system-ui;color:#d9e2f0}
+#hubMount .v3-add-app input,#hubMount .v3-add-app select{width:100%;min-height:39px;background:#ffffff10;border:1px solid #ffffff37;border-radius:8px;padding:10px;color:#f7f9ff;font:12px "Instrument Sans",system-ui}
+#hubMount .v3-add-app select option{background:#252939}
+#hubMount .v3-add-app button{min-height:39px;border:1px solid rgba(var(--lg-rgb,163,206,248),.55);border-radius:9px;background:var(--lg-accent,#a3cef8);color:#121826;padding:0 15px;font-weight:750;cursor:pointer}
+#hubMount .v3-add-app #appAddStatus{color:var(--lg-accent,#a3cef8);min-height:17px}
+#hubMount .v3-apps-dock-empty{display:flex;align-items:center;min-height:38px;white-space:nowrap;color:#aebbd1;font-size:11px;padding:0 13px}
+#hubMount .v3-dock-games{min-height:47px}
+#hubMount .v3-apps-page:focus-visible,#hubMount .v3-apps-page button:focus-visible{outline:2px solid var(--lg-accent,#a3cef8);outline-offset:2px}
+/* Stabilize chess sizing; favorite changes must never alter the board's square ratio. */
+#hubMount .new-chess-match{min-width:0;width:100%;max-width:100%;overflow:auto;grid-template-columns:minmax(280px,590px) minmax(225px,320px);gap:clamp(12px,2vw,24px);align-content:start}
+#hubMount .new-chess-board-panel,#hubMount .hub-chess-panel{min-width:0}
+#hubMount .new-chess-match .hub-chess{box-sizing:border-box;width:min(100%,560px);max-width:560px;min-width:0;aspect-ratio:1/1;grid-template-columns:repeat(8,minmax(0,1fr));grid-template-rows:repeat(8,minmax(0,1fr))}
+#hubMount .new-chess-match .hub-square{min-width:0;min-height:0;aspect-ratio:1/1;font-size:clamp(21px,3.5vw,56px)}
+/* Game embeds fill the usable screen, not their old fixed viewport. */
+#hubMount .uma-stage{height:100%;max-height:100%;width:100%;min-width:0;min-height:0;overflow:auto;display:flex;flex-direction:column}
+#hubMount .uma-stage-bar{flex:none;min-height:48px;gap:9px}
+#hubMount .uma-stage-frame{min-height:0;flex:1 1 auto;width:100%;max-width:100%;display:flex;justify-content:center;align-items:center;overflow:hidden;background:#121018}
+#hubMount .uma-stage-frame iframe{display:block;border:0;width:100%;height:100%;min-height:0;max-height:100%;aspect-ratio:16/9}
+#hubMount .uma-stage-footer{flex:none}
+#hubMount .rps-fresh{box-sizing:border-box;height:100%;min-height:0;min-width:0;max-width:100%;overflow:auto;padding:clamp(13px,2.2vw,35px)}
+#hubMount .rps-fresh-lobby{min-height:0;justify-content:center}
+#hubMount .rps-fresh-lobby h1{font-size:clamp(37px,6vw,80px);margin:11px 0}
+#hubMount .rps-hero-icons{margin:13px 0;gap:clamp(6px,2vw,24px)}
+#hubMount .rps-hero-icons span{width:clamp(56px,9vw,110px);height:clamp(65px,10vw,120px);font-size:clamp(31px,5vw,72px)}
+#hubMount .rps-fighters{max-width:100%;gap:clamp(6px,2vw,21px)}
+#hubMount .rps-fighter-card{min-height:110px;padding:12px}
+#hubMount .rps-select-grid{width:100%;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(5px,1vw,12px)}
+#hubMount .rps-select{min-width:0;min-height:clamp(90px,14vh,135px);padding:8px}
+@media(max-width:970px){
+ #hubMount .new-chess-match{grid-template-columns:minmax(0,1fr)}
+ #hubMount .new-chess-match .hub-chess{margin:auto;width:min(100%,520px)}
+ #hubMount .v3-add-app form{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+ #hubMount .v3-add-app form button{max-width:150px}
+}
+@media(max-width:550px){
+ #hubMount .v3-apps-page{padding:15px}
+ #hubMount .v3-app-grid{grid-template-columns:repeat(auto-fill,minmax(135px,1fr))}
+ #hubMount .v3-app-tile{padding:10px;min-height:157px}
+ #hubMount .v3-app-actions{flex-wrap:wrap}
+ #hubMount .v3-app-actions button{padding:7px}
+ #hubMount .v3-app-info strong{font-size:13px}
+ #hubMount .v3-add-app form{grid-template-columns:minmax(0,1fr)}
+ #hubMount .new-chess-match{padding:6px;min-width:0}
+ #hubMount .rps-fighters{gap:5px}
+ #hubMount .rps-fighter-card{padding:8px;min-height:100px}
+ #hubMount .rps-select{min-height:86px}
+ #hubMount .uma-stage-bar{padding:8px}
+}

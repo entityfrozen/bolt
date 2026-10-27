@@ -92,7 +92,7 @@ export function registerAccountSpace({app,dataDir,mustBeSignedIn,sameOrigin,list
  // Account settings include appearance, tabs, bookmarks, server-channel choice,
  // game favorites and scores. Device storage is not the source of truth.
  const allowedSettings=new Set(["bolt.prefs","bolt.tabs","bolt.bookmarks","bolt.soundcloud","appearance",
-  "favorites","theme","inspector","dock","channels","gameScores"]);
+  "favorites","theme","inspector","dock","channels","gameScores","customApps"]);
  const cleanSettings=record=>Object.fromEntries(Object.entries(record||{})
   .filter(([key])=>allowedSettings.has(key)));
  app.get("/api/account/settings",mustBeSignedIn,(req,res)=>{
@@ -109,6 +109,20 @@ export function registerAccountSpace({app,dataDir,mustBeSignedIn,sameOrigin,list
   if(value!==null&&typeof value!=="string"&&typeof value!=="number"&&typeof value!=="boolean"&&
    (!value||typeof value!=="object"||Object.prototype.toString.call(value)!=="[object Object]"&&!Array.isArray(value)))
    return fail(res,400,"Invalid setting.");
+  if(key==="customApps"){
+   if(!Array.isArray(value)||value.length>30)return fail(res,400,"You can save up to 30 apps.");
+   const ids=new Set();
+   for(const item of value){
+    if(!item||typeof item!=="object"||typeof item.id!=="string"||!/^user-[a-z0-9-]{2,60}$/.test(item.id)||
+      typeof item.name!=="string"||item.name.trim().length<2||item.name.length>48||
+      !["Games","Music","Streaming"].includes(item.category)||ids.has(item.id))
+     return fail(res,400,"Invalid app details.");
+    ids.add(item.id);
+    try{const u=new URL(item.url);if(!["https:","http:"].includes(u.protocol)||u.username||u.password||item.url.length>1800)
+     return fail(res,400,"Use a valid http or https link.");}
+    catch{return fail(res,400,"Use a valid http or https link.");}
+   }
+  }
   (data.settings[req.auth.identity.id]??={})[key]=value;
   persist();res.json({ok:true});
  });

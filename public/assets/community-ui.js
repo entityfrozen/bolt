@@ -84,7 +84,11 @@ export function installCommunityUI(Hub){
     if(this.send({type:"v2AddChannel",serverId:s.id,name:fields.get("name"),category:fields.get("category"),
      readOnly:fields.has("readonly"),staffOnly:fields.has("private")}))form.reset();
    }else if(form.dataset.cmForm==="role"){
-    if(this.send({type:"v2CreateRole",serverId:s.id,name:fields.get("name"),color:fields.get("color")}))form.reset();
+    const name=String(fields.get("name")||"").trim();
+    if(!this.send({type:"v2CreateRole",serverId:s.id,name,color:fields.get("color")}))return;
+    const status=this.$("#cmRoleStatus");
+    if(status)status.textContent="Creating "+name+"…";
+    form.reset();
    }else if(form.dataset.cmForm==="server"){
     this.send({type:"v2EditServer",serverId:s.id,description:fields.get("description"),...(s.permanent?{}:{name:fields.get("name")})});
    }
@@ -189,6 +193,7 @@ export function installCommunityUI(Hub){
  Hub.prototype.drawCommunityManager=function(){
   const s=this.currentCommunity(),dialog=this.$("#communityManager");if(!s?.canManage||!dialog)return;
   this.$("#communityManagerTitle").textContent=s.name+" settings";
+  const previousScroll=this.$("#cmContent")?.scrollTop||0;
   this.$("#cmTabs").innerHTML=[["channels","Channels"],["roles","Roles"],["members","Members"],["server","Server"]].map(([id,label])=>
     '<button type="button" data-cm="tab" data-tab="'+id+'" class="'+(this.manageTab===id?"active":"")+'">'+label+'</button>').join("");
   const row=(glyph,name,subtitle,actions)=>'<div class="cm-row"><span class="cm-row-icon">'+glyph+'</span><div class="cm-row-detail"><strong>'+esc(name)+'</strong><small>'+esc(subtitle)+'</small></div><div class="cm-row-actions">'+actions+'</div></div>';
@@ -207,16 +212,18 @@ export function installCommunityUI(Hub){
     '<label class="cm-check"><input type="checkbox" name="private"> Private channel</label>'+
     '<button class="cm-save" type="submit">'+icon("plus")+' Create channel</button></form></section>';
   }else if(this.manageTab==="roles"){
-   html='<section class="cm-card"><h3>Roles</h3><p>Roles change member labels, not admin permissions.</p>'+
+   html='<section class="cm-card"><h3>New role</h3><p>Create a role, then assign it from Members.</p><form class="cm-form" data-cm-form="role">'+
+    '<label>Name<input name="name" required minlength="2" maxlength="32" placeholder="Moderator"></label>'+
+    '<label>Color<input name="color" type="color" value="#a3cef8"></label>'+
+    '<button class="cm-save" type="submit">'+icon("plus")+' Create role</button></form>'+
+    '<p id="cmRoleStatus" role="status" aria-live="polite"></p></section>'+
+    '<section class="cm-card"><h3>Existing roles</h3><p>Roles change member labels, not admin permissions.</p>'+
     s.roles.map(role=>row('<span class="cm-role-color" style="--role-color:'+roleColor(role.color)+'"></span>',role.name,
      role.id==="member"?"Default role":"Custom role",
      role.id!=="member"?'<label title="Role color"><input type="color" data-cm-color data-role-id="'+esc(role.id)+'" value="'+roleColor(role.color)+'"></label>'+
      '<button data-cm="rename-role" data-role="'+esc(role.id)+'" title="Rename">'+icon("edit-3")+'</button>'+
      '<button data-cm="delete-role" data-role="'+esc(role.id)+'" title="Delete">'+icon("trash-2")+'</button>':"")).join("")+
-    '</section><section class="cm-card"><h3>New role</h3><form class="cm-form" data-cm-form="role">'+
-    '<label>Name<input name="name" required minlength="2" maxlength="32" placeholder="Helper"></label>'+
-    '<label>Color<input name="color" type="color" value="#c5bca9"></label>'+
-    '<button class="cm-save" type="submit">'+icon("plus")+' Create role</button></form></section>';
+    '</section>';
   }else if(this.manageTab==="members"){
    html='<section class="cm-card"><h3>Members</h3><p>Assign roles to members without changing platform permissions.</p>'+
     (s.members||[]).map(m=>row('<span class="v2-avatar">'+esc(m.name?.[0]?.toUpperCase()||"?")+'</span>',m.name,
@@ -230,6 +237,7 @@ export function installCommunityUI(Hub){
     '<button class="cm-save" type="submit">'+icon("check")+' Save</button></form></section>';
   }
   this.$("#cmContent").innerHTML=html;
+  this.$("#cmContent").scrollTop=previousScroll;
  };
  Hub.prototype.onMessage=function(event){
   onMessage.call(this,event);

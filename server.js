@@ -357,6 +357,37 @@ app.post("/api/login", sameOrigin, authLimit, (req, res) => {
   res.json({ ok: true, user: publicUser(user) });
 });
 
+// Self-service credentials for approved accounts; changing a password revokes other sessions.
+app.patch("/api/account/credentials", mustBeSignedIn, sameOrigin, (req,res)=>{
+  const user=state.users.find(item=>item.id===req.auth.identity.id);
+  if(!user||!user.passwordHash)return res.status(403).json({error:"This account cannot change credentials."});
+  const current=req.body?.currentPassword;
+  if(typeof current!=="string"||!verifyPassword(current,user.passwordHash))
+    return res.status(403).json({error:"Current password is incorrect."});
+  const rename=req.body?.username!==undefined;
+  const changePassword=req.body?.newPassword!==undefined;
+  if(!rename&&!changePassword)return res.status(400).json({error:"Nothing to update."});
+  if(rename){
+    const name=normalizeUsername(req.body.username);
+    if(!validUsername(name))return res.status(400).json({error:"Username must be 3–32 letters, numbers, periods, dashes or underscores."});
+    if(state.users.some(item=>item.id!==user.id&&item.username===name))
+      return res.status(409).json({error:"Username already taken."});
+  }
+  if(changePassword){
+    const next=req.body.newPassword;
+    if(typeof next!=="string"||next.length<10||next.length>128)
+      return res.status(400).json({error:"New password must be 10–128 characters."});
+    if(next===current)return res.status(400).json({error:"Choose a different password."});
+  }
+  if(rename)user.username=normalizeUsername(req.body.username);
+  if(changePassword){
+    user.passwordHash=hashPassword(req.body.newPassword);
+    state.sessions=state.sessions.filter(session=>session.id===req.auth.session.id||session.userId!==user.id);
+  }
+  audit(publicUser(user),"user.credentials_changed",user.username,changePassword?"password updated":"username updated");
+  saveState();
+  res.json({ok:true,user:publicUser(user)});
+});
 app.post("/api/logout", sameOrigin, (req, res) => {
   const found = sessionFromRequest(req);
   if (found) {

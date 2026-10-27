@@ -2,7 +2,9 @@
 // These icons are presentation-only. Actions and accessible names live on buttons.
 const PATHS={
  "bolt":'<path d="m13 2-3 8H4l10 12 1-8h5L13 2Z"/>',
- "home":'<path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V10Z"/><path d="M9 21v-7h6v7"/>',
+ "youtube":'<rect x="2" y="5" width="20" height="14" rx="4"/><path d="m10 9 5 3-5 3V9Z"/>',
+ "link":'<path d="M10 13a5 5 0 0 0 7.1 0l3-3a5 5 0 0 0-7.1-7.1L11.3 4.6M14 11a5 5 0 0 0-7.1 0l-3 3a5 5 0 0 0 7.1 7.1l1.7-1.7"/>',
+  "home":'<path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V10Z"/><path d="M9 21v-7h6v7"/>',
  "hash":'<path d="M4 9h16M4 15h16M11 3 7 21M17 3l-4 18"/>',
  "megaphone":'<path d="m3 11 18-5v12l-18-5v-2ZM3 11v2"/><path d="m8 14 1 6h4l-2-5M21 6v12"/>',
  "book-open":'<path d="M12 7v14M3 18V5c4-2 7-1 9 2 2-3 5-4 9-2v13c-4-2-7-1-9 3-2-4-5-5-9-3Z"/>',

@@ -25,11 +25,12 @@
 <link rel="stylesheet" href="/assets/workspace-interactions.css?v=1">
 <link rel="stylesheet" href="/assets/worldpvp-overhaul.css?v=1">
 <link rel="stylesheet" href="/assets/theme-cleanup.css?v=1">
+<link rel="stylesheet" href="/assets/apps-v5.css?v=1">
 <script src="/bootstrap-init.js"></script>
 
 <script defer src="/assets/glass-settings.js?v=6"></script>
-<script defer src="/assets/account-space-ui.js?v=2"></script>
-<script defer src="/assets/app.js?v=46"></script>
+<script defer src="/assets/account-space-ui.js?v=3"></script>
+<script defer src="/assets/app.js?v=47"></script>
 <script defer src="/assets/bolt-tools.js?v=14"></script>
 <script defer src="/assets/web-search-settings.js?v=3"></script>
 </head>
@@ -95,9 +96,8 @@
       <button class="rail-button" data-panel="history" type="button" title="History"><svg><use href="#i-clock"/></svg></button>
       <div class="rail-spacer"></div>
       <button class="rail-button" data-hub="chat" type="button" title="Community chat"><svg><use href="#i-chat"/></svg></button>
-      <button class="rail-button" data-hub="games" type="button" title="Multiplayer games"><svg><use href="#i-games"/></svg></button>
+      <button class="rail-button" data-hub="games" type="button" title="Apps"><svg><use href="#i-games"/></svg></button>
       <button class="rail-button" data-hub="updates" type="button" title="Update log"><svg><use href="#i-clock"/></svg></button>
-      <button class="rail-button" data-panel="music" type="button" title="Music"><svg><use href="#i-music"/></svg></button>
       <button class="rail-button" data-glass-settings type="button" title="Customize appearance & settings"><svg><use href="#i-settings"/></svg></button>
       <button class="rail-button admin-only" data-panel="admin" type="button" title="Admin"><svg><use href="#i-users"/></svg></button>
     </nav>
@@ -117,10 +117,9 @@
             <nav class="lightning-shortcuts v3-browser-shortcuts" aria-label="Quick destinations">
               <button type="button" class="lightning-quick" data-hub="overview">⌂ Overview</button>
               <button type="button" class="lightning-quick" data-hub="chat"># Community</button>
-              <button type="button" class="lightning-quick" data-hub="games">▣ Arcade</button>
+              <button type="button" class="lightning-quick" data-hub="games">▣ Apps</button>
               <button type="button" class="lightning-quick" data-lightning-quick="https://www.google.com/">Google</button>
-              <button type="button" class="lightning-quick" data-lightning-quick="https://www.youtube.com/">YouTube</button>
-              <button type="button" class="lightning-quick" data-lightning-quick="https://www.wikipedia.org/">Wikipedia</button>
+                            <button type="button" class="lightning-quick" data-lightning-quick="https://www.wikipedia.org/">Wikipedia</button>
             </nav>
             <button class="newtab-eyebrow lightning-suggest-button v3-browser-suggestion" id="lightningSuggestionButton" type="button" title="Suggest a feature">Suggest a feature</button>
           </div>
@@ -134,7 +133,7 @@
             <section class="v3-browser-guide">
               <strong>OPEN</strong>
               <button type="button" data-hub="chat"><span>#</span> Chat channels</button>
-              <button type="button" data-hub="games"><span>▣</span> Games</button>
+              <button type="button" data-hub="games"><span>▣</span> Apps</button>
               <button type="button" data-hub="overview"><span>⌂</span> Home</button>
             </section>
           </aside>

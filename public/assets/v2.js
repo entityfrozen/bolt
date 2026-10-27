@@ -186,7 +186,7 @@ export function installV2(Hub){
     if(!el||!s)return;
     const q=this.v2Search||"",rows=(s.messages?.[this.v2Channel]||[]).filter(m=>!q||(m.by+" "+m.message).toLowerCase().includes(q));
     el.innerHTML=rows.length?rows.map(m=>'<article class="v2-row"><span class="v2-avatar">'+esc(m.by?.[0]?.toUpperCase()||"?")+'</span><div class="v2-row-body"><header><strong>'+esc(m.by)+'</strong><time>'+time(m.at)+'</time></header><p>'+(m.deleted?"<i>Message deleted</i>":esc(m.message).replace(/\\n/g,"<br>"))+'</p></div>'+
-      (!m.deleted&&(m.userId===this.id||s.owner===this.id)?'<button class="v2-delete" data-v2="delete" data-id="'+esc(m.id)+'" aria-label="Delete message">×</button>':"")+'</article>').join(""):
+      (!m.deleted&&(m.userId===this.id||s.canManage)?'<button class="v2-delete" data-v2="delete" data-id="'+esc(m.id)+'" aria-label="Delete message">×</button>':"")+'</article>').join(""):
       '<div class="v2-room-empty">'+(q?"No messages match that search.":"Be the first to say something.")+'</div>';
     el.scrollTop=el.scrollHeight;
   };

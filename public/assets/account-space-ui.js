@@ -3,6 +3,7 @@
  "use strict";
  const escape=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
  const $=(s,r=document)=>r.querySelector(s);
+ const all=(s,r=document)=>Array.from(r.querySelectorAll(s));
  const identity=()=>window.LightningAccount?.profile;
  async function api(url,options={}){
   const r=await fetch(url,{credentials:"same-origin",cache:"no-store",...options,
@@ -20,7 +21,7 @@
   box.setAttribute("aria-labelledby","accountSpaceTitle");
   box.innerHTML='<div class="as-layout"><aside class="as-rail"><header><img src="/assets/lightning-mark.svg?v=1" alt="" class="lightning-mark"><strong>My Lightning</strong></header>'+
    '<nav aria-label="Account pages"><button data-as-tab="profile" class="active">Profile</button>'+
-   '<button data-as-tab="messages">Direct messages</button></nav><p>Synced to your account</p></aside>'+
+   '<button data-as-tab="messages">Direct messages</button><button data-as-tab="security">Login & password</button></nav><p>Synced to your account</p></aside>'+
    '<main class="as-main"><header class="as-top"><div><small>YOUR ACCOUNT</small><h2 id="accountSpaceTitle">Profile</h2></div>'+
    '<button data-as="close" aria-label="Close account settings">×</button></header>'+
    '<div class="as-content" id="asContent"></div><div id="accountNotice" role="status"></div></main></div>';
@@ -55,6 +56,22 @@
      const result=await api("/api/account/people?q="+encodeURIComponent(q));
      $("#asPeopleResults").innerHTML=result.people.length?
        result.people.map(user=>person(user)).join(""):'<p class="as-muted">No matching members.</p>';
+    }
+    if(form.dataset.asForm==="credentials"){
+     const fields=new FormData(form);
+     const username=String(fields.get("username")||"").trim().toLowerCase();
+     const pass=String(fields.get("password")||"");
+     const confirmation=String(fields.get("confirm")||"");
+     if(pass&&pass!==confirmation)throw Error("New passwords don't match.");
+     const values={currentPassword:String(fields.get("current")||"")};
+     if(username!==profile?.username)values.username=username;
+     if(pass)values.newPassword=pass;
+     if(!values.username&&!values.newPassword)throw Error("No changes to save.");
+     await api("/api/account/credentials",{method:"PATCH",body:JSON.stringify(values)});
+     await loadProfile();
+     form.querySelectorAll('input[type="password"]').forEach(input=>input.value="");
+     form.querySelector('input[name="username"]').value=profile.username;
+     notice("Account updated.");
     }
     if(form.dataset.asForm==="message"){
      const input=$("#asMessage");
@@ -98,8 +115,8 @@
  }
  async function draw(){
   const box=dialog(),content=$("#asContent",box);
-  $$(".as-rail nav button",box).forEach(b=>b.classList.toggle("active",b.dataset.asTab===activeTab));
-  $("#accountSpaceTitle",box).textContent=activeTab==="profile"?"Your profile":"Direct messages";
+  all(".as-rail nav button",box).forEach(b=>b.classList.toggle("active",b.dataset.asTab===activeTab));
+  $("#accountSpaceTitle",box).textContent=activeTab==="profile"?"Your profile":activeTab==="security"?"Login & password":"Direct messages";
   notice("");
   if(activeTab==="profile"){
    if(!profile)await loadProfile();
@@ -112,6 +129,15 @@
     '<label>Bio<textarea name="bio" maxlength="280" rows="4" placeholder="A little about you…">'+escape(profile.bio||"")+'</textarea></label>'+
     '<label>Profile color<input name="accent" type="color" value="'+escape(profile.accent)+'"></label>'+
     '<button class="as-primary" type="submit">Save profile</button></form>';
+  }else if(activeTab==="security"){
+   if(!profile)await loadProfile();
+   content.innerHTML='<form class="as-profile-form as-security-form" data-as-form="credentials" autocomplete="on">'+
+    '<label>Username<input name="username" required minlength="3" maxlength="32" pattern="[A-Za-z0-9._-]{3,32}" autocomplete="username" value="'+escape(profile.username)+'"></label>'+
+    '<label>Current password<input type="password" name="current" required autocomplete="current-password"></label>'+
+    '<label>New password <small>Leave blank to keep it</small><input type="password" name="password" minlength="10" maxlength="128" autocomplete="new-password"></label>'+
+    '<label>Confirm new password<input type="password" name="confirm" minlength="10" maxlength="128" autocomplete="new-password"></label>'+
+    '<p class="as-security-tip">Changing your password signs out your other sessions. Your profile and messages stay the same.</p>'+
+    '<button class="as-primary" type="submit">Save changes</button></form>';
   }else{
    await loadThreads();
    content.innerHTML='<form class="as-search" data-as-form="search"><input type="search" name="q" placeholder="Find a member by username…" aria-label="Find member" minlength="2" maxlength="32" required><button type="submit">Search</button></form>'+

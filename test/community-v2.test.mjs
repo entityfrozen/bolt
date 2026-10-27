@@ -119,3 +119,21 @@ test("Admin profiles persist in existing servers and survive legacy snapshot rea
  assert.equal(demoted.canManage,false);
  assert.equal(demoted.members.find(m=>m.id===admin.id).admin,false);
 });
+
+test("Admins can create roles and delete other members' messages",t=>{
+ const h=harness();t.after(()=>fs.rmSync(h.dataDir,{recursive:true,force:true}));
+ const admin={id:"moderator",name:"Mod",role:"admin"};
+ h.store.snapshot(admin);h.store.snapshot(h.alice);h.store.snapshot(h.bob);
+ h.store.handle(admin,{type:"v2CreateRole",serverId:"lightning-main",name:"Event Team",color:"#aaccee"});
+ const main=h.store.snapshot(admin).servers.find(s=>s.permanent);
+ assert.ok(main.roles.some(r=>r.id==="event-team"&&r.name==="Event Team"));
+ h.store.handle(h.alice,{type:"v2CreateRole",serverId:"lightning-main",name:"Not allowed"});
+ assert.equal(h.store.snapshot(admin).servers.find(s=>s.permanent).roles.length,2);
+ h.store.handle(h.bob,{type:"v2Message",serverId:"lightning-main",channel:"general",message:"Please remove this"});
+ const message=h.store.snapshot(admin).servers.find(s=>s.permanent).messages.general.at(-1);
+ h.store.handle(h.alice,{type:"v2DeleteMessage",serverId:"lightning-main",channel:"general",messageId:message.id});
+ assert.equal(h.store.snapshot(admin).servers.find(s=>s.permanent).messages.general.at(-1).deleted,undefined);
+ h.store.handle(admin,{type:"v2DeleteMessage",serverId:"lightning-main",channel:"general",messageId:message.id});
+ assert.equal(h.store.snapshot(h.bob).servers.find(s=>s.permanent).messages.general.at(-1).deleted,true);
+ assert.ok(h.sent.some(m=>m.type==="v2MessageUpdate"&&m.id==="bob"));
+});
