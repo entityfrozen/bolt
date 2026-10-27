@@ -1,14 +1,14 @@
-import {installArenaPolish} from "./arena-v3.js?v=11";
-import {installWorldPort} from "./openfront-port.js?v=4";
-import {installSocial} from "./social-v4.js?v=3";
-import {installChatPolish} from "./chat-polish.js?v=2";
+import {installArenaPolish} from "./arena-v3.js?v=12";
+import {installWorldPort} from "./openfront-port.js?v=5";
+import {installSocial} from "./social-v4.js?v=4";
+import {installChatPolish} from "./chat-polish.js?v=3";
 import {installArcade} from "./arcade.js?v=3";
 import {installChessVisuals} from "./chess-visuals.js?v=1";
-import {installRpsVisuals} from "./rps-visuals.js?v=1";
-import {installV2} from "./v2.js?v=4";
-import {installWorkspaceV3} from "./workspace-v3.js?v=6";
-import {installCommunityUI} from "./community-ui.js?v=2";
-import {installSplitChat} from "./split-chat.js?v=1";
+import {installRpsVisuals} from "./rps-visuals.js?v=2";
+import {installV2} from "./v2.js?v=5";
+import {installWorkspaceV3} from "./workspace-v3.js?v=7";
+import {installCommunityUI} from "./community-ui.js?v=3";
+import {installSplitChat} from "./split-chat.js?v=2";
 
 const E=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const PIECES={K:"♔",Q:"♕",R:"♖",B:"♗",N:"♘",P:"♙",k:"♚",q:"♛",r:"♜",b:"♝",n:"♞",p:"♟"};

@@ -101,7 +101,7 @@ test("Old green theme is migrated to the original Lightning accent",()=>{
  const settings=fs.readFileSync(new URL("../public/assets/glass-settings.js",import.meta.url),"utf8");
  assert.match(settings,/#44eda7/);
  assert.match(settings,/accent:DEFAULTS.accent/);
- assert.match(browser,/glass-settings\.js\?v=4/);
+ assert.match(browser,/glass-settings\.js\?v=5/);
 });
 
 test("Dashboard shows real announcement feed and direct community links",()=>{
