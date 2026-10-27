@@ -1,0 +1,150 @@
+/* Community navigation and management: neutral glass with a single warm accent. */
+#hubMount{--community-accent:var(--lg-accent,#e2bb75)}
+#hubMount .ui-icon{width:18px;height:18px;display:inline-block;flex:none;vertical-align:middle;stroke:currentColor;stroke-width:1.8;fill:none}
+#hubMount .v3-primary-tabs .ui-icon{width:18px;height:18px}
+#hubMount .v3-top-icon .ui-icon{width:18px;height:18px}
+#hubMount .v3-top-ai .ui-icon{width:15px;height:15px;margin-right:4px}
+#hubMount .v3-dock-icon .ui-icon{width:23px;height:23px}
+#hubMount .v3-game-picture .ui-icon{width:82px;height:82px;filter:drop-shadow(2px 12px 11px #0006);stroke-width:1.2}
+#hubMount .v4-shortcut-icon .ui-icon{width:20px;height:20px}
+#hubMount .v3-command-icon .ui-icon{width:19px;height:19px}
+#hubMount .v3-space-row .ui-icon{width:22px;height:22px}
+#hubMount .v4-nav-shell .v2-servers .ui-icon{width:20px;height:20px;color:var(--community-accent)}
+#hubMount .v4-nav-shell .v2-servers .v2-home{display:grid;place-items:center}
+#hubMount .v4-nav-shell .v2-servers .v2-home .ui-icon{width:23px;height:23px;stroke-width:2}
+#hubMount .v4-nav-shell .v3-nav-destination,
+#hubMount .v4-nav-shell .cm-channel{
+ display:flex;align-items:center;gap:11px;
+ min-height:37px;border-radius:11px;padding:0 11px;
+}
+#hubMount .v4-nav-shell .v3-nav-destination .ui-icon,
+#hubMount .v4-nav-shell .cm-channel .ui-icon{
+ width:17px;height:17px;min-width:17px;opacity:.85;color:#dad2cf!important;
+}
+#hubMount .v4-nav-shell .cm-channel.active .ui-icon,
+#hubMount .v4-nav-shell .v3-nav-destination.active .ui-icon{color:var(--community-accent)!important}
+#hubMount .v4-nav-shell .cm-channel span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#hubMount .v4-nav-shell .cm-channel .cm-lock{width:13px;height:13px;opacity:.55}
+#hubMount .v4-nav-shell .cm-server-heading{
+ display:flex;align-items:center;gap:9px;
+ margin:4px 7px 9px;padding:12px 8px;
+ border-bottom:1px solid #ffffff25;color:#f8f1ed;
+}
+#hubMount .cm-server-heading .ui-icon{width:17px;height:17px;color:var(--community-accent)}
+#hubMount .cm-server-heading strong{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;font-weight:750}
+#hubMount .cm-server-heading small{font:750 8px ui-monospace,monospace;padding:4px 6px;letter-spacing:.05em;border-radius:5px;color:var(--community-accent);border:1px solid rgba(var(--lg-rgb),.35);background:rgba(var(--lg-rgb),.12)}
+#hubMount .cm-nav-divider{height:1px;background:#ffffff20;margin:10px 9px}
+#hubMount .v4-nav-shell .cm-category{color:#ada3a3!important;font-size:9px;letter-spacing:.14em;padding:16px 10px 7px}
+#hubMount .v4-nav-shell .cm-manage{
+ display:flex;align-items:center;gap:10px;
+ width:calc(100% - 7px);padding:11px 10px;border:1px solid #ffffff27;
+ margin:13px 4px 3px;border-radius:10px;color:#efe4dc;
+ background:rgba(var(--lg-rgb),.08);cursor:pointer;font:730 11px "Instrument Sans",system-ui;
+}
+#hubMount .v4-nav-shell .cm-manage:hover{border-color:rgba(var(--lg-rgb),.45);background:rgba(var(--lg-rgb),.18)}
+#hubMount .v4-nav-shell .cm-manage .ui-icon{width:16px;height:16px;color:var(--community-accent)}
+#hubMount .v4-nav-shell .cm-manage span{flex:1;text-align:left}
+#hubMount .v4-nav-shell .cm-manage .ui-icon:last-child{width:13px;height:13px}
+#hubMount .v4-nav-shell .v2-nav-aux{display:flex;align-items:center;gap:7px}
+#hubMount .cm-readonly{
+ display:flex;align-items:center;gap:12px;
+ margin:12px 22px 19px;padding:14px 16px;
+ border:1px solid #ffffff30;border-radius:13px;
+ background:#ffffff10;color:#d2c9c6;font-size:12px;
+}
+#hubMount .cm-readonly .ui-icon{color:var(--community-accent)}
+#hubMount .cm-readonly div{display:flex;flex-direction:column;gap:4px}
+#hubMount .cm-readonly strong{color:#fcf4f0}
+#hubMount .cm-readonly span{font-size:10px;color:#bbb0b6}
+#hubMount .cm-member-preview{display:flex;align-items:center;gap:9px;padding:7px 4px;color:#efe4e3}
+#hubMount .cm-member-preview>div{display:flex;flex-direction:column;gap:2px;min-width:0}
+#hubMount .cm-member-preview strong{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#hubMount .cm-member-preview small{color:#bbaeb8;font-size:9px}
+/* Staff management is intentional, structured, and accessible. */
+#hubMount .community-manager{
+ position:fixed;inset:0;margin:auto;padding:0;
+ width:min(880px,calc(100vw - 28px));height:min(700px,calc(100dvh - 32px));
+ max-width:none;max-height:none;
+ background:linear-gradient(145deg,#ffffff1b,#ffffff07),#211f28e9;
+ color:#f6f0ed;border:1px solid #ffffff67;border-radius:22px;
+ box-shadow:inset 0 1px #ffffff4c,0 30px 110px #000c;
+ backdrop-filter:blur(35px) saturate(145%);
+ overflow:hidden;
+}
+#hubMount .community-manager::backdrop{background:#05040cae;backdrop-filter:blur(9px)}
+#hubMount .community-manager .cm-shell{display:flex;flex-direction:column;height:100%;min-height:0}
+#hubMount .community-manager header{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:22px 27px 18px;border-bottom:1px solid #ffffff24}
+#hubMount .community-manager header small{font:800 9px ui-monospace,monospace;letter-spacing:.12em;color:var(--community-accent)}
+#hubMount .community-manager header h2{color:#fff5ef;letter-spacing:-.045em;font-size:23px;margin:7px 0 0}
+#hubMount .community-manager header button{background:#ffffff1b;border:1px solid #ffffff3f;color:#f4edef;width:32px;height:32px;border-radius:50%;font-size:23px;cursor:pointer}
+#hubMount .community-manager nav{display:flex;gap:7px;padding:13px 25px;border-bottom:1px solid #ffffff1f;overflow:auto}
+#hubMount .community-manager nav button{padding:10px 16px;white-space:nowrap;border-radius:9px;border:1px solid transparent;color:#d3c8cc;background:transparent;cursor:pointer;font:700 12px "Instrument Sans",system-ui}
+#hubMount .community-manager nav button:hover{background:#ffffff13}
+#hubMount .community-manager nav button.active{background:rgba(var(--lg-rgb),.18);border-color:rgba(var(--lg-rgb),.47);color:#fff5ec}
+#hubMount .community-manager .cm-content{flex:1;min-height:0;padding:21px 26px 27px;overflow:auto;scrollbar-color:#ffffff40 transparent}
+#hubMount .community-manager .cm-card{
+ padding:20px 21px;margin-bottom:16px;border-radius:16px;
+ background:#ffffff0c;border:1px solid #ffffff2d;
+}
+#hubMount .community-manager .cm-card h3{font-size:15px;letter-spacing:-.025em;margin:0 0 8px;color:#fcf5f2}
+#hubMount .community-manager .cm-card>p{color:#bdb2b9;font-size:11px;line-height:1.6;margin:0 0 14px}
+#hubMount .community-manager .cm-row{
+ display:flex;align-items:center;gap:11px;
+ min-height:51px;padding:10px 2px;
+ border-top:1px solid #ffffff1c;
+}
+#hubMount .community-manager .cm-row:first-of-type{border-top:0}
+#hubMount .community-manager .cm-row-icon{flex:none;width:34px;height:34px;display:grid;place-items:center;border-radius:10px;background:#ffffff14;border:1px solid #ffffff25;color:var(--community-accent)}
+#hubMount .community-manager .cm-row-detail{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+#hubMount .community-manager .cm-row-detail strong{font-size:12px;color:#faf2ed;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#hubMount .community-manager .cm-row-detail small{font-size:10px;color:#b0a5ad}
+#hubMount .community-manager .cm-row-actions{display:flex;align-items:center;gap:5px}
+#hubMount .community-manager .cm-row-actions button,
+#hubMount .community-manager .cm-row-actions label{padding:7px 9px;border:1px solid #ffffff2f;border-radius:8px;background:#ffffff0d;color:#ede1e6;cursor:pointer;font:11px "Instrument Sans",system-ui}
+#hubMount .community-manager .cm-row-actions button:hover{border-color:rgba(var(--lg-rgb),.6)}
+#hubMount .community-manager .cm-row-actions button.on{color:var(--community-accent);background:rgba(var(--lg-rgb),.14)}
+#hubMount .community-manager .cm-row-actions .ui-icon{width:14px;height:14px}
+#hubMount .community-manager .cm-row-actions input[type=color]{width:25px;height:25px;padding:1px;background:transparent;border:0;cursor:pointer}
+#hubMount .community-manager .cm-role-color{display:block;width:17px;height:17px;border-radius:6px;background:var(--role-color)}
+#hubMount .community-manager .cm-form{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px;margin-top:16px}
+#hubMount .community-manager .cm-form label{display:flex;flex-direction:column;gap:7px;font-size:11px;color:#dfd2d4}
+#hubMount .community-manager .cm-form input:not([type=checkbox]),#hubMount .community-manager .cm-form select,#hubMount .community-manager .cm-form textarea,
+#hubMount .community-manager select[data-cm-role]{
+ width:100%;padding:10px 12px;background:#ffffff12;border:1px solid #ffffff3b;
+ border-radius:10px;color:#f9f1ed;font:12px "Instrument Sans",system-ui;
+}
+#hubMount .community-manager select option{color:#222;background:#fff}
+#hubMount .community-manager .cm-form textarea{resize:vertical;min-height:92px}
+#hubMount .community-manager .cm-form .cm-check{flex-direction:row;align-items:center;gap:9px}
+#hubMount .community-manager .cm-form .cm-check input{accent-color:var(--community-accent)}
+#hubMount .community-manager .cm-form .cm-full{grid-column:1/-1}
+#hubMount .community-manager .cm-save{width:max-content;display:inline-flex;align-items:center;gap:8px;border-radius:9px;border:1px solid #ffffffb0;background:var(--community-accent);padding:11px 15px;color:#1a1420;font:800 12px "Instrument Sans",system-ui;cursor:pointer}
+#hubMount .community-manager .cm-save .ui-icon{width:15px;height:15px}
+#hubMount .community-manager select[data-cm-role]{width:auto;min-width:115px}
+#hubMount .community-manager button:focus-visible,#hubMount .community-manager select:focus-visible{outline:2px solid var(--community-accent);outline-offset:2px}
+#hubMount .v4-updates{padding:34px;color:#f8edf4}
+#hubMount .v4-updates h2{font-size:26px;margin:0 0 10px}
+#hubMount .v4-updates p{color:#c5b9c3;line-height:1.6}
+#hubMount .v4-updates button{margin-top:12px;display:inline-flex;align-items:center;gap:8px;padding:10px;border-radius:9px;color:#282028;background:var(--community-accent);border:0;cursor:pointer}
+#hubMount .v4-updates .ui-icon{width:17px;height:17px}
+/* Remove legacy V2 promotional banners, with their green announcement accent. */
+#hubMount .v2-hero-wrap,#hubMount .v2-hero,#hubMount .v2-announcement,#hubMount .v2-announcement-wrap{display:none!important}
+/* Old hard-coded green hover states should not overpower current custom accent. */
+#hubMount .social-msg-meta strong,#hubMount .social-mention,
+#hubMount .v2-mini-label,#hubMount .v3-eyebrow,
+#hubMount .hub-link.active i,#hubMount .v4-nav-shell .hub-link.active .ui-icon{
+ color:var(--community-accent)!important
+}
+@media(max-width:800px){
+ #hubMount .community-manager{width:calc(100vw - 16px);height:calc(100dvh - 20px);border-radius:15px}
+ #hubMount .community-manager header{padding:17px}
+ #hubMount .community-manager nav{padding:9px 12px}
+ #hubMount .community-manager .cm-content{padding:13px}
+ #hubMount .community-manager .cm-card{padding:13px}
+ #hubMount .community-manager .cm-row{flex-wrap:wrap}
+ #hubMount .community-manager .cm-row-actions{margin-left:auto}
+ #hubMount .community-manager .cm-form{grid-template-columns:1fr}
+ #hubMount .community-manager .cm-form .cm-full{grid-column:auto}
+ #hubMount .v3-game-picture .ui-icon{width:58px;height:58px}
+}
+@media(prefers-reduced-transparency:reduce){#hubMount .community-manager{backdrop-filter:none;background:#25232d}}

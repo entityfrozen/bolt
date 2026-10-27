@@ -7,7 +7,7 @@ const updates=[
  ["▣","More games","Every Arcade title is right where you need it."],
  ["✳","Fixes and improvements","Cleaner interactions and a faster feeling interface."]
 ];
-const hero='<section class="v2-hero"><div class="v2-hero-art"></div><div class="v2-hero-copy"><span class="v2-eyebrow">✦ VERSION TWO / LIVE</span><h1>A whole new<br><em>Lightning.</em></h1><p>A home for your communities, AI and games. Built around how you actually use it.</p><div class="v2-hero-buttons"><button class="v2-primary" data-v2="discover">Explore servers ↗</button><button data-view="games">Open Arcade</button></div></div><div class="v2-hero-news"><b>What is new in V2</b>'+updates.map(([icon,title,desc])=>'<div class="v2-hero-feature"><i>'+icon+'</i><span><strong>'+title+'</strong><small>'+desc+'</small></span></div>').join("")+'</div></section>';
+const hero='<section class="v2-hero"><div class="v2-hero-art"></div><div class="v2-hero-copy"><span class="v2-eyebrow">COMMUNITY UPDATES</span><h1>A whole new<br><em>Lightning.</em></h1><p>A home for your communities, AI and games. Built around how you actually use it.</p><div class="v2-hero-buttons"><button class="v2-primary" data-v2="discover">Explore servers ↗</button><button data-view="games">Open Arcade</button></div></div><div class="v2-hero-news"><b>What is new in V2</b>'+updates.map(([icon,title,desc])=>'<div class="v2-hero-feature"><i>'+icon+'</i><span><strong>'+title+'</strong><small>'+desc+'</small></span></div>').join("")+'</div></section>';
 export function installV2(Hub){
   const baseOpen=Hub.prototype.open,baseClose=Hub.prototype.close,baseShow=Hub.prototype.show;
   const baseRender=Hub.prototype.render,baseChat=Hub.prototype.chat,baseMessage=Hub.prototype.onMessage,baseHeader=Hub.prototype.header;
@@ -19,7 +19,7 @@ export function installV2(Hub){
       '<button class="v2-home active" data-v2="home" aria-label="Community home" title="Home">ϟ</button><div class="v2-rail-divider"></div><div id="v2ServerIcons"></div>'+
       '<button class="v2-add" data-v2="discover" aria-label="Discover servers" title="Discover servers">+</button><div class="v2-rail-spacer"></div>'+
       '<button class="v2-ai-mini" data-v2="ai" title="AI workspace">✧</button></nav>'+
-      '<aside class="hub-rail v2-sidebar"><div class="hub-logo"><span class="v2-mini-label">● COMMUNITY</span><strong id="v2ServerTitle">Lightning <em>V2</em></strong><small id="v2ServerAbout">Your space to connect.</small></div>'+
+      '<aside class="hub-rail v2-sidebar"><div class="hub-logo"><span class="v2-mini-label">COMMUNITY</span><strong id="v2ServerTitle">Lightning</strong><small id="v2ServerAbout">Your space to connect.</small></div>'+
       '<nav class="hub-nav" id="v2Channels" aria-label="Community channels"></nav>'+
       '<div class="hub-user"><div class="hub-avatar" id="hubAvatar">L</div><div><strong id="hubUsername">Account</strong><span id="hubConnection">Connecting…</span></div><button data-v2="ai" class="v2-account-ai" title="AI workspace">✧</button></div></aside>'+
       '<main class="hub-main v2-main"><header class="hub-head v2-topbar"><button type="button" class="v2-menu-button" data-v2="toggleNav" aria-label="Toggle channel list" aria-expanded="false">☰</button><div class="v2-topbar-name"><h2 id="hubTitle"># general</h2><p id="hubSubtitle">Community</p></div><span class="hub-spacer"></span>'+
@@ -40,7 +40,7 @@ export function installV2(Hub){
         const open=this.$(".v2-shell").classList.toggle("v2-nav-open");
         b.setAttribute("aria-expanded",String(open));
       }
-      else if(act==="home"){this.v2ServerId=null;this.show("chat","general");}
+      else if(act==="home"){this.v2ServerId="lightning-main";this.v2Channel="announcements";this.show("room");}
       else if(act==="ai")document.getElementById("boltBubble")?.click();
       else if(act==="discover")this.v2Discover();
       else if(act==="create"){this.$("#v2CreateDialog").showModal();this.$("#v2Name").focus();}
@@ -80,7 +80,7 @@ export function installV2(Hub){
   Hub.prototype.v2Nav=function(){
     if(!this.v2Ready)return;
     const current=this.v2Servers.find(s=>s.id===this.v2ServerId);
-    this.$("#v2ServerTitle").innerHTML=current?esc(current.name):'Lightning <em>V2</em>';
+    this.$("#v2ServerTitle").textContent=current?.name||"Lightning";
     this.$("#v2ServerAbout").textContent=current?current.memberCount+" members · "+current.channels.length+" channels":"A place to make your own.";
     this.$(".v2-home").classList.toggle("active",!current);
     this.$("#v2ServerIcons").innerHTML=this.v2Servers.map((s,i)=>'<button class="v2-server-icon'+(s.id===this.v2ServerId?" active":"")+'" data-v2="server" data-id="'+esc(s.id)+'" title="'+esc(s.name)+'" aria-label="'+esc(s.name)+'">'+esc(s.icon||["✦","◈","◆"][i%3])+'</button>').join("");
@@ -132,7 +132,7 @@ export function installV2(Hub){
     baseChat.call(this);
     if(this.channel==="general"){
       const stream=this.$("#hubMessages");
-      if(stream&&!this.$(".v2-hero-wrap")){
+      if(false&&stream&&!this.$(".v2-hero-wrap")){
         const wrapper=document.createElement("div");wrapper.className="v2-hero-wrap";wrapper.innerHTML=hero;stream.before(wrapper);
       }
     }
