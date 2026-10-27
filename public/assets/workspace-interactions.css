@@ -1,0 +1,92 @@
+/* Lightning workspace – persistent side chat and one configurable accent. */
+#hubMount .sc-toggle{display:flex;align-items:center;gap:8px;flex:none;min-height:32px;padding:7px 11px;border:1px solid rgba(var(--lg-rgb,163,206,248),.38);border-radius:10px;background:rgba(var(--lg-rgb,163,206,248),.11);color:#f1f5fa;font:700 11px "Instrument Sans",system-ui;cursor:pointer;white-space:nowrap}
+#hubMount .sc-toggle:before{content:"";height:7px;width:7px;border-radius:50%;background:var(--lg-accent,#a3cef8);box-shadow:0 0 11px rgba(var(--lg-rgb,163,206,248),.55)}
+#hubMount .sc-toggle[aria-expanded=true]{background:rgba(var(--lg-rgb,163,206,248),.2);border-color:var(--lg-accent,#a3cef8)}
+#hubMount .sc-toggle:hover{background:rgba(var(--lg-rgb,163,206,248),.25)}
+#hubMount .lightning-side-chat{position:absolute;top:76px;right:12px;bottom:16px;z-index:45;display:flex;flex-direction:column;width:min(332px,calc(100vw - 66px));min-height:0;overflow:hidden;border:1px solid #ffffff50;border-radius:17px;background:linear-gradient(155deg,#ffffff18,#ffffff06),#161923f0;color:#f7f7fa;box-shadow:0 20px 70px #000b,inset 0 1px #ffffff36;backdrop-filter:blur(23px) saturate(120%)}
+#hubMount .lightning-side-chat[hidden]{display:none!important}
+#hubMount .lightning-side-chat header{height:66px;min-height:66px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:8px;border-bottom:1px solid #ffffff26}
+#hubMount .sc-header-title{display:flex;flex-direction:column;gap:6px}
+#hubMount .sc-header-title small{color:var(--lg-accent,#a3cef8);letter-spacing:.12em;font:750 9px ui-monospace,monospace}
+#hubMount .sc-header-title strong{font:750 15px "Instrument Sans",system-ui}
+#hubMount .lightning-side-chat header>button{background:#ffffff18;border:1px solid #ffffff2e;border-radius:9px;color:#fff;cursor:pointer;height:30px;width:30px;font-size:20px}
+#hubMount .sc-destination{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid #ffffff22}
+#hubMount .sc-destination label{font:750 9px ui-monospace,monospace;color:#bbb5c3;letter-spacing:.06em}
+#hubMount .sc-destination select{flex:1;min-width:0;padding:10px;border:1px solid #ffffff32;border-radius:9px;background:#242732;color:#f1f0f6;font:12px "Instrument Sans",system-ui;cursor:pointer}
+#hubMount .sc-messages{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;padding:14px;gap:12px;overscroll-behavior:contain}
+#hubMount .sc-message{border-bottom:1px solid #ffffff17;padding:0 0 12px}
+#hubMount .sc-message>div{display:flex;justify-content:space-between;align-items:center;gap:6px}
+#hubMount .sc-message strong{color:#eef3fb;font-size:11px}
+#hubMount .sc-message time{color:#a3a9ba;font-size:10px}
+#hubMount .sc-message p{font-size:12px;line-height:1.6;color:#dddce6;margin:7px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
+#hubMount .sc-empty{margin:auto;color:#aaa9bc;font-size:12px;text-align:center;line-height:1.6}
+#hubMount .sc-compose{display:flex;flex-direction:column;gap:8px;padding:13px;border-top:1px solid #ffffff29;background:#ffffff0a}
+#hubMount .sc-compose textarea{width:100%;box-sizing:border-box;background:#ffffff10;border:1px solid #ffffff34;border-radius:10px;color:#fff;padding:11px;min-height:75px;resize:vertical;font:12px "Instrument Sans",system-ui}
+#hubMount .sc-compose button{align-self:flex-end;padding:10px 15px;border:0;border-radius:9px;background:var(--lg-accent,#a3cef8);color:#151926;font:750 11px "Instrument Sans",system-ui;cursor:pointer}
+#hubMount .sc-compose button:disabled{opacity:.45;cursor:default}
+#hubMount .lightning-side-chat :focus-visible,#hubMount .sc-toggle:focus-visible{outline:2px solid var(--lg-accent,#a3cef8);outline-offset:2px}
+@media(min-width:1350px){
+ #hubMount.split-chat-open .v3-shell{width:calc(100% - 352px)!important;transition:width .16s ease}
+ #hubMount.split-chat-open .lightning-side-chat{right:10px;top:12px;bottom:14px}
+ #hubMount.split-chat-open .v3-shell .v3-inspector{display:none!important}
+}
+@media(max-width:900px){
+ #hubMount .sc-toggle{font-size:0!important;width:36px;justify-content:center;padding:7px}
+ #hubMount .sc-toggle:before{width:8px;height:8px}
+ #hubMount .lightning-side-chat{top:64px;right:7px;bottom:10px;width:min(345px,calc(100vw - 60px))}
+}
+/* AI panel: no leftover gold or brass. Every highlight follows Appearance settings. */
+body.app-page #boltTools .bolt-ai-panel{background:linear-gradient(155deg,#ffffff19,#ffffff05),rgba(20,22,34,.92)!important;color:#f5f6fc!important;border:1px solid #ffffff54!important}
+body.app-page #boltTools .bolt-aux-head,body.app-page #boltTools .bolt-ai-compose{background:#ffffff06!important;border-color:#ffffff2e!important}
+body.app-page #boltTools .bolt-aux-title{color:#fafbff!important}
+body.app-page #boltTools .bolt-aux-subtitle{color:#b8b9c8!important}
+body.app-page #boltTools .bolt-aux-brand{background:rgba(var(--lg-rgb,163,206,248),.15)!important;border:1px solid rgba(var(--lg-rgb,163,206,248),.35)!important}
+body.app-page #boltTools .bolt-aux-btn,body.app-page #boltTools .bolt-ai-head-tool{background:#ffffff0c!important;border:1px solid #ffffff33!important;color:#dee5f4!important}
+body.app-page #boltTools .bolt-aux-btn:hover,body.app-page #boltTools .bolt-ai-head-tool:hover{background:rgba(var(--lg-rgb,163,206,248),.19)!important;color:#fff!important}
+body.app-page #boltTools .bolt-ai-messages{background:transparent!important}
+body.app-page #boltTools .bolt-ai-empty{color:#bdc6d8!important}
+body.app-page #boltTools .bolt-ai-intro{background:radial-gradient(circle at 90% -10%,rgba(var(--lg-rgb,163,206,248),.2),transparent 63%),#222534!important;border:1px solid rgba(var(--lg-rgb,163,206,248),.35)!important;box-shadow:inset 0 1px #ffffff25!important}
+body.app-page #boltTools .bolt-ai-intro strong{font-family:"Instrument Sans",system-ui!important;color:#f8faff!important;font-size:26px!important;letter-spacing:-.055em!important}
+body.app-page #boltTools .bolt-ai-intro .bolt-ai-kicker{color:var(--lg-accent,#a3cef8)!important}
+body.app-page #boltTools .bolt-ai-intro p,body.app-page #boltTools .bolt-ai-suggest-label{color:#b4baca!important}
+body.app-page #boltTools .bolt-ai-suggestion{background:#ffffff0c!important;border:1px solid #ffffff30!important;color:#e1e5f0!important}
+body.app-page #boltTools .bolt-ai-suggestion:after{color:var(--lg-accent,#a3cef8)!important}
+body.app-page #boltTools .bolt-ai-suggestion:hover{background:rgba(var(--lg-rgb,163,206,248),.16)!important;border-color:rgba(var(--lg-rgb,163,206,248),.55)!important}
+body.app-page #boltTools .bolt-ai-shortcuts button{background:#ffffff0f!important;border:1px solid #ffffff34!important;color:#d1d9ea!important}
+body.app-page #boltTools .bolt-ai-shortcuts button:hover{background:rgba(var(--lg-rgb,163,206,248),.18)!important;color:#fff!important}
+body.app-page #boltTools .bolt-ai-textarea{background:#ffffff12!important;border-color:#ffffff42!important;color:#f9fcff!important}
+body.app-page #boltTools .bolt-ai-textarea:focus{border-color:var(--lg-accent,#a3cef8)!important;box-shadow:0 0 0 3px rgba(var(--lg-rgb,163,206,248),.16)!important}
+body.app-page #boltTools .bolt-ai-send{background:var(--lg-accent,#a3cef8)!important;color:#151822!important}
+body.app-page #boltTools .bolt-ai-msg.user{background:rgba(var(--lg-rgb,163,206,248),.17)!important;border-color:rgba(var(--lg-rgb,163,206,248),.35)!important;color:#fff!important}
+body.app-page #boltTools .bolt-ai-msg.assistant{background:#ffffff12!important;border-color:#ffffff24!important;color:#f4f7fc!important}
+body.app-page #boltTools #boltDevDock .bolt-dev-tabs button.on{color:var(--lg-accent,#a3cef8)!important;border-bottom-color:var(--lg-accent,#a3cef8)!important}
+body.app-page #boltTools #boltDevDock .bolt-dev-line:focus-visible{outline-color:var(--lg-accent,#a3cef8)!important}
+body.app-page #boltTools #boltAiPanel .bolt-ai-grip{border-color:var(--lg-accent,#a3cef8)!important}
+body.app-page #boltTools .bolt-ai-activity b{color:var(--lg-accent,#a3cef8)!important}
+body.app-page .bolt-ai-panel .ai-search-config{white-space:nowrap;font-size:10px!important;color:var(--lg-accent,#a3cef8)!important}
+@media(max-width:600px){body.app-page .bolt-ai-panel .ai-search-config{font-size:0!important}.ai-search-config:before{content:"Web";font-size:10px}}
+/* Search setup: separate, focused dialog. Never display saved secrets. */
+.ai-search-dialog{position:fixed;inset:0;margin:auto;max-width:none;max-height:none;width:min(510px,calc(100vw - 24px));padding:0;border:1px solid #ffffff58;border-radius:21px;background:linear-gradient(145deg,#ffffff13,#ffffff04),#202230f0;color:#f7f7fa;box-shadow:0 35px 90px #000b;backdrop-filter:blur(26px);z-index:210;font-family:"Instrument Sans",system-ui}
+.ai-search-dialog::backdrop{background:#090a15c7;backdrop-filter:blur(6px)}
+.ai-search-shell{padding:25px;box-sizing:border-box}
+.ai-search-shell>header{display:flex;align-items:start;justify-content:space-between;gap:12px;border-bottom:1px solid #ffffff29;padding-bottom:18px}
+.ai-search-shell>header small{font:800 9px ui-monospace,monospace;color:var(--lg-accent,#a3cef8);letter-spacing:.12em}
+.ai-search-shell>header h2{font-size:23px;letter-spacing:-.05em;margin:8px 0 0;color:#fff}
+.ai-search-shell>header button{background:#ffffff14;border:1px solid #ffffff36;border-radius:50%;color:#fff;font-size:20px;width:32px;height:32px;cursor:pointer}
+.ai-search-description,.ai-search-note{color:#bfc3d0;font:12px/1.6 "Instrument Sans",system-ui}
+.ai-search-note{font-size:10px;margin:10px 0 2px}
+.ai-search-provider-state{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:15px 0}
+.ai-search-provider-state>div{display:flex;flex-direction:column;gap:8px;border:1px solid #ffffff30;border-radius:12px;padding:12px;font-size:12px}
+.ai-search-provider-state strong{font-size:10px}
+.ai-search-provider-state strong.ready{color:#adf5d5}
+.ai-search-provider-state strong.missing{color:#b8b9cc}
+.ai-search-shell form{display:flex;flex-direction:column;gap:9px}
+.ai-search-shell label{font:730 11px "Instrument Sans",system-ui;color:#e2e6f2}
+.ai-search-shell select,.ai-search-shell input{width:100%;box-sizing:border-box;padding:11px 12px;border-radius:10px;border:1px solid #ffffff3e;background:#2b2d3c;color:#f8f9fd;font:12px "Instrument Sans",system-ui}
+.ai-search-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.ai-search-actions button{padding:10px 12px;border-radius:9px;border:1px solid #ffffff3f;background:#ffffff17;color:#f0f4ff;cursor:pointer;font:720 11px "Instrument Sans",system-ui}
+.ai-search-actions .ai-search-primary{background:var(--lg-accent,#a3cef8);color:#161824;border:0}
+.ai-search-actions button:disabled{opacity:.5}
+.ai-search-feedback{min-height:22px;margin-top:15px;font-size:11px;line-height:1.6;color:#f6b8bd}
+.ai-search-feedback.success{color:#b4efdb}
+.ai-search-dialog :focus-visible{outline:2px solid var(--lg-accent,#a3cef8);outline-offset:2px}

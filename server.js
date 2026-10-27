@@ -8,6 +8,7 @@ import { bootstrap } from "@mercuryworkshop/proxy-bootstrap";
 import { attachLightningLive } from "./live.js";
 import { registerAccountSpace } from "./account-space.js";
 import { needsWebSearch, searchWeb } from "./web-search.js";
+import { installSearchCredentials } from "./web-search-credentials.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const port = Number(process.env.PORT || 3030);
@@ -375,6 +376,7 @@ app.get("/api/config", mustBeSignedIn, (req, res) => {
 });
 
 
+const aiSearch=installSearchCredentials({app,dataDir,mustBeSignedIn,sameOrigin,searchWeb});
 const aiRequests = new Map();
 app.post("/api/ai/chat", mustBeSignedIn, sameOrigin, async (req, res) => {
   res.setHeader("Cache-Control", "no-store");
@@ -405,11 +407,11 @@ app.post("/api/ai/chat", mustBeSignedIn, sameOrigin, async (req, res) => {
   const latestQuestion = messages.at(-1).content;
   const searchRequested = req.body?.webSearch === true || (req.body?.webSearch !== false && needsWebSearch(latestQuestion));
   const web = searchRequested
-    ? await searchWeb(latestQuestion)
+    ? await aiSearch.search(req.auth.identity.id,latestQuestion)
     : {sources: [], provider: null, error: null};
   if (searchRequested && !web.sources.length) {
     return res.json({
-      reply: "Live search couldn't return any verified sources for that request. Your account is using free search fallbacks, which may be blocked or unavailable. An admin can configure TAVILY_API_KEY (free monthly credits) or BRAVE_SEARCH_API_KEY in Railway for a more reliable search provider.",
+      reply: "No verified live sources came back. Open AI → Web search settings to add or test your Tavily/Brave key. "+(web.error||"Try a different query or provider."),
       searched: true,
       sources: [],
       searchError: web.error,

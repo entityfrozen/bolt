@@ -141,11 +141,23 @@ export function needsWebSearch(message) {
   return /\b(websearch|web.search|search (the )?(web|internet|online|for)|can you search|could you search|look (it )?up|browse|google|sources?|citation|latest|current|recent|today|yesterday|this week|breaking|news|weather|price|stock price|as of now|2026)\b/i.test(text);
 }
 
-export async function searchWeb(query, {fetcher=fetch, braveKey=process.env.BRAVE_SEARCH_API_KEY, tavilyKey=process.env.TAVILY_API_KEY}={}) {
+export async function searchWeb(query, {fetcher=fetch, braveKey=process.env.BRAVE_SEARCH_API_KEY, tavilyKey=process.env.TAVILY_API_KEY, providerOnly=null}={}) {
   const text = String(query || "").replace(/\s+/g, " ").trim().slice(0, 180);
   if (!text) return {sources:[],provider:null,error:"No search query provided."};
   const providers = tavilyKey ? [["Tavily",()=>tavily(text,fetcher,tavilyKey)]] : [];
   if (braveKey) providers.push(["Brave",()=>brave(text,fetcher,braveKey)]);
+  if(providerOnly){
+    const selection=providerOnly==="tavily"?"Tavily":providerOnly==="brave"?"Brave":null;
+    if(!selection)return {sources:[],provider:null,error:"Unknown search provider."};
+    const chosen=providers.find(([name])=>name===selection);
+    if(!chosen)return {sources:[],provider:null,error:selection+" key is not configured."};
+    try{
+      const sources=await chosen[1]();
+      return {sources,provider:selection,error:sources.length?null:selection+" returned no usable search results."};
+    }catch(error){
+      return {sources:[],provider:selection,error:selection+" test failed: "+String(error?.message||"Provider unavailable").slice(0,100)};
+    }
+  }
   providers.push(["Bing",()=>bing(text,fetcher)]);
   if (/\b(news|latest|today|breaking|this week|recent|current)\b/i.test(text)) {
     providers.push(["Google News",()=>googleNews(text,fetcher)]);

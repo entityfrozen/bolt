@@ -76,3 +76,18 @@ test("If Tavily is down, search continues to the free RSS fallback", async () =>
   assert.equal(result.provider,"Bing");
   assert.equal(result.sources.length,1);
 });
+
+test("Provider connection checks report key errors rather than silently using fallbacks", async () => {
+  const calls=[];
+  const fetcher=async url=>{
+    calls.push(String(url));
+    return {ok:false,status:401,headers:{get:()=>null}};
+  };
+  const broken=await searchWeb("Lightning docs",{fetcher,tavilyKey:"invalid-test-value",braveKey:"",providerOnly:"tavily"});
+  assert.equal(broken.provider,"Tavily");
+  assert.equal(broken.sources.length,0);
+  assert.match(broken.error,/401/);
+  assert.deepEqual(calls,["https://api.tavily.com/search"]);
+  const missing=await searchWeb("docs",{fetcher,tavilyKey:"",braveKey:"",providerOnly:"brave"});
+  assert.match(missing.error,/not configured/i);
+});

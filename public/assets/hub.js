@@ -8,6 +8,7 @@ import {installRpsVisuals} from "./rps-visuals.js?v=1";
 import {installV2} from "./v2.js?v=4";
 import {installWorkspaceV3} from "./workspace-v3.js?v=6";
 import {installCommunityUI} from "./community-ui.js?v=2";
+import {installSplitChat} from "./split-chat.js?v=1";
 
 const E=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const PIECES={K:"♔",Q:"♕",R:"♖",B:"♗",N:"♘",P:"♙",k:"♚",q:"♛",r:"♜",b:"♝",n:"♞",p:"♟"};
@@ -27,9 +28,7 @@ class Hub{
    if(action)this.act(action.dataset.act,action);
   });
   window.addEventListener("resize",()=>{if(this.view==="world")this.draw()});
-  document.addEventListener("pointerdown",event=>{
-    if(this.active&&!this.root.contains(event.target)&&!event.target.closest("[data-hub]")&&!event.target.closest("#lightningSuggestionButton")&&!event.target.closest("#boltTools"))this.close();
-  });
+  // Only explicit navigation closes the workspace; outside clicks do nothing.
  }
  $(q){return this.root.querySelector(q)}
  $$(q){return [...this.root.querySelectorAll(q)]}
@@ -402,6 +401,7 @@ installRpsVisuals(Hub);
 installV2(Hub);
 installWorkspaceV3(Hub);
 installCommunityUI(Hub);
+installSplitChat(Hub);
 function ensureHubStyles(){
  if(!document.getElementById("lightningHubCss")){
   const css=document.createElement("link");css.id="lightningHubCss";css.rel="stylesheet";css.href="/assets/hub.css?v=3";document.head.append(css);
@@ -417,6 +417,7 @@ function ensureHubStyles(){
   const glass=document.createElement("link");glass.id="lightningLiquidGlass";glass.rel="stylesheet";glass.href="/assets/liquid-glass.css?v=1";document.head.append(glass);
    const community=document.createElement("link");community.id="lightningCommunityModern";community.rel="stylesheet";community.href="/assets/community-modern.css?v=2";document.head.append(community);
     const dashboard=document.createElement("link");dashboard.id="lightningDashboardRefine";dashboard.rel="stylesheet";dashboard.href="/assets/dashboard-refine.css?v=1";document.head.append(dashboard);
+    const interactions=document.createElement("link");interactions.id="lightningInteractions";interactions.rel="stylesheet";interactions.href="/assets/workspace-interactions.css?v=1";document.head.append(interactions);
  }
 }
 export function openHub(view="chat"){

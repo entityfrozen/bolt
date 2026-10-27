@@ -150,3 +150,16 @@ test("Accounts, DMs, server history and appearance links are all integrated",()=
  assert.match(account,/api\/account\/dms/);
  assert.match(account,/data-as-form="profile"/);
 });
+
+test("The game remains mounted when chat opens, and outside clicks do not close the hub",()=>{
+ const hub=fs.readFileSync(new URL("../public/assets/hub.js",import.meta.url),"utf8");
+ const split=fs.readFileSync(new URL("../public/assets/split-chat.js",import.meta.url),"utf8");
+ const css=fs.readFileSync(new URL("../public/assets/workspace-interactions.css",import.meta.url),"utf8");
+ assert.doesNotMatch(hub,/this\.active&&!this\.root\.contains\(event\.target\)/);
+ assert.match(split,/splitToggle/);
+ assert.match(split,/type:"v2Message"/);
+ assert.match(split,/lightningSideChat/);
+ assert.match(css,/split-chat-open/);
+ assert.match(css,/bolt-ai-intro strong/);
+ assert.match(browser,/web-search-settings\.js/);
+});

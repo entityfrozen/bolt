@@ -25,6 +25,9 @@ jobs:
       - name: Check app and live scripts
         run: |
           node --check server.js
+          node --check web-search-credentials.js
+          node --check public/assets/web-search-settings.js
+          node --check public/assets/split-chat.js
           node --check account-space.js
           node --check public/assets/account-space-ui.js
           node --check public/assets/community-ui.js

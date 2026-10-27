@@ -77,3 +77,24 @@ test("Profile, DMs and history follow the signed-in account, not the device", {t
  assert.equal(cleared.status,200);
  assert.equal((await request(origin,"/api/account/history/browser",anotherAliceSession)).data.items.length,0);
 });
+
+test("Search settings stay private to the account and never echo credentials", {timeout:50000}, async t=>{
+ const origin=await runServer(t);
+ const admin=await request(origin,"/api/login","","POST",{username:"account-admin",password:"safe-test-admin-password"});
+ assert.equal(admin.status,200);
+ const made=await request(origin,"/api/admin/users",admin.cookie,"POST",{username:"test-search-account",password:"test-account-password-456"});
+ assert.equal(made.status,201);
+ const cookie=(await request(origin,"/api/login","","POST",{username:"test-search-account",password:"test-account-password-456"})).cookie;
+ assert.equal((await request(origin,"/api/ai/search-settings")).status,401);
+ const before=await request(origin,"/api/ai/search-settings",cookie);
+ assert.equal(before.data.tavily,false);
+ const saved=await request(origin,"/api/ai/search-settings",cookie,"POST",{provider:"tavily",key:"demo-test-key-not-real"});
+ assert.equal(saved.status,200);
+ assert.equal(saved.data.source.tavily,"account");
+ assert.ok(!JSON.stringify(saved.data).includes("demo-test-key-not-real"));
+ assert.equal((await request(origin,"/api/ai/search-settings",admin.cookie)).data.tavily,false);
+ const invalid=await request(origin,"/api/ai/search-settings",cookie,"POST",{provider:"brave",key:"x"});
+ assert.equal(invalid.status,400);
+ const removed=await request(origin,"/api/ai/search-settings/tavily",cookie,"DELETE");
+ assert.equal(removed.data.tavily,false);
+});
