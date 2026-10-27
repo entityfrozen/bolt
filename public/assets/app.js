@@ -1013,7 +1013,7 @@ async function logout(){
 
 function openLightningHub(view){
   closePanel();
-  import("/assets/hub.js?v=34").then(hub=>hub.openHub(view)).catch(()=>toast("Could not open the Lightning hub."));
+  import("/assets/hub.js?v=35").then(hub=>hub.openHub(view)).catch(()=>toast("Could not open the Lightning hub."));
 }
 
 function bindUi(){
@@ -1082,7 +1082,7 @@ async function start(){
     renderNewtabLists();
   }catch{return}
   restoreTabs();
-  import("/assets/hub.js?v=34").then(hub=>{
+  import("/assets/hub.js?v=35").then(hub=>{
     hub.startHubNotifications();
     if(new URL(location.href).searchParams.get("view")!=="browser")hub.openHub("overview");
   }).catch(error=>console.warn("Workspace unavailable:",error));
