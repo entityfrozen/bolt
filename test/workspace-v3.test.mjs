@@ -17,7 +17,7 @@ test("V3 workspace has functional navigation, search and preferences",()=>{
   assert.match(workspace,/Hub\.prototype\.v3Overview/);
   assert.match(workspace,/Hub\.prototype\.v3DrawCommands/);
   assert.match(workspace,/Hub\.prototype\.v3Launch/);
-  assert.match(workspace,/localStorage\.setItem/);
+  assert.match(workspace,/settings\.set\(key,value\)/);
 });
 test("2048 merges tiles, scores them and spawns a new tile",()=>{
   const game=make2048();
@@ -78,8 +78,8 @@ test("Glass appearance engine is shared by browser and workspace",()=>{
   assert.match(runtime,/--accent-rgb/);
   for(const feature of ["opacity","blur","radius","saturation","wallpaper","sidebar","layout","inspector","dock","contrast","motion","shadows","scale"])
     assert.ok(runtime.includes(feature),"Missing appearance control "+feature);
-  assert.match(runtime,/localStorage\.setItem/);
-  assert.match(runtime,/JSON\.stringify/);
+  assert.match(runtime,/account-settings-loaded/);
+  assert.match(runtime,/settings\.set\("appearance"/);
   assert.match(runtime,/aria-label/);
   assert.match(css,/backdrop-filter/);
   assert.match(studio,/lg-preview/);
@@ -97,10 +97,11 @@ test("Community icon system and protected announcement navigation are installed"
  assert.doesNotMatch(workspace,/icon:"²"|icon:"✱"|icon:"✊"/);
 });
 
-test("Old green theme is migrated to the original Lightning accent",()=>{
+test("Default appearance no longer relies on device-only theme migrations",()=>{
  const settings=fs.readFileSync(new URL("../public/assets/glass-settings.js",import.meta.url),"utf8");
- assert.match(settings,/#44eda7/);
- assert.match(settings,/accent:DEFAULTS.accent/);
+ assert.match(settings,/accent:"#a3cef8"/);
+ assert.match(settings,/lightning:account-settings-loaded/);
+ assert.doesNotMatch(settings,/localStorage\.setItem\(KEY/);
  assert.match(browser,/glass-settings\.js\?v=6/);
 });
 
