@@ -92,7 +92,7 @@
 .lg-plain-action:hover,.lg-data-actions button:hover{border-color:var(--lg-accent,#e2bb75);background:#ffffff2a}
 .lg-plain-action.lg-danger{color:#ffc9c9;border-color:#ce7a7a72}
 .lg-data-actions{display:flex;gap:10px;flex-wrap:wrap}
-.lg-auto-save{display:flex;gap:8px;align-items:center;justify-content:center;font:700 10px "IBM Plex Mono",monospace;letter-spacing:.07em;color:#9acdaf;margin:24px 0}
+.lg-auto-save{display:flex;gap:8px;align-items:center;justify-content:center;font:700 10px "IBM Plex Mono",monospace;letter-spacing:.07em;color:var(--lg-accent,#e2bb75);margin:24px 0}
 .lg-preview-side{padding:24px 17px;display:flex;flex-direction:column;gap:18px;border-left:1px solid #ffffff29;background:#0b0b139a}
 .lg-preview-side>header{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .lg-preview-side header span{font:800 9px "IBM Plex Mono",monospace;letter-spacing:.1em;color:#c0b6c5}

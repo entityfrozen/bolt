@@ -7,7 +7,6 @@ const updates=[
  ["▣","More games","Every Arcade title is right where you need it."],
  ["✳","Fixes and improvements","Cleaner interactions and a faster feeling interface."]
 ];
-const hero='<section class="v2-hero"><div class="v2-hero-art"></div><div class="v2-hero-copy"><span class="v2-eyebrow">COMMUNITY UPDATES</span><h1>A whole new<br><em>Lightning.</em></h1><p>A home for your communities, AI and games. Built around how you actually use it.</p><div class="v2-hero-buttons"><button class="v2-primary" data-v2="discover">Explore servers ↗</button><button data-view="games">Open Arcade</button></div></div><div class="v2-hero-news"><b>What is new in V2</b>'+updates.map(([icon,title,desc])=>'<div class="v2-hero-feature"><i>'+icon+'</i><span><strong>'+title+'</strong><small>'+desc+'</small></span></div>').join("")+'</div></section>';
 export function installV2(Hub){
   const baseOpen=Hub.prototype.open,baseClose=Hub.prototype.close,baseShow=Hub.prototype.show;
   const baseRender=Hub.prototype.render,baseChat=Hub.prototype.chat,baseMessage=Hub.prototype.onMessage,baseHeader=Hub.prototype.header;
@@ -128,19 +127,12 @@ export function installV2(Hub){
     return baseRender.call(this);
   };
   Hub.prototype.header=function(title,subtitle){baseHeader.call(this,title,subtitle);this.v2Nav();};
-  Hub.prototype.chat=function(){
-    baseChat.call(this);
-    if(this.channel==="general"){
-      const stream=this.$("#hubMessages");
-      if(false&&stream&&!this.$(".v2-hero-wrap")){
-        const wrapper=document.createElement("div");wrapper.className="v2-hero-wrap";wrapper.innerHTML=hero;stream.before(wrapper);
-      }
-    }
-    this.v2Nav();
-  };
+  Hub.prototype.chat=function(){baseChat.call(this);this.v2Nav();};
   Hub.prototype.updates=function(){
-    this.header("What is new","Version 2");
-    this.$("#hubContent").innerHTML='<div class="v2-update-page">'+hero+'<section class="v2-update-foot"><h2>Better together.</h2><p>Real community servers, a more flexible AI workspace and all your favorite games.</p><button class="v2-primary" data-v2="discover">Explore communities →</button></section></div>';
+    this.header("Updates","News from the team");
+    this.$("#hubContent").innerHTML='<section class="v4-updates"><h2>News & changes</h2>'+
+      '<p>Find the latest official posts in the announcements channel.</p>'+
+      '<button data-cm="main">Open announcements</button></section>';
   };
   Hub.prototype.v2Discover=function(refresh=false){
     if(!refresh)this.v2Search="";
