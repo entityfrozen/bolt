@@ -96,3 +96,10 @@ test("Community icon system and protected announcement navigation are installed"
  assert.match(workspace,/lightning-main/);
  assert.doesNotMatch(workspace,/icon:"²"|icon:"✱"|icon:"✊"/);
 });
+
+test("Old green theme is migrated to the original Lightning accent",()=>{
+ const settings=fs.readFileSync(new URL("../public/assets/glass-settings.js",import.meta.url),"utf8");
+ assert.match(settings,/#44eda7/);
+ assert.match(settings,/accent:DEFAULTS.accent/);
+ assert.match(browser,/glass-settings\.js\?v=2/);
+});

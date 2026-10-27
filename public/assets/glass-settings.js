@@ -24,6 +24,12 @@ function sanitize(raw){
 }
 function load(){try{return sanitize(JSON.parse(localStorage.getItem(KEY)||"null"))}catch{return {...DEFAULTS}}}
 let prefs=load(),currentTab="appearance";
+// The original green experiment used these hard-coded accents.
+// Migrate them once; preserve every other user-selected color.
+if(["#44eda7","#38f0a4","#42f5a9","#40ffa8","#3df0a3","#38eea6","#52f7ab"].includes(prefs.accent.toLowerCase())){
+ prefs={...prefs,accent:DEFAULTS.accent,preset:DEFAULTS.preset};
+ try{localStorage.setItem(KEY,JSON.stringify(prefs))}catch{}
+}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(prefs))}catch{}}
 function apply(){
  const root=document.documentElement;
