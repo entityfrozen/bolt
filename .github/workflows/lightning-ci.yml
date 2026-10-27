@@ -25,6 +25,10 @@ jobs:
       - name: Check app and live scripts
         run: |
           node --check server.js
+          node --check account-space.js
+          node --check public/assets/account-space-ui.js
+          node --check public/assets/community-ui.js
+          node --check public/assets/glass-settings.js
           node --check live.js
           node --check community-v2.js
           node --check public/assets/v2.js
@@ -46,6 +50,8 @@ jobs:
           test -f node_modules/dompurify/dist/purify.min.js
       - name: Test registration and admin approvals
         run: node --test test/auth.test.mjs
+      - name: Test account profiles, DMs and cross-device history
+        run: node --test test/account-space.test.mjs
       - name: Test web search
         run: node --test test/web-search.test.mjs
       - name: Test Arcade interface
