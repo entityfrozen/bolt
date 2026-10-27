@@ -78,23 +78,51 @@ test("Profile, DMs and history follow the signed-in account, not the device", {t
  assert.equal((await request(origin,"/api/account/history/browser",anotherAliceSession)).data.items.length,0);
 });
 
-test("Search settings stay private to the account and never echo credentials", {timeout:50000}, async t=>{
+
+test("Only admins configure shared web search; members never see the key",{timeout:50000},async t=>{
  const origin=await runServer(t);
  const admin=await request(origin,"/api/login","","POST",{username:"account-admin",password:"safe-test-admin-password"});
  assert.equal(admin.status,200);
- const made=await request(origin,"/api/admin/users",admin.cookie,"POST",{username:"test-search-account",password:"test-account-password-456"});
+ const made=await request(origin,"/api/admin/users",admin.cookie,"POST",{username:"search-member",password:"test-account-password-456"});
  assert.equal(made.status,201);
- const cookie=(await request(origin,"/api/login","","POST",{username:"test-search-account",password:"test-account-password-456"})).cookie;
+ const member=(await request(origin,"/api/login","","POST",{username:"search-member",password:"test-account-password-456"})).cookie;
  assert.equal((await request(origin,"/api/ai/search-settings")).status,401);
- const before=await request(origin,"/api/ai/search-settings",cookie);
+ assert.equal((await request(origin,"/api/ai/search-settings",member)).status,403);
+ assert.equal((await request(origin,"/api/ai/search-settings",member,"POST",{provider:"tavily",key:"member-key-not-allowed"})).status,403);
+ assert.equal((await request(origin,"/api/ai/search-test",member,"POST",{provider:"tavily"})).status,403);
+ const before=await request(origin,"/api/ai/search-settings",admin.cookie);
  assert.equal(before.data.tavily,false);
- const saved=await request(origin,"/api/ai/search-settings",cookie,"POST",{provider:"tavily",key:"demo-test-key-not-real"});
+ const saved=await request(origin,"/api/ai/search-settings",admin.cookie,"POST",{provider:"tavily",key:"demo-key-not-real"});
  assert.equal(saved.status,200);
- assert.equal(saved.data.source.tavily,"account");
- assert.ok(!JSON.stringify(saved.data).includes("demo-test-key-not-real"));
- assert.equal((await request(origin,"/api/ai/search-settings",admin.cookie)).data.tavily,false);
- const invalid=await request(origin,"/api/ai/search-settings",cookie,"POST",{provider:"brave",key:"x"});
+ assert.equal(saved.data.source.tavily,"shared");
+ assert.ok(!JSON.stringify(saved.data).includes("demo-key-not-real"));
+ assert.equal((await request(origin,"/api/ai/search-settings/tavily",member,"DELETE")).status,403);
+ assert.equal((await request(origin,"/api/ai/search-settings",admin.cookie)).data.tavily,true);
+ const invalid=await request(origin,"/api/ai/search-settings",admin.cookie,"POST",{provider:"brave",key:"x"});
  assert.equal(invalid.status,400);
- const removed=await request(origin,"/api/ai/search-settings/tavily",cookie,"DELETE");
- assert.equal(removed.data.tavily,false);
+ const removed=await request(origin,"/api/ai/search-settings/tavily",admin.cookie,"DELETE");
+ assert.equal(removed.status,200);assert.equal(removed.data.tavily,false);
+});
+
+test("Preferences and game scores persist between sessions, isolated by account",{timeout:50000},async t=>{
+ const origin=await runServer(t);
+ const admin=await request(origin,"/api/login","","POST",{username:"account-admin",password:"safe-test-admin-password"});
+ const a=await request(origin,"/api/admin/users",admin.cookie,"POST",{username:"account-a",password:"test-account-password-456"});
+ const b=await request(origin,"/api/admin/users",admin.cookie,"POST",{username:"account-b",password:"test-account-password-456"});
+ assert.equal(a.status,201);assert.equal(b.status,201);
+ const alice=(await request(origin,"/api/login","","POST",{username:"account-a",password:"test-account-password-456"})).cookie;
+ const bob=(await request(origin,"/api/login","","POST",{username:"account-b",password:"test-account-password-456"})).cookie;
+ assert.equal((await request(origin,"/api/account/settings")).status,401);
+ assert.equal((await request(origin,"/api/account/settings",alice)).data.settings.appearance,undefined);
+ const prefs={accent:"#a3cef8",preset:"ice",sidebar:"compact"};
+ assert.equal((await request(origin,"/api/account/settings/appearance",alice,"PUT",{value:prefs})).status,200);
+ assert.equal((await request(origin,"/api/account/settings/channels",alice,"PUT",{value:{"lightning-main":"announcements"}})).status,200);
+ assert.equal((await request(origin,"/api/account/settings/gameScores",alice,"PUT",{value:{best2048:1024}})).status,200);
+ const newSession=(await request(origin,"/api/login","","POST",{username:"account-a",password:"test-account-password-456"})).cookie;
+ const settings=(await request(origin,"/api/account/settings",newSession)).data.settings;
+ assert.deepEqual(settings.appearance,prefs);
+ assert.equal(settings.channels["lightning-main"],"announcements");
+ assert.equal(settings.gameScores.best2048,1024);
+ assert.deepEqual((await request(origin,"/api/account/settings",bob)).data.settings,{});
+ assert.equal((await request(origin,"/api/account/settings/secrets",alice,"PUT",{value:"x"})).status,400);
 });

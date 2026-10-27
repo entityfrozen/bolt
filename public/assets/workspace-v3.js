@@ -11,10 +11,10 @@ const catalog=[
   {id:"2048",name:"2048",kind:"Puzzle",icon:"grid-2x2",note:"Merge tiles and reach 2048.",action:"v3Play2048",className:"puzzle"},
   {id:"mines",name:"Minesweeper",kind:"Puzzle",icon:"bomb",note:"Clear the field without hitting a mine.",action:"v3PlayMines",className:"mines"}
 ];
-const themeColors={classic:"#e2bb75",bronze:"#d3a56b",silver:"#c6bcaa"};
-const themeNames={classic:"Classic gold",bronze:"Warm bronze",silver:"Soft silver"};
-const preference=(key,fallback)=>{try{return JSON.parse(localStorage.getItem("lightning.v3."+key))??fallback}catch{return fallback}};
-const setPreference=(key,value)=>{try{localStorage.setItem("lightning.v3."+key,JSON.stringify(value))}catch{}};
+const themeColors={classic:"#a3cef8",bronze:"#d3a56b",silver:"#c6bcaa"};
+const themeNames={classic:"Default",bronze:"Warm bronze",silver:"Soft silver"};
+const preference=(key,fallback)=>window.LightningAccount?.settings.get(key,fallback)??fallback;
+const setPreference=(key,value)=>{void window.LightningAccount?.settings.set(key,value).catch(()=>{});};
 const gameCard=(game,featured=false)=>
   '<article class="v3-game-card v3-game-'+game.className+(featured?" v3-featured-game":"")+'">'+
     '<div class="v3-game-picture" aria-hidden="true"><span>'+icon(game.icon)+'</span><i>'+safe(game.kind.toUpperCase())+'</i></div>'+
@@ -466,16 +466,14 @@ export function installWorkspaceV3(Hub){
   Hub.prototype.v3Move2048=function(direction){
     const game=this.v3Game2048;
     if(game&&!game.over&&slide2048(game,direction)){
-      try{
-        const best=Number(localStorage.getItem("lightning.v3.best2048")||0);
-        if(game.score>best)localStorage.setItem("lightning.v3.best2048",String(game.score));
-      }catch{}
+      const best=Number(preference("gameScores",{})?.best2048||0);
+      if(game.score>best)setPreference("gameScores",{...preference("gameScores",{}),best2048:game.score});
       this.v3Screen2048();
     }
   };
   Hub.prototype.v3Screen2048=function(){
     this.header("2048","A numbers puzzle");
-    const g=this.v3Game2048||(this.v3Game2048=make2048()),best=preference("best2048",0);
+    const g=this.v3Game2048||(this.v3Game2048=make2048()),best=Number(preference("gameScores",{})?.best2048||0);
     this.$("#hubContent").innerHTML='<section class="v3-play-screen v3-playing-2048"><div class="v3-play-heading">'+
       '<button data-v3="arcade">← All games</button><span>PUZZLE · SOLO</span></div>'+
       '<div class="v3-play-content"><div class="v3-play-intro"><span>YOUR NEXT CHALLENGE</span><h1>2048<span>.</span></h1>'+

@@ -5,7 +5,7 @@ import crypto from "node:crypto";
 // Private, session-scoped account data. Never infer identity from a request body.
 export function registerAccountSpace({app,dataDir,mustBeSignedIn,sameOrigin,listUsers}){
  const filename=path.join(dataDir,"lightning-accounts.json");
- let data={profiles:{},history:{},dm:{}};
+ let data={profiles:{},history:{},dm:{},settings:{}};
  try{
   const parsed=JSON.parse(fs.readFileSync(filename,"utf8"));
   if(parsed&&typeof parsed==="object"){
@@ -88,6 +88,29 @@ export function registerAccountSpace({app,dataDir,mustBeSignedIn,sameOrigin,list
   const id=req.auth.identity.id;
   (data.history[id]??={})[kind]=bounded(kind,req.body.items);
   persist();res.json({ok:true,count:data.history[id][kind].length});
+ });
+ // Account settings include appearance, tabs, bookmarks, server-channel choice,
+ // game favorites and scores. Device storage is not the source of truth.
+ const allowedSettings=new Set(["bolt.prefs","bolt.tabs","bolt.bookmarks","bolt.soundcloud","appearance",
+  "favorites","theme","inspector","dock","channels","gameScores"]);
+ const cleanSettings=record=>Object.fromEntries(Object.entries(record||{})
+  .filter(([key])=>allowedSettings.has(key)));
+ app.get("/api/account/settings",mustBeSignedIn,(req,res)=>{
+  res.setHeader("Cache-Control","no-store");
+  res.json({settings:cleanSettings(data.settings[req.auth.identity.id])});
+ });
+ app.put("/api/account/settings/:key",mustBeSignedIn,sameOrigin,(req,res)=>{
+  const key=req.params.key;
+  if(!allowedSettings.has(key))return fail(res,400,"Unknown setting.");
+  const value=req.body?.value;
+  let encoded;
+  try{encoded=JSON.stringify(value);}catch{return fail(res,400,"Invalid setting.");}
+  if(typeof encoded!=="string"||encoded.length>50000)return fail(res,400,"Setting is too large.");
+  if(value!==null&&typeof value!=="string"&&typeof value!=="number"&&typeof value!=="boolean"&&
+   (!value||typeof value!=="object"||Object.prototype.toString.call(value)!=="[object Object]"&&!Array.isArray(value)))
+   return fail(res,400,"Invalid setting.");
+  (data.settings[req.auth.identity.id]??={})[key]=value;
+  persist();res.json({ok:true});
  });
  app.get("/api/account/dms",mustBeSignedIn,(req,res)=>{
   const id=req.auth.identity.id;res.setHeader("Cache-Control","no-store");

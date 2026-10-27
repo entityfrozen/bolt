@@ -101,7 +101,7 @@ test("Old green theme is migrated to the original Lightning accent",()=>{
  const settings=fs.readFileSync(new URL("../public/assets/glass-settings.js",import.meta.url),"utf8");
  assert.match(settings,/#44eda7/);
  assert.match(settings,/accent:DEFAULTS.accent/);
- assert.match(browser,/glass-settings\.js\?v=5/);
+ assert.match(browser,/glass-settings\.js\?v=6/);
 });
 
 test("Dashboard shows real announcement feed and direct community links",()=>{
@@ -133,7 +133,7 @@ test("Channel picker is always reachable and remembers the chosen server channel
  assert.match(navigation,/data-cm="previous"/);
  assert.match(navigation,/data-cm="next"/);
  assert.match(navigation,/nav\.scrollTop=scrollTop/);
- assert.match(room,/lightning\.recent\.channels/);
+ assert.match(room,/settings\.set\("channels"/);
  assert.match(room,/v2ChooseChannel/);
  assert.match(room,/v2RememberChannel/);
 });
@@ -162,4 +162,28 @@ test("The game remains mounted when chat opens, and outside clicks do not close 
  assert.match(css,/split-chat-open/);
  assert.match(css,/bolt-ai-intro strong/);
  assert.match(browser,/web-search-settings\.js/);
+});
+
+test("WorldPvP chat and name controls are connected to the hosted game",()=>{
+ const openfront=fs.readFileSync(new URL("../public/assets/openfront-port.js",import.meta.url),"utf8");
+ const chat=fs.readFileSync(new URL("../public/assets/split-chat.js",import.meta.url),"utf8");
+ const style=fs.readFileSync(new URL("../public/assets/worldpvp-overhaul.css",import.meta.url),"utf8");
+ assert.match(openfront,/openfront-port-chat/);
+ assert.match(openfront,/lightning:toggleChat/);
+ assert.match(openfront,/refreshProfile/);
+ assert.match(openfront,/displayName/);
+ assert.match(chat,/openfront-port-chat/);
+ assert.match(style,/openfront-port-bar/);
+ assert.match(style,/lg-accent/);
+});
+test("Browser, glass and games read account-backed settings",()=>{
+ const account=fs.readFileSync(new URL("../public/assets/account-space-ui.js",import.meta.url),"utf8");
+ const app=fs.readFileSync(new URL("../public/assets/app.js",import.meta.url),"utf8");
+ const glass=fs.readFileSync(new URL("../public/assets/glass-settings.js",import.meta.url),"utf8");
+ const game=fs.readFileSync(new URL("../public/assets/workspace-v3.js",import.meta.url),"utf8");
+ assert.match(account,/api\/account\/settings/);
+ assert.match(app,/LightningAccount\?\.settings\.load\(\)/);
+ assert.doesNotMatch(glass,/localStorage\.setItem\(KEY/);
+ assert.match(game,/settings\.set\(key,value\)/);
+ assert.doesNotMatch(game,/localStorage\.getItem\("lightning\.v3\.best2048"/);
 });

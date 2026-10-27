@@ -1,0 +1,59 @@
+/* WorldPvP interface around the hosted game. */
+#hubWorld.hub-openfront-port{background:#101522!important;color:#eaf0fa!important}
+#hubWorld .openfront-port-bar{
+ display:flex;flex-wrap:nowrap;align-items:center;gap:10px;height:62px;min-height:62px;
+ padding:10px 15px;z-index:20;border-bottom:1px solid #ffffff30;
+ background:linear-gradient(125deg,#212b3a,#161c29)!important;box-shadow:0 8px 30px #0006
+}
+#hubWorld .openfront-port-icon{display:grid;place-items:center;width:34px;height:34px;
+ border:1px solid rgba(var(--lg-rgb,163,206,248),.36);border-radius:11px;
+ background:rgba(var(--lg-rgb,163,206,248),.17)!important;color:var(--lg-accent,#a3cef8)!important}
+#hubWorld .openfront-port-icon .ui-icon{width:19px;height:19px}
+#hubWorld .openfront-port-identity strong{font:760 14px/1.2 "Instrument Sans",system-ui;color:#f2f6ff!important;letter-spacing:-.03em}
+#hubWorld .openfront-port-identity strong span{color:var(--lg-accent,#a3cef8)!important}
+#hubWorld .openfront-port-identity small{color:#acbbd1!important;font:500 10px "Instrument Sans",system-ui}
+#hubWorld .openfront-port-account{
+ padding:8px 11px;border:1px solid #ffffff2b;border-radius:8px;background:#ffffff0d;
+ color:#e1edff!important;font:700 11px "Instrument Sans",system-ui;white-space:nowrap;
+ max-width:180px;overflow:hidden;text-overflow:ellipsis
+}
+#hubWorld .openfront-port-action{
+ display:inline-flex;gap:7px;align-items:center;justify-content:center;height:34px;min-height:34px;
+ padding:0 11px;border:1px solid #ffffff33!important;border-radius:9px;background:#ffffff11!important;
+ color:#ebf0fa!important;font:650 11px "Instrument Sans",system-ui;text-decoration:none;white-space:nowrap;cursor:pointer
+}
+#hubWorld .openfront-port-action:hover{border-color:var(--lg-accent,#a3cef8)!important;background:rgba(var(--lg-rgb,163,206,248),.15)!important}
+#hubWorld .openfront-port-action .ui-icon{width:15px;height:15px}
+#hubWorld .openfront-port-chat{background:rgba(var(--lg-rgb,163,206,248),.18)!important;border-color:rgba(var(--lg-rgb,163,206,248),.5)!important}
+#hubWorld .openfront-port-chat[aria-expanded=true]{background:var(--lg-accent,#a3cef8)!important;color:#111521!important}
+#hubWorld .wp-frame-wrap{flex:1;min-height:0;background:#111626!important}
+#hubWorld .openfront-port-credit{background:#121928!important;color:#aab8cc!important;border-top:1px solid #ffffff1c}
+#hubWorld .openfront-port-credit a{color:#c6daf5!important}
+#hubWorld .wp-welcome{
+ background:radial-gradient(ellipse at 80% 0%,rgba(var(--lg-rgb,163,206,248),.16),transparent 55%),#101523!important;
+ color:#eaf0f8!important;scrollbar-color:#52617a transparent
+}
+#hubWorld .wp-welcome-top{color:#aab8ce!important;border-color:#ffffff30!important}
+#hubWorld .wp-hero{border:1px solid #ffffff35!important;border-radius:16px!important;background:linear-gradient(125deg,#243143,#1a2230)!important}
+#hubWorld .wp-hero:after{content:"";background:none!important}
+#hubWorld .wp-eyebrow{color:var(--lg-accent,#a3cef8)!important}
+#hubWorld .wp-hero h1{color:#f5f8ff!important;font:750 clamp(38px,5vw,60px) "Instrument Sans",system-ui;letter-spacing:-.055em}
+#hubWorld .wp-hero p{color:#b8c6dc!important}
+#hubWorld .wp-launch button,#hubWorld .wp-guide-done{
+ background:var(--lg-accent,#a3cef8)!important;border-color:var(--lg-accent,#a3cef8)!important;
+ color:#121a27!important;border-radius:9px!important;font-family:"Instrument Sans",system-ui!important
+}
+#hubWorld .wp-launch button+button{background:#ffffff11!important;color:#edf3ff!important;border-color:#ffffff3e!important}
+#hubWorld .wp-beginner h2{color:#eaf2ff!important;font-family:"Instrument Sans",system-ui}
+#hubWorld .wp-beginner-grid section{border:1px solid #ffffff2c!important;border-radius:12px;background:#ffffff0d!important}
+#hubWorld .wp-beginner-grid section span,#hubWorld .wp-welcome-bottom button{color:var(--lg-accent,#a3cef8)!important}
+#hubWorld .wp-beginner-grid section strong{color:#f0f5ff!important}
+#hubWorld .wp-beginner-grid section p{color:#aebad0!important}
+#hubWorld .wp-welcome-bottom{border-color:#ffffff27!important;color:#b6c5d6!important}
+#hubWorld .wp-guide-panel{background:#1a2433!important;border:1px solid #ffffff4b!important;border-radius:14px!important;color:#e8effd!important}
+#hubWorld .wp-guide-head{color:var(--lg-accent,#a3cef8)!important;border-color:#ffffff27!important}
+#hubWorld .wp-guide-panel h2{color:#f3f7ff!important;font-family:"Instrument Sans",system-ui!important}
+#hubWorld .wp-guide-panel p{color:#bfcbdc!important}
+#hubWorld .wp-guide-panel p b{color:var(--lg-accent,#a3cef8)!important}
+#hubWorld .wp-guide-note{border-color:var(--lg-accent,#a3cef8)!important;background:rgba(var(--lg-rgb,163,206,248),.1)!important;color:#cbdcf2!important}
+@media(max-width:780px){#hubWorld .openfront-port-bar{gap:5px;padding:7px 9px;height:54px;min-height:54px}#hubWorld .openfront-port-identity small{display:none}#hubWorld .openfront-port-action{padding:0 8px;font-size:10px}#hubWorld .openfront-port-account{display:none}#hubWorld .openfront-port-icon{width:27px;height:27px}}

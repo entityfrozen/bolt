@@ -140,7 +140,27 @@
    try{await loadMessages();renderChat();}catch{}
   },7000);
  }
- window.LightningAccount={open,profile:null,
+ const accountSettings={
+  values:{},ready:false,pending:new Map(),
+  async load(){
+   const data=await api("/api/account/settings");
+   this.values=data.settings||{};this.ready=true;
+   document.dispatchEvent(new CustomEvent("lightning:account-settings-loaded",{detail:{...this.values}}));
+   return this.values;
+  },
+  get(key,fallback=null){return Object.prototype.hasOwnProperty.call(this.values,key)?this.values[key]:fallback},
+  set(key,value){
+   this.values[key]=value;
+   // Queue writes per setting; a later edit must not be overwritten by an older one.
+   const old=this.pending.get(key)||Promise.resolve();
+   const next=old.catch(()=>{}).then(()=>api("/api/account/settings/"+encodeURIComponent(key),
+      {method:"PUT",body:JSON.stringify({value})}));
+   this.pending.set(key,next);
+   next.finally(()=>{if(this.pending.get(key)===next)this.pending.delete(key);}).catch(()=>{});
+   return next;
+  }
+ };
+ window.LightningAccount={open,profile:null,settings:accountSettings,
   refreshProfile:async()=>{await loadProfile();return profile},
   history:{
    async load(kind){return (await api("/api/account/history/"+encodeURIComponent(kind))).items},

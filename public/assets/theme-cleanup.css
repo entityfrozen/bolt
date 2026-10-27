@@ -1,0 +1,91 @@
+/* UI text selection, search, copy, and WorldPvP use the current user accent. */
+html body.app-page ::selection,body.app-page ::selection{
+ color:#11151f!important;background:var(--lg-accent,#a3cef8)!important;
+}
+html body.app-page input::selection,html body.app-page textarea::selection{
+ background:var(--lg-accent,#a3cef8)!important;color:#11151f!important;
+}
+body.app-page .bolt-ai-copy,
+body.app-page #boltTools .bolt-ai-copy{
+ display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(var(--lg-rgb,163,206,248),.4)!important;
+ border-radius:8px;background:rgba(var(--lg-rgb,163,206,248),.13)!important;
+ color:var(--lg-accent,#a3cef8)!important;cursor:pointer;
+}
+body.app-page #boltTools .bolt-ai-copy:hover{
+ border-color:var(--lg-accent,#a3cef8)!important;
+ background:rgba(var(--lg-rgb,163,206,248),.25)!important;
+}
+body.app-page #boltTools .bolt-ai-search-fail,
+body.app-page #boltTools .bolt-ai-search-indicator,
+body.app-page #boltTools .bolt-ai-source a,
+body.app-page #boltTools .bolt-ai-suggestion:after{color:var(--lg-accent,#a3cef8)!important}
+body.app-page #boltTools .bolt-ai-search-indicator,
+body.app-page #boltTools .bolt-ai-source{
+ background:rgba(var(--lg-rgb,163,206,248),.08)!important;
+ border-color:rgba(var(--lg-rgb,163,206,248),.32)!important;
+}
+body.app-page .bolt-brand .brand-symbol,
+body.app-page .tab.active,
+body.app-page .rail-button.active,
+body.app-page .address-form:focus-within,
+body.app-page .newtab-search:focus-within,
+body.app-page .v3-browser-home .newtab-search:focus-within,
+#hubMount .v2-search:focus-within{
+ border-color:var(--lg-accent,#a3cef8)!important;
+ box-shadow:0 0 0 3px rgba(var(--lg-rgb,163,206,248),.12)!important;
+}
+body.app-page .tab.active:after,
+body.app-page .rail-button.active:before{background:var(--lg-accent,#a3cef8)!important}
+body.app-page .address-go,
+body.app-page .v3-browser-home .newtab-search button,
+body.app-page .v2-primary{
+ border-color:rgba(var(--lg-rgb,163,206,248),.46)!important;
+}
+body.app-page .v3-browser-home .newtab-search svg,
+body.app-page .tool-button:hover,
+body.app-page .rail-button.active,
+body.app-page .v3-browser-home .newtab-search button,
+body.app-page #hubMount .v2-search>span{color:var(--lg-accent,#a3cef8)!important;stroke:currentColor}
+body.app-page .newtab-search:focus-within,
+body.app-page .v3-browser-home .newtab-search:focus-within{
+ background:rgba(23,28,42,.95)!important;
+}
+#hubMount .v2-search{border-color:#ffffff35!important;background:#ffffff10!important;color:#c9d3e1!important}
+#hubMount .v2-search:focus-within{border-color:var(--lg-accent,#a3cef8)!important}
+#hubMount .v3-shell .v2-topbar .v2-search input{color:#f4f7ff!important}
+#hubMount .v3-shell .v4-nav-shell>.v2-servers button.active,
+#hubMount .v3-shell .v4-nav-shell>.v2-servers .v2-home,
+#hubMount .v3-shell .v4-nav-shell .hub-link.active{
+ background:rgba(var(--lg-rgb,163,206,248),.18)!important;
+ border-color:rgba(var(--lg-rgb,163,206,248),.45)!important;
+ color:var(--lg-accent,#a3cef8)!important;
+ box-shadow:none!important;
+}
+#hubMount .v3-shell .v4-nav-shell .hub-link:hover,
+#hubMount .v3-shell .v4-nav-shell .v3-nav-destination:hover{background:#ffffff14!important;color:#f1f6fd!important}
+#hubMount .v3-shell .v4-nav-shell .hub-user .hub-avatar{
+ background:rgba(var(--lg-rgb,163,206,248),.2)!important;color:var(--lg-accent,#a3cef8)!important;
+ border-color:rgba(var(--lg-rgb,163,206,248),.4)!important;
+}
+#hubMount .v3-shell .v4-nav-shell .v2-account-ai,
+#hubMount .v3-shell .v4-nav-shell .hub-logo .v2-mini-label{color:var(--lg-accent,#a3cef8)!important}
+/* Let WorldPvP's live canvas remain large enough while the sidebar chat is open. */
+#hubMount .lightning-side-chat{z-index:220!important;isolation:isolate}
+#hubMount .lightning-side-chat[hidden]{display:none!important}
+#hubMount .openfront-port-chat{display:inline-flex;gap:7px;align-items:center;
+ border-color:rgba(var(--lg-rgb,163,206,248),.5)!important;
+ background:rgba(var(--lg-rgb,163,206,248),.17)!important;
+ color:#f2f7ff!important;
+}
+#hubMount .openfront-port-chat[aria-expanded=true]{background:var(--lg-accent,#a3cef8)!important;color:#141824!important}
+#hubMount .openfront-port-chat .ui-icon{width:15px;height:15px}
+@media(min-width:970px){
+ #hubMount.split-chat-open .v3-shell{width:calc(100% - 345px)!important;max-width:calc(100% - 345px);transition:width .17s ease}
+ #hubMount.split-chat-open .lightning-side-chat{width:325px;right:9px;top:10px;bottom:12px}
+ #hubMount.split-chat-open .v3-shell .v3-inspector{display:none!important}
+ #hubMount.split-chat-open .v3-shell .v3-dock{display:none!important}
+ #hubMount.split-chat-open .v3-shell>.hub-world{width:100%!important}
+}
+@media(max-width:969px){
+ #hubMount.split-chat-open .lightning-side-chat{right:7px;top:58px;bottom:8px;width:min(345px,calc(100vw - 35px))}
+}

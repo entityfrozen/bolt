@@ -8,7 +8,7 @@ export function installV2(Hub){
   Hub.prototype.v2RememberChannel=function(serverId,channel){
     if(!serverId||!channel)return;
     (this.v2RecentChannels??={})[serverId]=channel;
-    try{localStorage.setItem("lightning.recent.channels",JSON.stringify(this.v2RecentChannels));}catch{}
+    void window.LightningAccount?.settings.set("channels",this.v2RecentChannels).catch(()=>{});
   };
   Hub.prototype.v2ChooseChannel=function(server){
     if(!server?.channels?.length)return "general";
@@ -20,7 +20,7 @@ export function installV2(Hub){
   Hub.prototype.v2Setup=function(){
     if(this.v2Ready)return;
     this.v2Ready=true;this.v2Servers=[];this.v2Directory=[];this.v2ServerId=null;this.v2Channel="general";this.v2Search="";
-    try{const stored=JSON.parse(localStorage.getItem("lightning.recent.channels")||"{}");this.v2RecentChannels=stored&&typeof stored==="object"&&!Array.isArray(stored)?stored:{};}catch{this.v2RecentChannels={};}
+    this.v2RecentChannels=window.LightningAccount?.settings.get("channels",{})||{};
     this.root.innerHTML=
       '<div class="hub-shell v2-shell"><nav class="v2-servers" aria-label="Community servers">'+
       '<button class="v2-home active" data-v2="home" aria-label="Community home" title="Lightning community"><img class="lightning-mark" src="/assets/lightning-mark.svg?v=1" alt="" aria-hidden="true"></button><div class="v2-rail-divider"></div><div id="v2ServerIcons"></div>'+

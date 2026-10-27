@@ -1,5 +1,6 @@
 // WorldPvP runs on Lightning's standalone strategy-game service.
 // The upstream project's copyright and source notices remain visible below.
+import {icon} from "./ui-icons.js?v=1";
 const GAME_URL="https://lightning-openfront-production.up.railway.app/";
 const GAME_ORIGIN=new URL(GAME_URL).origin;
 const CREDITS='<div class="openfront-port-credit">© OpenFront and Contributors · '+
@@ -14,21 +15,34 @@ export function installWorldPort(Hub){
 
   Hub.prototype.sendWorldName=function(){
     const frame=this.$(".openfront-port-frame");
-    if(!frame?.contentWindow||!this.name)return;
-    frame.contentWindow.postMessage({type:"lightning:setPlayerName",name:this.name},GAME_ORIGIN);
+    if(!frame?.contentWindow)return;
+    const profile=window.LightningAccount?.profile;
+    if(!profile&&!this.worldProfileRequest&&window.LightningAccount?.refreshProfile){
+      this.worldProfileRequest=window.LightningAccount.refreshProfile()
+        .then(()=>this.sendWorldName()).catch(()=>{}).finally(()=>{this.worldProfileRequest=null;});
+    }
+    const name=profile?.displayName||this.name;
+    if(!name)return;
+    frame.contentWindow.postMessage({type:"lightning:setPlayerName",name,username:profile?.username||this.name},GAME_ORIGIN);
     const label=this.$("#worldAccountName");
-    if(label&&label.dataset.ready!==this.name)label.textContent="Syncing "+this.name+"…";
+    if(label&&label.dataset.ready!==name)label.textContent="Connecting "+name+"…";
   };
   Hub.prototype.onMessage=function(message){
     previousMessage.call(this,message);
     if(message.type==="hello")this.sendWorldName();
   };
+  document.addEventListener("lightning:profile-updated",()=>{if(document.querySelector("#hubMount .openfront-port-frame"))this.sendWorldName();});
   window.addEventListener("message",event=>{
     if(event.origin!==GAME_ORIGIN)return;
     const frame=document.querySelector("#hubMount .openfront-port-frame");
     if(!frame||event.source!==frame.contentWindow)return;
     const status=document.querySelector("#worldAccountName");
     if(!status)return;
+    if(event.data?.type==="lightning:toggleChat"){
+      const toggle=document.querySelector("#hubMount .openfront-port-chat");
+      toggle?.click();
+      return;
+    }
     if(event.data?.type==="lightning:nameReady"){
       status.dataset.ready=event.data.name;
       status.textContent="Playing as "+event.data.name;
@@ -60,15 +74,22 @@ export function installWorldPort(Hub){
         '</div></div>'+CREDITS;
       return;
     }
+    // Reopening the game must not reload its iframe or abandon the match.
+    if(mount.querySelector(".openfront-port-frame")){
+      this.sendWorldName();
+      this.splitToggle?.(this.root.classList.contains("split-chat-open"));
+      return;
+    }
     mount.innerHTML=
       '<div class="openfront-port-bar">'+
-        '<div class="openfront-port-identity"><span class="openfront-port-icon">◈</span><div><strong>WORLD<span>PVP</span></strong>'+
-        '<small>Choose a map · Pick a spawn · Build a nation</small></div></div>'+
+        '<div class="openfront-port-identity"><span class="openfront-port-icon">'+icon("compass")+'</span><div><strong>WORLD<span>PVP</span></strong>'+
+        '<small>Strategy · Live match</small></div></div>'+
         '<span class="openfront-port-grow"></span>'+
-        '<span id="worldAccountName" class="openfront-port-account">Syncing player…</span>'+
-        '<button type="button" class="openfront-port-action" data-act="worldHow">? Guide</button>'+
-        '<a class="openfront-port-action" href="'+GAME_URL+'" target="_blank" rel="noopener noreferrer">↗ Full screen</a>'+
-        '<button type="button" class="openfront-port-action" data-act="worldExit">← Arcade</button>'+
+        '<span id="worldAccountName" class="openfront-port-account">Connecting player…</span>'+
+        '<button type="button" class="openfront-port-action openfront-port-chat" data-split="toggle" aria-controls="lightningSideChat" aria-label="Toggle community chat">'+icon("message-circle")+' <span>Chat</span></button>'+
+        '<button type="button" class="openfront-port-action" data-act="worldHow">'+icon("book-open")+' Guide</button>'+
+        '<a class="openfront-port-action" href="'+GAME_URL+'" target="_blank" rel="noopener noreferrer" title="Open game in a separate tab (without your Lightning session)">'+icon("arrow-up-right")+' Full screen</a>'+
+        '<button type="button" class="openfront-port-action" data-act="worldExit">'+icon("log-out")+' Exit</button>'+
       '</div><div class="wp-frame-wrap"><iframe class="openfront-port-frame" title="WorldPvP strategy match" allow="fullscreen; gamepad" referrerpolicy="strict-origin-when-cross-origin" src="'+GAME_URL+'"></iframe>'+
       '<div id="worldGuide" class="wp-guide" hidden><div class="wp-guide-panel" role="dialog" aria-label="How to play WorldPvP">'+
         '<div class="wp-guide-head"><strong>HOW TO PLAY</strong><button data-act="worldHow" type="button" aria-label="Close guide">×</button></div>'+
@@ -85,9 +106,15 @@ export function installWorldPort(Hub){
     this.sendWorldName();
   };
   Hub.prototype.act=function(action,button){
-    if(action==="worldView"){this.worldStarted=false;return this.show("world");}
+    if(action==="worldView"){return this.show("world");}
     if(action==="worldStart"){this.worldStarted=true;return this.worldScreen();}
-    if(action==="worldExit"){this.worldStarted=false;return this.show("games");}
+    if(action==="worldExit"){
+      if(!confirm("Exit WorldPvP? Your match will close."))return;
+      this.worldStarted=false;
+      this.$("#hubWorld")?.replaceChildren();
+      this.splitToggle?.(false);
+      return this.show("games");
+    }
     if(action==="worldHow"){
       const guide=this.$("#worldGuide");
       if(guide){guide.hidden=!guide.hidden;return;}
@@ -106,17 +133,11 @@ export function installWorldPort(Hub){
     return previousAct.call(this,action,button);
   };
   Hub.prototype.show=function(view,channel){
-    if(view!=="world"){
-      const mount=this.$("#hubWorld");
-      if(mount){mount.replaceChildren();mount.classList.remove("hub-openfront-port");}
-      this.worldStarted=false;
-    }
+    // Hide, don't unload, the external game when navigating the workspace.
     return previousShow.call(this,view,channel);
   };
   Hub.prototype.close=function(){
-    const mount=this.$("#hubWorld");
-    if(mount)mount.replaceChildren();
-    this.worldStarted=false;
+    // The player explicitly closed the workspace; keep game state mounted for return.
     return previousClose.call(this);
   };
 }

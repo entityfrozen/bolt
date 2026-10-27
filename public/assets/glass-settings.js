@@ -22,19 +22,17 @@ function sanitize(raw){
  for(const key of ["inspector","dock","motion","shadows","contrast"])if(typeof raw[key]==="boolean")p[key]=raw[key];
  return p;
 }
-function load(){try{return sanitize(JSON.parse(localStorage.getItem(KEY)||"null"))}catch{return {...DEFAULTS}}}
-let prefs=load(),currentTab="appearance";
-if(prefs.preset==="gold"&&prefs.accent.toLowerCase()==="#e2bb75"){
- prefs={...prefs,preset:DEFAULTS.preset,accent:DEFAULTS.accent,wallpaper:DEFAULTS.wallpaper};
- try{localStorage.setItem(KEY,JSON.stringify(prefs))}catch{}
+// Appearance is account-owned. Do not reuse another person's device settings.
+let prefs={...DEFAULTS},currentTab="appearance";
+function save(){
+ void window.LightningAccount?.settings.set("appearance",prefs)
+  .catch(error=>console.warn("Appearance sync:",error.message));
 }
-// The original green experiment used these hard-coded accents.
-// Migrate them once; preserve every other user-selected color.
-if(["#44eda7","#38f0a4","#42f5a9","#40ffa8","#3df0a3","#38eea6","#52f7ab"].includes(prefs.accent.toLowerCase())){
- prefs={...prefs,accent:DEFAULTS.accent,preset:DEFAULTS.preset};
- try{localStorage.setItem(KEY,JSON.stringify(prefs))}catch{}
+function syncFromAccount(){
+ const next=window.LightningAccount?.settings.get("appearance",null);
+ if(next&&typeof next==="object"){prefs=sanitize(next);apply();}
 }
-function save(){try{localStorage.setItem(KEY,JSON.stringify(prefs))}catch{}}
+document.addEventListener("lightning:account-settings-loaded",syncFromAccount);
 function apply(){
  const root=document.documentElement;
  const rgb=[1,3,5].map(i=>parseInt(prefs.accent.slice(i,i+2),16)).join(",");
@@ -188,6 +186,6 @@ apply();
 window.LightningGlass={get:()=>({...prefs}),set,apply,open,reset:()=>{prefs={...DEFAULTS};save();apply()}};
 document.addEventListener("click",e=>{if(e.target.closest("[data-glass-settings]")){e.preventDefault();open();}});
 document.addEventListener("keydown",e=>{if((e.ctrlKey||e.metaKey)&&e.key===","){e.preventDefault();open();}});
-window.addEventListener("storage",e=>{if(e.key===KEY){prefs=load();apply();}});
+// Settings are loaded from the signed-in account, not localStorage.
 document.addEventListener("DOMContentLoaded",apply,{once:true});
 })();

@@ -7,20 +7,31 @@
  button.type="button";button.className="bolt-aux-btn ai-search-config";
  button.id="boltSearchSetup";button.title="Configure Tavily or Brave web search";
  button.textContent="Web setup";
- head.insertBefore(button,head.querySelector("#boltAiSize"));
+ // Admin-only controls are never inserted for regular accounts.
+ // Permissions are also enforced independently on every server endpoint.
+ async function mayConfigure(){
+  try{
+   const res=await fetch("/api/me",{credentials:"same-origin",cache:"no-store"});
+   const me=await res.json();
+   if(res.ok&&me.signedIn&&me.user?.role==="admin"){
+    head.insertBefore(button,head.querySelector("#boltAiSize"));
+   }
+  }catch{}
+ }
+ void mayConfigure();
  const dialog=document.createElement("dialog");
  dialog.className="ai-search-dialog";dialog.id="aiSearchDialog";
  dialog.setAttribute("aria-labelledby","aiSearchDialogTitle");
  dialog.innerHTML='<section class="ai-search-shell"><header><div><small>WEB SEARCH</small><h2 id="aiSearchDialogTitle">Connect web search</h2></div>'+
   '<button id="aiSearchClose" type="button" aria-label="Close search settings">×</button></header>'+
-  '<p class="ai-search-description">Search keys are different from the AI model key. Choose a provider, save its API key securely to your account, then test the connection.</p>'+
+  '<p class="ai-search-description">This key enables web search for everyone. Only admins can change it.</p>'+
   '<div class="ai-search-provider-state" id="aiProviderStatus" role="status">Checking search providers…</div>'+
   '<form id="aiSearchKeyForm"><label for="aiSearchProvider">Search service</label>'+
   '<select id="aiSearchProvider" name="provider"><option value="tavily">Tavily Search</option><option value="brave">Brave Search</option></select>'+
   '<label for="aiSearchKey">API key</label><input id="aiSearchKey" name="key" type="password" autocomplete="off" spellcheck="false" required minlength="10" maxlength="300" placeholder="Paste API key here" />'+
-  '<p class="ai-search-note">Stored encrypted on Lightning’s server, tied to your account. Your key is never displayed again. It is sent only to the chosen search provider during requests.</p>'+
+  '<p class="ai-search-note">Saved encrypted on the server. This key is used for searches from all accounts; it is never shown to members.</p>'+
   '<div class="ai-search-actions"><button type="submit" class="ai-search-primary">Save key</button>'+
-  '<button type="button" id="aiSearchTest">Test connection</button><button type="button" id="aiSearchRemove">Remove my key</button></div></form>'+
+  '<button type="button" id="aiSearchTest">Test connection</button><button type="button" id="aiSearchRemove">Remove shared key</button></div></form>'+
   '<div id="aiSearchFeedback" class="ai-search-feedback" role="status" aria-live="polite"></div></section>';
  document.body.append(dialog);
  const $=selector=>dialog.querySelector(selector);
@@ -37,7 +48,7 @@
    const label=key==="tavily"?"Tavily":"Brave Search";
    const ready=data?.[key],location=data?.source?.[key];
    return '<div><span>'+label+'</span><strong class="'+(ready?"ready":"missing")+'">'+
-    (ready?(location==="server"?"Server configured":"Key saved"):"No key configured")+'</strong></div>';
+    (ready?(location==="server"?"Railway key":"Shared key saved"):"No key configured")+'</strong></div>';
   }).join("");
  };
  async function refresh(){
@@ -68,7 +79,7 @@
   finally{b.disabled=false;}
  });
  $("#aiSearchRemove").addEventListener("click",async()=>{
-  const name=provider.value,yes=confirm("Remove your saved "+name+" key?");
+  const name=provider.value,yes=confirm("Remove the shared "+name+" key?");
   if(!yes)return;
   try{await api("/api/ai/search-settings/"+name,"DELETE");await refresh();report("Saved key removed.",true);}
   catch(error){report(error.message,false);}

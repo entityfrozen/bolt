@@ -24,7 +24,7 @@ export function installSplitChat(Hub){
   button.type="button";button.className="sc-toggle";
   button.dataset.split="toggle";button.setAttribute("aria-expanded","false");
   button.setAttribute("aria-controls","lightningSideChat");
-  button.innerHTML='<span class="sc-unread-dot" hidden></span>Chat alongside game';
+  button.innerHTML='<span class="sc-unread-dot" hidden></span>Chat';
   this.$(".v2-topbar")?.append(button);
   this.root.addEventListener("click",e=>{
    const control=e.target.closest("[data-split]");if(!control)return;
@@ -33,6 +33,9 @@ export function installSplitChat(Hub){
   });
   this.$("#splitChannelSelect").addEventListener("change",e=>{
    this.splitChannel=e.target.value;this.splitDraw();
+  });
+  this.$("#splitInput").addEventListener("keydown",e=>{
+   if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();e.currentTarget.form?.requestSubmit();}
   });
   this.$("#splitCompose").addEventListener("submit",e=>{
    e.preventDefault();
@@ -52,6 +55,7 @@ export function installSplitChat(Hub){
   const open=force===undefined?panel.hidden:!!force;
   panel.hidden=!open;this.root.classList.toggle("split-chat-open",open);
   control?.setAttribute("aria-expanded",String(open));
+  this.$(".openfront-port-chat")?.setAttribute("aria-expanded",String(open));
   if(open)this.splitDraw();
  };
  Hub.prototype.splitDraw=function(){

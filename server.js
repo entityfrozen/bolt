@@ -376,7 +376,7 @@ app.get("/api/config", mustBeSignedIn, (req, res) => {
 });
 
 
-const aiSearch=installSearchCredentials({app,dataDir,mustBeSignedIn,sameOrigin,searchWeb});
+const aiSearch=installSearchCredentials({app,dataDir,mustBeAdmin,sameOrigin,searchWeb,getAdminIds:()=>state.users.filter(u=>u.role==="admin"&&u.enabled).map(u=>u.id)});
 const aiRequests = new Map();
 app.post("/api/ai/chat", mustBeSignedIn, sameOrigin, async (req, res) => {
   res.setHeader("Cache-Control", "no-store");
@@ -411,7 +411,7 @@ app.post("/api/ai/chat", mustBeSignedIn, sameOrigin, async (req, res) => {
     : {sources: [], provider: null, error: null};
   if (searchRequested && !web.sources.length) {
     return res.json({
-      reply: "No verified live sources came back. Open AI → Web search settings to add or test your Tavily/Brave key. "+(web.error||"Try a different query or provider."),
+      reply: "No verified live results came back. Ask an admin to check the web-search provider. "+(web.error||"Try again later."),
       searched: true,
       sources: [],
       searchError: web.error,

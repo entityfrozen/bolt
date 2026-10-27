@@ -40,16 +40,11 @@ function saveAccountHistory(){
  clearTimeout(accountHistoryJob);
  accountHistoryJob=setTimeout(()=>{void window.LightningAccount?.history.save("browser",accountHistory).catch(e=>console.warn("History sync:",e.message));},450);
 }
+// Browser preferences, saved tabs and bookmarks are all account-owned.
 const store={
-  get(key,fallback){
-    try{
-      const value=localStorage.getItem(key);
-      return value===null?fallback:JSON.parse(value);
-    }catch{return fallback}
-  },
-  set(key,value){
-    try{localStorage.setItem(key,JSON.stringify(value))}catch{}
-  }
+ get(key,fallback){return window.LightningAccount?.settings.get(key,fallback)??fallback;},
+ set(key,value){void window.LightningAccount?.settings.set(key,value)
+   .catch(error=>console.warn("Account settings sync:",error.message));}
 };
 
 const engineUrls={
@@ -1018,7 +1013,7 @@ async function logout(){
 
 function openLightningHub(view){
   closePanel();
-  import("/assets/hub.js?v=33").then(hub=>hub.openHub(view)).catch(()=>toast("Could not open the Lightning hub."));
+  import("/assets/hub.js?v=34").then(hub=>hub.openHub(view)).catch(()=>toast("Could not open the Lightning hub."));
 }
 
 function bindUi(){
@@ -1080,11 +1075,14 @@ async function start(){
   renderNewtabLists();
   try{
     await loadConfig();
+    await window.LightningAccount?.settings.load();
+    try{await window.LightningAccount?.refreshProfile();}catch(error){console.warn("Profile unavailable:",error.message)}
+    prefs={...prefs,...(store.get("bolt.prefs",{}))};applyPrefs();
     try{accountHistory=await window.LightningAccount?.history.load("browser")||[];}catch(error){console.warn("Account history unavailable:",error.message)}
     renderNewtabLists();
   }catch{return}
   restoreTabs();
-  import("/assets/hub.js?v=33").then(hub=>{
+  import("/assets/hub.js?v=34").then(hub=>{
     hub.startHubNotifications();
     if(new URL(location.href).searchParams.get("view")!=="browser")hub.openHub("overview");
   }).catch(error=>console.warn("Workspace unavailable:",error));
