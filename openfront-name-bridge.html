@@ -1,25 +1,70 @@
+<style>
+/* Subtle Lightning match controls inside the hosted OpenFront client. */
+#lightning-game-tools{
+ position:fixed;left:16px;bottom:17px;z-index:9999;display:flex;align-items:center;
+ gap:8px;padding:7px 8px 7px 12px;max-width:min(440px,calc(100vw - 32px));
+ border:1px solid rgba(200,219,242,.35);border-radius:11px;
+ background:rgba(16,23,35,.91);box-shadow:0 14px 35px rgba(0,0,0,.38);
+ backdrop-filter:blur(15px);font:12px/1.2 system-ui,-apple-system,sans-serif;color:#eaf3ff;
+}
+#lightning-game-tools[hidden]{display:none!important}
+#lightning-game-tools .lightning-name{display:flex;align-items:center;gap:8px;min-width:0;font-weight:650;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#lightning-game-tools .lightning-name:before{content:"";width:7px;height:7px;flex:none;border-radius:50%;background:#a3cef8;box-shadow:0 0 7px #a3cef88a}
+#lightning-game-tools button{font:650 11px system-ui,-apple-system,sans-serif;color:#ecf6ff;background:#ffffff18;border:1px solid #ffffff32;border-radius:8px;padding:9px 13px;cursor:pointer}
+#lightning-game-tools button:hover,#lightning-game-tools button:focus-visible{border-color:#a3cef8;background:#a3cef822}
+@media(max-width:650px){#lightning-game-tools{bottom:11px;left:9px;padding:5px 6px 5px 10px;gap:5px;max-width:calc(100vw - 18px)}#lightning-game-tools .lightning-name{max-width:104px;font-size:10px}#lightning-game-tools button{padding:8px 10px}}
+</style>
 <script>
-/* Lightning-approved player name bridge, limited to the actual Lightning origin. */
-(function () {
-  "use strict";
-  var TRUSTED_ORIGIN = "https://bolt-v5-preview-production.up.railway.app";
-  window.addEventListener("message", function (event) {
-    if (event.source !== window.parent || event.origin !== TRUSTED_ORIGIN) return;
-    var payload = event.data;
-    if (!payload || payload.type !== "lightning:setPlayerName") return;
-    var name = String(payload.name || "").trim().toLowerCase();
-    if (!/^[a-z0-9._-]{3,32}$/.test(name)) return;
-    try {
-      if (window.localStorage.getItem("username") !== name) {
-        window.localStorage.setItem("username", name);
-        window.localStorage.setItem("usernameIsGenerated", "false");
-        location.reload();
-        return;
-      }
-      window.parent.postMessage({type:"lightning:nameReady",name:name}, TRUSTED_ORIGIN);
-    } catch (err) {
-      window.parent.postMessage({type:"lightning:nameBridgeError"} , TRUSTED_ORIGIN);
-    }
+/* One-way approved origin bridge. Lightning is the source of player names. */
+(function(){
+ "use strict";
+ var TRUSTED_ORIGIN="https://bolt-v5-preview-production.up.railway.app";
+ var accountName="",root=null;
+ function shown(value){return String(value||"").trim().replace(/[\u0000-\u001f\u007f<>]/g,"").slice(0,32);}
+ function controls(){
+  if(root)return root;
+  root=document.createElement("div");root.id="lightning-game-tools";root.hidden=true;
+  var name=document.createElement("span");name.className="lightning-name";root.appendChild(name);
+  var chat=document.createElement("button");chat.type="button";chat.textContent="Chat";
+  chat.setAttribute("aria-label","Open Lightning chat alongside WorldPvP");
+  chat.addEventListener("click",function(){
+   if(window.parent!==window)window.parent.postMessage({type:"lightning:toggleChat"},TRUSTED_ORIGIN);
   });
+  root.appendChild(chat);
+  (document.body||document.documentElement).appendChild(root);
+  return root;
+ }
+ function applyName(name,username){
+  var clean=shown(name),fallback=shown(username);
+  if(clean.length<2)clean=fallback;
+  if(clean.length<2)return;
+  accountName=clean;
+  var bar=controls();bar.hidden=false;bar.querySelector(".lightning-name").textContent=clean;
+  try{
+   if(localStorage.getItem("username")!==clean){
+    // OpenFront uses browser storage for its own player-name setting.
+    // The authenticated Lightning account supplies the value every session.
+    localStorage.setItem("username",clean);
+    localStorage.setItem("usernameIsGenerated","false");
+    window.parent.postMessage({type:"lightning:nameReady",name:clean},TRUSTED_ORIGIN);
+    // Only reload once when the upstream client has already initialized its name.
+    if(document.readyState==="complete")location.reload();
+   }else{
+    window.parent.postMessage({type:"lightning:nameReady",name:clean},TRUSTED_ORIGIN);
+   }
+  }catch{
+   window.parent.postMessage({type:"lightning:nameBridgeError"},TRUSTED_ORIGIN);
+  }
+ }
+ window.addEventListener("message",function(event){
+  if(event.source!==window.parent||event.origin!==TRUSTED_ORIGIN)return;
+  var p=event.data;
+  if(!p||p.type!=="lightning:setPlayerName")return;
+  applyName(p.name,p.username);
+ });
+ // Restore the compact match controls even when the game redraws its body.
+ document.addEventListener("DOMContentLoaded",function(){
+  if(accountName){controls();root.hidden=false;root.querySelector(".lightning-name").textContent=accountName;}
+ });
 })();
 </script>
