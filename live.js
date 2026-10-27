@@ -424,8 +424,8 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir}){
  wss.on("connection",(ws,auth,req)=>{
   const id=auth.identity.id,u={ws,id,name:nameOf(auth.identity),role:auth.identity.role,last:0,world:false};
   clients.set(ws,u);
-  safeSend(ws,{type:"hello",id,name:u.name,channels:CHANNELS,history,online:usersOnline().map(id=>({id,name:clientOf(id)[0]?.[1]?.name||id})),summary:summary()});
-  safeSend(ws,{type:"v2State",...communities.snapshot(u.id)});
+  safeSend(ws,{type:"hello",id,name:u.name,role:u.role,channels:CHANNELS,history,online:usersOnline().map(id=>({id,name:clientOf(id)[0]?.[1]?.name||id})),summary:summary()});
+  safeSend(ws,{type:"v2State",...communities.snapshot(u)});
   presence();
   ws.on("message",raw=>{
    const current=sessionFromHeaders(req.headers);
