@@ -61,7 +61,7 @@ test("Lightning island restores the warm brass identity",()=>{
   assert.match(skin,/border-radius:999px/);
   assert.match(skin,/\.v4-nav-shell/);
   assert.match(workspace,/navShell\.append\(serverRail,channelRail\)/);
-  assert.match(workspace,/class="v4-home"/);
+  assert.match(workspace,/class="v4-home(?: v5-dashboard)?"/);
   assert.match(browser,/lightning-island\.css/);
   assert.doesNotMatch(workspace,/#44eda7|#38f0a4|#72c9ff/);
 });
@@ -102,4 +102,15 @@ test("Old green theme is migrated to the original Lightning accent",()=>{
  assert.match(settings,/#44eda7/);
  assert.match(settings,/accent:DEFAULTS.accent/);
  assert.match(browser,/glass-settings\.js\?v=2/);
+});
+
+test("Dashboard shows real announcement feed and direct community links",()=>{
+ const styles=fs.readFileSync(new URL("../public/assets/dashboard-refine.css",import.meta.url),"utf8");
+ assert.match(workspace,/main\?\.messages\?\.announcements/);
+ assert.match(workspace,/data-channel="announcements"/);
+ assert.match(workspace,/v5-channel-shortcut/);
+ assert.match(workspace,/v5-game-launch/);
+ assert.match(styles,/v5-lead-grid/);
+ assert.match(styles,/v5-middle-grid/);
+ assert.doesNotMatch(workspace,/YOUR TURN/);
 });

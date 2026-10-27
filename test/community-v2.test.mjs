@@ -102,3 +102,20 @@ test("Staff-only channel contents never reach regular members",t=>{
  h.store.handle(admin,{type:"v2Message",serverId:"lightning-main",channel:"staff-room",message:"private"});
  assert.ok(!h.sent.some(m=>m.type==="v2Message"&&m.id==="alice"));
 });
+
+test("Admin profiles persist in existing servers and survive legacy snapshot reads",t=>{
+ const h=harness();t.after(()=>fs.rmSync(h.dataDir,{recursive:true,force:true}));
+ h.store.handle(h.alice,{type:"v2Create",name:"Game Lounge"});
+ const server=h.store.directory().find(s=>!s.permanent);
+ const admin={id:"admin-id",name:"Operator",role:"admin"};
+ h.store.handle(admin,{type:"v2Join",serverId:server.id});
+ assert.equal(h.store.snapshot(admin).servers.find(s=>s.id===server.id).canManage,true);
+ assert.equal(h.store.snapshot(admin.id).servers.find(s=>s.id===server.id).canManage,true);
+ assert.equal(h.store.snapshot(admin.id).servers.find(s=>s.id===server.id).members.find(m=>m.id===admin.id).name,"Operator");
+ h.store.handle(admin,{type:"v2CreateRole",serverId:server.id,name:"Reader"});
+ assert.ok(h.store.snapshot(admin).servers.find(s=>s.id===server.id).roles.some(r=>r.id==="reader"));
+ admin.role="user";
+ const demoted=h.store.snapshot(admin).servers.find(s=>s.id===server.id);
+ assert.equal(demoted.canManage,false);
+ assert.equal(demoted.members.find(m=>m.id===admin.id).admin,false);
+});

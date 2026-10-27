@@ -6,7 +6,7 @@ import {installArcade} from "./arcade.js?v=3";
 import {installChessVisuals} from "./chess-visuals.js?v=1";
 import {installRpsVisuals} from "./rps-visuals.js?v=1";
 import {installV2} from "./v2.js?v=2";
-import {installWorkspaceV3} from "./workspace-v3.js?v=4";
+import {installWorkspaceV3} from "./workspace-v3.js?v=5";
 import {installCommunityUI} from "./community-ui.js?v=1";
 
 const E=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -416,6 +416,7 @@ function ensureHubStyles(){
   const island=document.createElement("link");island.id="lightningIslandCss";island.rel="stylesheet";island.href="/assets/lightning-island.css?v=1";document.head.append(island);
   const glass=document.createElement("link");glass.id="lightningLiquidGlass";glass.rel="stylesheet";glass.href="/assets/liquid-glass.css?v=1";document.head.append(glass);
    const community=document.createElement("link");community.id="lightningCommunityModern";community.rel="stylesheet";community.href="/assets/community-modern.css?v=1";document.head.append(community);
+    const dashboard=document.createElement("link");dashboard.id="lightningDashboardRefine";dashboard.rel="stylesheet";dashboard.href="/assets/dashboard-refine.css?v=1";document.head.append(dashboard);
  }
 }
 export function openHub(view="chat"){

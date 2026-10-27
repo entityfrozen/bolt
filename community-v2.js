@@ -93,18 +93,25 @@ export function createCommunityStore({dataDir,sendToUser,sendAll}){
  if(migrated)save();
  const directory=()=>servers.map(publicServer);
  const refreshProfile=u=>{
-  const name=clean(u.name,32)||"Member";
-  const isAdmin=u.role==="admin";
+  if(!u?.id)return false;
+  const name=clean(u.name,32)||"Member",isAdmin=u.role==="admin";
   let changed=false;
   if(!main.members.includes(u.id)){main.members.push(u.id);changed=true;}
-  if(main.profiles[u.id]?.name!==name||main.profiles[u.id]?.admin!==isAdmin){
-   main.profiles[u.id]={name,admin:isAdmin};changed=true;
+  // Update every joined server so the admin UI and backend privileges agree.
+  for(const server of servers.filter(server=>server.members.includes(u.id))){
+   if(!server.profiles)server.profiles={};
+   const previous=server.profiles[u.id];
+   if(previous?.name!==name||previous?.admin!==isAdmin){
+    server.profiles[u.id]={name,admin:isAdmin};changed=true;
+   }
   }
   if(changed)save();
   return changed;
  };
  const snapshot=u=>{
-  const user=typeof u==="string"?{id:u,name:"Member",role:"user"}:u;
+  const previous=typeof u==="string"?main.profiles[u]:null;
+  const user=typeof u==="string"
+   ?{id:u,name:previous?.name||"Member",role:previous?.admin?"admin":"user"}:u;
   refreshProfile(user);
   return {servers:servers.filter(s=>s.members.includes(user.id)).map(s=>memberState(s,user)),
    directory:directory(),defaultServerId:MAIN_SERVER_ID};

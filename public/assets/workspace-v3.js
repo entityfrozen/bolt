@@ -306,47 +306,79 @@ export function installWorkspaceV3(Hub){
   };
   Hub.prototype.v3Overview=function(){
     this.header("Home","Your space");
-    const recent=["general","games","suggestions","support"].flatMap(channel=>(this.history?.[channel]||[])
-      .filter(message=>!message.deleted).slice(-10)).sort((a,b)=>b.at-a.at).slice(0,4);
+    const main=this.v2Servers.find(s=>s.id==="lightning-main");
+    const channels=main?.channels||[];
+    const visible=new Set(channels.map(c=>c.id));
+    const announcements=(main?.messages?.announcements||[]).filter(m=>!m.deleted);
+    const latest=announcements[announcements.length-1];
+    const recent=channels.flatMap(c=>(main?.messages?.[c.id]||[])
+      .filter(m=>!m.deleted).slice(-5)).sort((a,b)=>Number(b.at)-Number(a.at)).slice(0,5);
+    const servers=[...this.v2Servers].sort((a,b)=>Number(!!b.permanent)-Number(!!a.permanent)).slice(0,5);
     const hour=new Date().getHours();
     const greeting=hour<12?"Good morning":hour<18?"Good afternoon":"Good evening";
     const displayName=safe(this.name||"there");
     const date=new Intl.DateTimeFormat(undefined,{weekday:"long",month:"long",day:"numeric"}).format(new Date());
+    const shortcuts=[
+      ["general","message-circle","General","The main conversation"],
+      ["games","gamepad-2","Games","Talk games and matchups"],
+      ["suggestions","sparkles","Suggestions","Share what comes next"],
+      ["support","shield-check","Support","Get help"]
+    ].filter(([id])=>visible.has(id));
+    const browseGame=catalog.filter(g=>["chess","world","uma","2048"].includes(g.id));
     this.$("#hubContent").innerHTML=
-      '<div class="v4-home"><div class="v4-home-inner">'+
-        '<header class="v4-welcome"><div><span class="v4-overline">'+safe(date)+'</span>'+
+      '<div class="v4-home v5-dashboard"><div class="v5-dashboard-inner">'+
+        '<header class="v5-welcome"><div><span class="v5-eyebrow">'+safe(date)+'</span>'+
           '<h1>'+greeting+', <em>'+displayName+'.</em></h1>'+
-          '<p>Here’s what’s happening in your space.</p></div>'+
-          '<button class="v4-welcome-search" data-v3="command"><span>⌕</span> Find anything <kbd>Ctrl K</kbd></button></header>'+
-        '<div class="v4-lead-grid"><section class="v4-feature-panel">'+
-          '<div class="v4-feature-copy"><span class="v4-overline">PICK UP WHERE YOU LEFT OFF</span>'+
-            '<h2>Your next <em>move.</em></h2><p>Play a match of chess, challenge a friend, or just take on the computer.</p>'+
-            '<div class="v4-feature-actions"><button class="v4-gold-button" data-v3="play" data-game="chess">Play chess ↗</button>'+
-              '<button class="v4-ghost-button" data-v3="arcade">Browse games</button></div></div>'+
-          '<div class="v4-chess-art" aria-hidden="true"><div class="v4-chess-halo"></div><span>♞</span><small>YOUR TURN</small></div></section>'+
-          '<section class="v4-quick-panel">'+
-            '<div class="v4-panel-heading"><span class="v4-overline">SHORTCUTS</span><strong>Jump right in</strong></div>'+
-            '<button data-v3="channel"><span class="v4-shortcut-icon">'+icon("message-circle")+'</span><span><strong>Community</strong><small>Chat with everyone</small></span><b>↗</b></button>'+
-            '<button data-v3="ai"><span class="v4-shortcut-icon">'+icon("sparkles")+'</span><span><strong>AI assistant</strong><small>Search, write, explore</small></span><b>↗</b></button>'+
-            '<button data-v3="browser"><span class="v4-shortcut-icon">'+icon("monitor")+'</span><span><strong>Browser</strong><small>Open your tabs</small></span><b>↗</b></button>'+
-            '<button data-v3="goDirectory"><span class="v4-shortcut-icon">'+icon("compass")+'</span><span><strong>Discover servers</strong><small>Find a community</small></span><b>↗</b></button>'+
-          '</section></div>'+
-        '<div class="v4-section-heading"><div><span class="v4-overline">ARCADE</span><h2>Something to play</h2></div>'+
-          '<button data-v3="arcade">View all games <span>↗</span></button></div>'+
-        '<div class="v3-featured-row">'+catalog.filter(g=>["world","uma","2048","mines"].includes(g.id)).map(g=>gameCard(g,true)).join("")+'</div>'+
-        '<div class="v4-bottom-grid">'+
-          '<section class="v4-info-panel"><div class="v4-panel-heading"><span class="v4-overline">ACTIVITY</span><strong>Recent conversations</strong></div>'+
-            (recent.length?recent.map(m=>'<button class="v3-feed-row" data-v3="goChannel" data-channel="'+safe(m.channel)+'">'+
-              '<span class="v3-feed-avatar">'+safe(m.by?.[0]?.toUpperCase()||"?")+'</span>'+
-              '<span><strong>'+safe(m.by)+'</strong><small>#'+safe(m.channel)+' · '+relative(m.at)+'</small><p>'+safe(String(m.message||"").slice(0,150))+'</p></span></button>').join(""):
-              '<div class="v4-empty-info">No recent messages yet.<button data-v3="channel">Start a conversation ↗</button></div>')+
+          '<p>Everything happening across your communities, in one place.</p></div>'+
+          '<button type="button" class="v5-command" data-v3="command">'+icon("search")+'<span>Search anything</span><kbd>Ctrl K</kbd></button></header>'+
+        '<div class="v5-lead-grid">'+
+          '<section class="v5-announcement-card">'+
+            '<div class="v5-announcement-top"><span class="v5-section-label">'+icon("megaphone")+' LIGHTNING COMMUNITY</span>'+
+              '<span class="v5-official-mark">'+icon("shield-check")+' Official</span></div>'+
+            '<h2>Announcements</h2>'+
+            (latest?'<div class="v5-latest"><div class="v5-latest-meta"><strong>'+safe(latest.by)+'</strong><span>'+relative(latest.at)+'</span></div>'+
+              '<p>'+safe(String(latest.message||"").slice(0,290))+(String(latest.message||"").length>290?"…":"")+'</p></div>':
+              '<p class="v5-no-news">Official updates from the Lightning team will appear here. Follow along for the latest news.</p>')+
+            '<div class="v5-announcement-foot"><span>'+icon("lock-keyhole")+' Staff announcements</span>'+
+              '<button type="button" data-v3="goChannel" data-channel="announcements">Open announcements '+icon("arrow-up-right")+'</button></div>'+
           '</section>'+
-          '<section class="v4-info-panel"><div class="v4-panel-heading"><span class="v4-overline">YOUR COMMUNITY</span><strong>Servers</strong></div>'+
-            (this.v2Servers.length?this.v2Servers.slice(0,5).map(s=>
-              '<button class="v3-space-row" data-v3="goServer" data-id="'+safe(s.id)+'"><span>'+serverIcon(s.icon||"users")+'</span>'+
-                '<div><strong>'+safe(s.name)+'</strong><small>'+s.memberCount+' members · '+s.channels.length+' channels</small></div><b>↗</b></button>').join(""):
-              '<div class="v4-empty-info">You haven’t joined a server yet.<button data-v3="goDirectory">Find one ↗</button></div>')+
-          '</section></div></div></div>';
+          '<section class="v5-channels-card"><div class="v5-card-header"><div><span class="v5-eyebrow">QUICK ACCESS</span><h2>Your channels</h2></div>'+
+            icon("hash")+'</div>'+
+            (shortcuts.length?shortcuts.map(([id,glyph,title,desc])=>
+              '<button type="button" class="v5-channel-shortcut" data-v3="goChannel" data-channel="'+id+'">'+
+                '<span class="v5-channel-mark">'+icon(glyph)+'</span><span class="v5-channel-name"><strong>'+title+'</strong><small>'+desc+'</small></span>'+icon("chevron-right")+'</button>').join(""):
+              '<div class="v5-empty-state">Channels will appear when you connect to Lightning Live.</div>')+
+          '</section>'+
+        '</div>'+
+        '<div class="v5-middle-grid">'+
+          '<section class="v5-content-card"><div class="v5-card-header"><div><span class="v5-eyebrow">WHAT’S HAPPENING</span><h2>Recent conversations</h2></div>'+
+            icon("message-circle")+'</div>'+
+            (recent.length?recent.map(m=>
+              '<button type="button" class="v5-message-row" data-v3="goChannel" data-channel="'+safe(m.channel)+'">'+
+                '<span class="v5-message-avatar">'+safe(m.by?.[0]?.toUpperCase()||"?")+'</span>'+
+                '<span class="v5-message-content"><span class="v5-message-head"><strong>'+safe(m.by)+'</strong><small>#'+safe(m.channel)+' · '+relative(m.at)+'</small></span>'+
+                  '<span class="v5-message-preview">'+safe(String(m.message||"").slice(0,155))+'</span></span>'+
+                icon("chevron-right")+'</button>').join(""):
+              '<div class="v5-empty-state">No conversations yet. Say hello in #general.<button type="button" data-v3="goChannel" data-channel="general">Open general '+icon("arrow-up-right")+'</button></div>')+
+          '</section>'+
+          '<section class="v5-content-card"><div class="v5-card-header"><div><span class="v5-eyebrow">YOUR PLACES</span><h2>Servers</h2></div>'+
+            '<button type="button" data-v3="goDirectory">Discover '+icon("arrow-up-right")+'</button></div>'+
+            (servers.length?servers.map(s=>'<button type="button" class="v5-server-row" data-v3="goServer" data-id="'+safe(s.id)+'">'+
+              '<span class="v5-server-image">'+serverIcon(s.icon||"users")+'</span>'+
+              '<span class="v5-server-detail"><strong>'+safe(s.name)+'</strong><small>'+Number(s.memberCount||0)+' members · '+Number(s.channels?.length||s.channelCount||0)+' channels</small></span>'+
+              (s.permanent?'<span class="v5-main-pill">Main</span>':icon("chevron-right"))+'</button>').join(""):
+              '<div class="v5-empty-state">Your servers will appear here when connected.</div>')+
+          '</section>'+
+        '</div>'+
+        '<section class="v5-game-section">'+
+          '<div class="v5-card-header"><div><span class="v5-eyebrow">TAKE A BREAK</span><h2>Jump into a game</h2></div>'+
+            '<button data-v3="arcade">All games '+icon("arrow-up-right")+'</button></div>'+
+          '<div class="v5-game-row">'+browseGame.map(g=>
+            '<button type="button" class="v5-game-launch v5-game-'+safe(g.className)+'" data-v3="play" data-game="'+safe(g.id)+'">'+
+              '<span class="v5-game-glyph">'+icon(g.icon)+'</span>'+
+              '<span><strong>'+safe(g.name)+'</strong><small>'+safe(g.kind)+'</small></span>'+icon("arrow-up-right")+'</button>').join("")+'</div>'+
+        '</section>'+
+      '</div></div>';
     this.v3Sync();
   };
   Hub.prototype.games=function(){

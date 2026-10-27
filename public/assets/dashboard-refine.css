@@ -1,0 +1,122 @@
+/* Dashboard is an information surface. Save the strongest glass effects for navigation. */
+#hubMount .v5-dashboard{height:100%;overflow:auto;background:transparent!important;color:#f6f0ec}
+#hubMount .v5-dashboard-inner{width:100%;max-width:1310px;margin:0 auto;padding:clamp(23px,2.5vw,37px) clamp(20px,3vw,45px) 42px}
+#hubMount .v5-welcome{display:flex;justify-content:space-between;align-items:center;gap:22px;margin-bottom:29px}
+#hubMount .v5-eyebrow{display:inline-block;color:#b8aaba;letter-spacing:.12em;font:740 9px "IBM Plex Mono",ui-monospace,monospace}
+#hubMount .v5-welcome h1{margin:11px 0 9px;font:630 clamp(30px,3vw,40px)/1.15 "Instrument Sans",system-ui;letter-spacing:-.058em;color:#f9f4f2}
+#hubMount .v5-welcome h1 em{font-style:normal;color:var(--lg-accent)}
+#hubMount .v5-welcome p{margin:0;color:#b4a9b8;font-size:12px;line-height:1.65}
+#hubMount .v5-command{display:inline-flex;align-items:center;gap:10px;min-height:40px;flex:none;padding:0 11px;background:#ffffff0e;border:1px solid #ffffff2d;border-radius:11px;color:#d8cad7;cursor:pointer}
+#hubMount .v5-command:hover{border-color:rgba(var(--lg-rgb),.6);background:#ffffff16}
+#hubMount .v5-command .ui-icon{color:var(--lg-accent);width:16px;height:16px}
+#hubMount .v5-command>span{font-size:11px;font-weight:600}
+#hubMount .v5-command kbd{font:10px "IBM Plex Mono",monospace;color:#ada1b0;border:1px solid #ffffff2c;background:#ffffff0a;border-radius:5px;padding:4px 5px;margin-left:8px}
+#hubMount .v5-lead-grid{display:grid;grid-template-columns:minmax(0,1.44fr) minmax(255px,.92fr);gap:15px;margin-bottom:16px}
+#hubMount .v5-announcement-card,#hubMount .v5-channels-card,#hubMount .v5-content-card,#hubMount .v5-game-section{
+ border:1px solid #ffffff29;border-radius:18px;background:#171821ad;
+ box-shadow:inset 0 1px #ffffff16,0 8px 21px #0002;min-width:0
+}
+#hubMount .v5-announcement-card{padding:26px 27px 0;min-height:255px;display:flex;flex-direction:column;overflow:hidden;position:relative;border-color:rgba(var(--lg-rgb),.32);background:radial-gradient(circle at 91% 1%,rgba(var(--lg-rgb),.16),transparent 44%),#1c1a22e8}
+#hubMount .v5-announcement-card:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--lg-accent),transparent 80%);opacity:.85}
+#hubMount .v5-announcement-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+#hubMount .v5-section-label{display:flex;align-items:center;gap:8px;font:750 9px "IBM Plex Mono",monospace;letter-spacing:.11em;color:var(--lg-accent)}
+#hubMount .v5-section-label .ui-icon{width:16px;height:16px}
+#hubMount .v5-official-mark{display:flex;align-items:center;gap:5px;color:#d8c8b8;font:700 10px "Instrument Sans",system-ui}
+#hubMount .v5-official-mark .ui-icon{color:var(--lg-accent);width:14px;height:14px}
+#hubMount .v5-announcement-card h2{font:650 clamp(25px,2.55vw,33px)/1.1 "Instrument Sans",system-ui;color:#fff9f3;letter-spacing:-.05em;margin:24px 0 13px}
+#hubMount .v5-no-news{max-width:380px;margin:0 0 21px;color:#beb4bd;font-size:12px;line-height:1.8}
+#hubMount .v5-latest{flex:1;min-height:0;margin:0 0 17px}
+#hubMount .v5-latest-meta{display:flex;align-items:center;gap:10px;color:#eee6e3;font-size:11px}
+#hubMount .v5-latest-meta span{color:#a89eaa;font-size:10px}
+#hubMount .v5-latest p{font-size:13px;line-height:1.7;color:#ddd3d9;overflow-wrap:anywhere;white-space:pre-line;margin:9px 0}
+#hubMount .v5-announcement-foot{border-top:1px solid #ffffff24;margin:auto -27px 0;padding:14px 23px 15px;display:flex;align-items:center;justify-content:space-between;gap:10px;background:#ffffff07}
+#hubMount .v5-announcement-foot>span{display:inline-flex;align-items:center;gap:7px;font-size:10px;color:#aea1ab}
+#hubMount .v5-announcement-foot>span .ui-icon{width:14px;height:14px;color:#d5bdae}
+#hubMount .v5-announcement-foot button,#hubMount .v5-card-header>button{
+ display:inline-flex;align-items:center;gap:5px;background:transparent;border:0;padding:6px 0;color:var(--lg-accent);font-size:11px;font-weight:740;cursor:pointer;white-space:nowrap
+}
+#hubMount .v5-announcement-foot button .ui-icon,#hubMount .v5-card-header>button .ui-icon{width:13px;height:13px}
+#hubMount .v5-announcement-foot button:hover,#hubMount .v5-card-header>button:hover{text-decoration:underline}
+#hubMount .v5-channels-card{padding:21px 20px 15px}
+#hubMount .v5-card-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 14px}
+#hubMount .v5-card-header>div{min-width:0}
+#hubMount .v5-card-header h2{font:650 19px/1.2 "Instrument Sans",system-ui;letter-spacing:-.038em;color:#f8f1ee;margin:7px 0 0}
+#hubMount .v5-card-header>.ui-icon{width:18px;height:18px;color:#a99fa9}
+#hubMount .v5-channel-shortcut{display:flex;align-items:center;gap:10px;width:100%;min-height:45px;padding:7px 5px;background:transparent;border:0;border-top:1px solid #ffffff15;text-align:left;color:#f8efec;cursor:pointer}
+#hubMount .v5-channel-shortcut:hover{background:#ffffff0e;border-radius:9px}
+#hubMount .v5-channel-mark{width:32px;height:32px;flex:none;border-radius:10px;background:#ffffff12;display:grid;place-items:center;color:#d5c8d0}
+#hubMount .v5-channel-mark .ui-icon{width:17px;height:17px}
+#hubMount .v5-channel-shortcut:hover .v5-channel-mark{color:var(--lg-accent);background:rgba(var(--lg-rgb),.13)}
+#hubMount .v5-channel-name{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+#hubMount .v5-channel-name strong{font-size:11px;font-weight:700}
+#hubMount .v5-channel-name small{font-size:10px;color:#a99fac}
+#hubMount .v5-channel-shortcut>.ui-icon{width:14px;height:14px;color:#938895}
+#hubMount .v5-middle-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(265px,.85fr);gap:15px;margin-bottom:24px}
+#hubMount .v5-content-card{padding:20px 20px 17px}
+#hubMount .v5-content-card .v5-card-header{margin-bottom:13px}
+#hubMount .v5-message-row{display:flex;align-items:center;gap:12px;width:100%;min-height:65px;background:transparent;border:0;border-top:1px solid #ffffff17;padding:10px 3px;text-align:left;color:#efeaec;cursor:pointer}
+#hubMount .v5-message-row:hover{background:#ffffff0d;border-radius:10px}
+#hubMount .v5-message-avatar{display:grid;place-items:center;flex:none;height:35px;width:35px;border-radius:12px;color:#e7d4bf;background:rgba(var(--lg-rgb),.15);border:1px solid rgba(var(--lg-rgb),.25);font:700 14px "Instrument Sans",system-ui}
+#hubMount .v5-message-content{min-width:0;flex:1}
+#hubMount .v5-message-head{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+#hubMount .v5-message-head strong{font-size:11px;color:#f8f1ee}
+#hubMount .v5-message-head small{font-size:9px;color:#a99dad}
+#hubMount .v5-message-preview{display:block;margin-top:5px;font-size:11px;color:#c7bbc8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#hubMount .v5-message-row>.ui-icon{width:14px;height:14px;color:#a9a1ad}
+#hubMount .v5-server-row{width:100%;display:flex;align-items:center;gap:10px;min-height:58px;padding:8px 3px;text-align:left;border:0;border-top:1px solid #ffffff15;background:transparent;color:#e9e3e5;cursor:pointer}
+#hubMount .v5-server-row:hover{background:#ffffff0e;border-radius:9px}
+#hubMount .v5-server-image{width:37px;height:37px;flex:none;display:grid;place-items:center;border:1px solid #ffffff26;border-radius:12px;color:var(--lg-accent);background:#ffffff16}
+#hubMount .v5-server-image .ui-icon{width:20px;height:20px}
+#hubMount .v5-server-detail{display:flex;flex-direction:column;gap:4px;flex:1;min-width:0}
+#hubMount .v5-server-detail strong{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#hubMount .v5-server-detail small{font-size:10px;color:#aea3b2}
+#hubMount .v5-server-row>.ui-icon{width:15px;height:15px;color:#a59ba9}
+#hubMount .v5-main-pill{font:700 9px "Instrument Sans",system-ui;background:rgba(var(--lg-rgb),.15);color:var(--lg-accent);border:1px solid rgba(var(--lg-rgb),.28);border-radius:6px;padding:4px 8px}
+#hubMount .v5-empty-state{padding:24px 6px;color:#b5aab6;font-size:12px;line-height:1.6}
+#hubMount .v5-empty-state button{display:inline-flex;align-items:center;gap:5px;cursor:pointer;border:0;background:none;color:var(--lg-accent);font-size:11px;font-weight:700;margin-top:10px;padding:0}
+#hubMount .v5-empty-state .ui-icon{height:13px;width:13px}
+#hubMount .v5-game-section{padding:19px 20px 21px;margin-bottom:5px}
+#hubMount .v5-game-section .v5-card-header{margin-bottom:17px}
+#hubMount .v5-game-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+#hubMount .v5-game-launch{display:flex;align-items:center;gap:10px;min-height:67px;min-width:0;padding:11px;background:#ffffff0b;border:1px solid #ffffff21;border-radius:12px;color:#f2eaeb;text-align:left;cursor:pointer}
+#hubMount .v5-game-launch:hover{background:#ffffff15;border-color:rgba(var(--lg-rgb),.46)}
+#hubMount .v5-game-glyph{display:grid;place-items:center;flex:none;height:40px;width:40px;border-radius:11px;background:#ffffff13;border:1px solid #ffffff20;color:#e6d9d5}
+#hubMount .v5-game-glyph .ui-icon{width:25px;height:25px;stroke-width:1.55}
+#hubMount .v5-game-launch:hover .v5-game-glyph{background:rgba(var(--lg-rgb),.16);color:var(--lg-accent)}
+#hubMount .v5-game-launch>span:nth-child(2){display:flex;flex-direction:column;min-width:0;gap:5px;flex:1}
+#hubMount .v5-game-launch strong{font:720 11px/1.2 "Instrument Sans",system-ui;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#hubMount .v5-game-launch small{font-size:9px;color:#aa9caa}
+#hubMount .v5-game-launch>.ui-icon{width:14px;height:14px;flex:none;color:#ac9daa}
+@media(max-width:1260px){
+ #hubMount .v5-game-row{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #hubMount .v5-command kbd{display:none}
+ #hubMount .v5-dashboard-inner{padding:23px 20px 35px}
+}
+@media(max-width:1060px){
+ #hubMount .v5-lead-grid,#hubMount .v5-middle-grid{grid-template-columns:1fr}
+ #hubMount .v5-announcement-card{min-height:220px}
+ #hubMount .v5-channels-card{display:block}
+ #hubMount .v5-channel-shortcut{min-height:43px}
+}
+@media(max-width:760px){
+ #hubMount .v5-dashboard-inner{padding:18px 13px 25px}
+ #hubMount .v5-welcome h1{font-size:26px}
+ #hubMount .v5-welcome{margin-bottom:18px}
+ #hubMount .v5-command{width:38px;height:38px;padding:9px;justify-content:center}
+ #hubMount .v5-command span{display:none}
+ #hubMount .v5-lead-grid,#hubMount .v5-middle-grid{gap:11px;margin-bottom:11px}
+ #hubMount .v5-announcement-card{padding:21px 19px 0;min-height:205px}
+ #hubMount .v5-announcement-card h2{font-size:25px;margin-top:20px}
+ #hubMount .v5-announcement-foot{margin-left:-19px;margin-right:-19px;padding:13px 17px}
+ #hubMount .v5-content-card,#hubMount .v5-channels-card,#hubMount .v5-game-section{padding:16px 14px}
+ #hubMount .v5-game-row{grid-template-columns:1fr 1fr}
+ #hubMount .v5-game-launch{padding:9px;gap:7px}
+ #hubMount .v5-game-glyph{width:33px;height:33px}
+ #hubMount .v5-game-glyph .ui-icon{width:21px;height:21px}
+ #hubMount .v5-game-launch>.ui-icon{display:none}
+}
+@media(max-width:425px){
+ #hubMount .v5-welcome h1{font-size:24px}
+ #hubMount .v5-announcement-foot>span{display:none}
+ #hubMount .v5-game-row{grid-template-columns:1fr}
+}
