@@ -1035,7 +1035,7 @@ function bindUi(){
   });
   dom.bookmark.addEventListener("click",toggleBookmark);
   dom.menu.addEventListener("click",()=>window.LightningGlass?.open()||(!window.LightningGlass&&openPanel("settings")));
-  window.addEventListener("lightning:browser-settings",()=>openPanel("settings"));
+  document.addEventListener("lightning:browser-settings",()=>openPanel("settings"));
   dom.panelClose.addEventListener("click",closePanel);
   $$(".rail-button[data-panel]").forEach(button=>button.addEventListener("click",()=>{
     if(panelName===button.dataset.panel)closePanel();else openPanel(button.dataset.panel);

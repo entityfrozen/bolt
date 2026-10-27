@@ -95,7 +95,7 @@ function initDialog(){
   const action=button.dataset.lgAction;
   if(action==="close")dialog.close();
   if(action==="reset"&&confirm("Reset your appearance to Lightning defaults?")){prefs={...DEFAULTS};save();apply();draw(currentTab);}
-  if(action==="browser"){dialog.close();window.dispatchEvent(new Event("lightning:browser-settings"));}
+  if(action==="browser"){dialog.close();document.dispatchEvent(new Event("lightning:browser-settings"));}
   if(action==="light"){
    prefs=sanitize({...prefs,opacity:30,blur:8,motion:false,shadows:false,contrast:true});save();apply();draw(currentTab);
   }
