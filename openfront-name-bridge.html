@@ -13,13 +13,31 @@
 #lightning-game-tools button{font:650 11px system-ui,-apple-system,sans-serif;color:#ecf6ff;background:#ffffff18;border:1px solid #ffffff32;border-radius:8px;padding:9px 13px;cursor:pointer}
 #lightning-game-tools button:hover,#lightning-game-tools button:focus-visible{border-color:#a3cef8;background:#a3cef822}
 @media(max-width:650px){#lightning-game-tools{bottom:11px;left:9px;padding:5px 6px 5px 10px;gap:5px;max-width:calc(100vw - 18px)}#lightning-game-tools .lightning-name{max-width:104px;font-size:10px}#lightning-game-tools button{padding:8px 10px}}
+/* Compact in-game lobby controls; game canvas remains fully visible. */
+#lightning-game-tools{left:12px;bottom:12px;border-color:#ffffff48;gap:6px;padding:7px 8px;border-radius:12px;background:#161e2af2}
+#lightning-game-tools .lightning-name{font-size:11px;max-width:155px}
+#lightning-game-tools button{transition:background .12s,border-color .12s}
+#lightning-game-tools button[aria-expanded="true"]{background:#a3cef82a;border-color:#a3cef8}
+#lightning-friends-menu{position:fixed;left:12px;bottom:66px;z-index:10001;width:min(318px,calc(100vw - 24px));box-sizing:border-box;padding:17px;border:1px solid #ffffff50;border-radius:15px;background:#192334f7;box-shadow:0 20px 55px #000b;backdrop-filter:blur(19px);font-family:system-ui,-apple-system,sans-serif;color:#f4f7ff}
+#lightning-friends-menu[hidden]{display:none!important}
+#lightning-friends-menu *{box-sizing:border-box}
+#lightning-friends-menu h2{font:bold 18px system-ui;margin:0 0 7px;letter-spacing:-.03em}
+#lightning-friends-menu p{font:12px/1.55 system-ui;color:#b9c6d9;margin:0 0 15px}
+#lightning-friends-menu .lm-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#lightning-friends-menu button{min-width:0;cursor:pointer;border:1px solid #ffffff38;border-radius:9px;padding:11px 8px;background:#ffffff10;color:#e9f2ff;font:650 11px system-ui}
+#lightning-friends-menu button:hover{border-color:#a3cef8;background:#a3cef822}
+#lightning-friends-menu button.primary{background:#a3cef8;color:#131925;border-color:#a3cef8}
+#lightning-friends-menu button.copy{grid-column:span 2}
+#lightning-friends-menu .lm-message{min-height:15px;margin:11px 0 0;font-size:11px;color:#c0d5ee}
+#lightning-friends-menu .lm-footer{display:flex;gap:8px;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid #ffffff24;color:#9fb4cb;font-size:10px}
+@media(max-width:500px){#lightning-game-tools{bottom:6px;left:6px}#lightning-game-tools .lightning-name{max-width:85px}#lightning-friends-menu{left:6px;bottom:59px}}
 </style>
 <script>
 /* One-way approved origin bridge. Lightning is the source of player names. */
 (function(){
  "use strict";
  var TRUSTED_ORIGIN="https://bolt-v5-preview-production.up.railway.app";
- var accountName="",root=null;
+ var accountName="",root=null,menu=null;
  function shown(value){return String(value||"").trim().replace(/[\u0000-\u001f\u007f<>]/g,"").slice(0,32);}
  function controls(){
   if(root)return root;
@@ -31,8 +49,66 @@
    if(window.parent!==window)window.parent.postMessage({type:"lightning:toggleChat"},TRUSTED_ORIGIN);
   });
   root.appendChild(chat);
+  var friends=document.createElement("button");friends.type="button";friends.textContent="Friends";
+  friends.setAttribute("aria-expanded","false");friends.setAttribute("aria-controls","lightning-friends-menu");
+  friends.addEventListener("click",function(){
+   var panel=friendMenu();panel.hidden=!panel.hidden;friends.setAttribute("aria-expanded",String(!panel.hidden));
+  });
+  root.appendChild(friends);
   (document.body||document.documentElement).appendChild(root);
   return root;
+ }
+ function currentRoomLink(){
+  var match=location.pathname.match(/\/(?:w\d+\/)?game\/([A-Za-z0-9_-]+)/);
+  if(!match)return "";
+  // Share exactly the URL provided by OpenFront, including its lobby query.
+  return location.href;
+ }
+ function announce(message){
+  var label=friendMenu().querySelector(".lm-message");if(label)label.textContent=message;
+ }
+ function friendMenu(){
+  if(menu)return menu;
+  menu=document.createElement("section");menu.id="lightning-friends-menu";menu.hidden=true;
+  menu.setAttribute("aria-label","Play WorldPvP with friends");
+  menu.innerHTML='<h2>Play with friends</h2><p>Host a private lobby, then share its link. Friends join the same match.</p>'+
+   '<div class="lm-actions"><button class="primary" type="button" data-lm="host">Host private</button>'+
+   '<button type="button" data-lm="join">Join a match</button>'+
+   '<button class="copy" type="button" data-lm="copy">Copy current lobby link</button></div>'+
+   '<p class="lm-message" aria-live="polite"></p><div class="lm-footer"><span>Hosted on our WorldPvP server</span></div>';
+  menu.addEventListener("click",function(e){
+   var btn=e.target.closest("[data-lm]");if(!btn)return;
+   if(btn.dataset.lm==="host"){
+    if(currentRoomLink()){announce("Leave your current match before hosting another.");return;}
+    if(typeof window.showPage==="function"){
+     window.showPage("page-host-lobby");
+     announce("Set the match rules, then share the lobby link.");
+    }else announce("Choose Host Private from the game's main menu.");
+   }
+   if(btn.dataset.lm==="join"){
+    var input=prompt("Paste your friend's WorldPvP invite link or lobby ID");
+    if(!input||!input.trim())return;
+    var code=input.trim();
+    try{
+     var parsed=new URL(code);
+     if(parsed.origin!==location.origin){announce("That invite is for a different server.");return;}
+     var match=parsed.pathname.match(/\/(?:w\d+\/)?game\/([A-Za-z0-9_-]+)/);
+     if(!match){announce("Invite link isn't recognized.");return;}
+     location.assign(parsed.href);return;
+    }catch(_error){}
+    if(!/^[A-Za-z0-9_-]{6,80}$/.test(code)){announce("Paste a valid lobby link or ID.");return;}
+    location.assign(location.origin+"/game/"+encodeURIComponent(code));
+   }
+   if(btn.dataset.lm==="copy"){
+    var link=currentRoomLink();
+    if(!link){announce("Create or join a lobby first, then copy its link.");return;}
+    if(navigator.clipboard?.writeText){
+     navigator.clipboard.writeText(link).then(function(){announce("Lobby link copied.");})
+       .catch(function(){prompt("Copy lobby link",link);});
+    }else prompt("Copy lobby link",link);
+   }
+  });
+  (document.body||document.documentElement).appendChild(menu);return menu;
  }
  function applyName(name,username){
   var clean=shown(name),fallback=shown(username);
