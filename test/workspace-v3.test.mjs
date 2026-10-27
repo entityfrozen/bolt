@@ -52,3 +52,16 @@ test("Minesweeper loses on a mine after starting",()=>{
   assert.equal(game.over,true);
   assert.equal(game.won,false);
 });
+
+test("Lightning island restores the warm brass identity",()=>{
+  const skin=fs.readFileSync(new URL("../public/assets/lightning-island.css",import.meta.url),"utf8");
+  assert.match(skin,/--accent:#e2bb75/);
+  assert.match(skin,/grid-template-columns:270px minmax\(0,1fr\) 246px/);
+  assert.match(skin,/\.v3-primary-tabs\s*\{/);
+  assert.match(skin,/border-radius:999px/);
+  assert.match(skin,/\.v4-nav-shell/);
+  assert.match(workspace,/navShell\.append\(serverRail,channelRail\)/);
+  assert.match(workspace,/class="v4-home"/);
+  assert.match(browser,/lightning-island\.css/);
+  assert.doesNotMatch(workspace,/#44eda7|#38f0a4|#72c9ff/);
+});

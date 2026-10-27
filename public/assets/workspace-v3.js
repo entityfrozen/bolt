@@ -10,8 +10,8 @@ const catalog=[
   {id:"2048",name:"2048",kind:"Puzzle",icon:"²",note:"Merge tiles and reach 2048.",action:"v3Play2048",className:"puzzle"},
   {id:"mines",name:"Minesweeper",kind:"Puzzle",icon:"✱",note:"Clear the field without hitting a mine.",action:"v3PlayMines",className:"mines"}
 ];
-const themeColors={forest:"#44eda7",violet:"#b69af6",ocean:"#72c9ff"};
-const themeNames={forest:"Emerald",violet:"Amethyst",ocean:"Ice"};
+const themeColors={classic:"#e2bb75",bronze:"#d3a56b",silver:"#c6bcaa"};
+const themeNames={classic:"Classic gold",bronze:"Warm bronze",silver:"Soft silver"};
 const preference=(key,fallback)=>{try{return JSON.parse(localStorage.getItem("lightning.v3."+key))??fallback}catch{return fallback}};
 const setPreference=(key,value)=>{try{localStorage.setItem("lightning.v3."+key,JSON.stringify(value))}catch{}};
 const gameCard=(game,featured=false)=>
@@ -87,7 +87,8 @@ export function installWorkspaceV3(Hub){
     setup.call(this);
     if(this.v3Ready)return;
     this.v3Ready=true;
-    this.v3Theme=preference("theme","forest");
+    this.v3Theme=preference("theme","classic");
+    if(!themeColors[this.v3Theme])this.v3Theme="classic";
     this.v3Favorites=preference("favorites",["chess","world","uma"]);
     this.v3InspectorVisible=preference("inspector",true);
     this.v3DockVisible=preference("dock",true);
@@ -95,7 +96,7 @@ export function installWorkspaceV3(Hub){
     const shell=this.$(".v2-shell");shell.classList.add("v3-shell");
     shell.insertAdjacentHTML("beforeend",
       '<header class="v3-global-bar">'+
-        '<div class="v3-global-brand"><span class="v3-brand-flash">ϟ</span><div><strong>Lightning</strong><small>V2 WORKSPACE</small></div></div>'+
+        '<div class="v3-global-brand"><span class="v3-brand-flash">ϟ</span><div><strong>Lightning</strong><small>YOUR WORKSPACE</small></div></div>'+
         '<nav class="v3-primary-tabs" aria-label="Workspace">'+
           '<button data-v3="overview" class="active">⌂ <span>Overview</span></button>'+
           '<button data-v3="channel"># <span>Community</span></button>'+
@@ -125,6 +126,14 @@ export function installWorkspaceV3(Hub){
         '<p>Choose the accent that feels right.</p><div class="v3-theme-grid">'+
         Object.entries(themeColors).map(([key,color])=>'<button type="button" data-v3="setTheme" data-theme="'+key+'"><i style="--swatch:'+color+'"></i><span>'+themeNames[key]+'</span></button>').join("")+
         '</div><small>Your theme is saved on this device.</small></dialog>');
+    // A single sidebar owns both the server switcher and the channel tree.
+    // This is a structural change, not a palette overlay on the old grid.
+    const navShell=document.createElement("div");
+    navShell.className="v4-nav-shell";
+    navShell.setAttribute("aria-label","Primary navigation");
+    const serverRail=this.$(".v2-servers"),channelRail=this.$(".v2-sidebar");
+    shell.insertBefore(navShell,serverRail);
+    navShell.append(serverRail,channelRail);
     this.v3ApplyPreferences();
     this.v3RenderDock();
     this.v3RenderInspector();
@@ -239,7 +248,7 @@ export function installWorkspaceV3(Hub){
        view==="channel"&&["chat","room","directory"].includes(current)||
        view==="arcade"&&["games","chess","rps","world","uma","2048","mines"].includes(current));
     });
-    this.$(".v3-global-brand small").textContent=this.v2ServerId?"COMMUNITY SERVER":"V2 WORKSPACE";
+    this.$(".v3-global-brand small").textContent=this.v2ServerId?"YOUR COMMUNITY":"YOUR WORKSPACE";
     this.v3RenderInspector();
   };
   Hub.prototype.v2Nav=function(){
@@ -248,7 +257,7 @@ export function installWorkspaceV3(Hub){
     const navRoot=this.$("#v2Channels");if(!navRoot)return;
     if(!this.v2ServerId){
       this.$("#v2ServerTitle").textContent="Your space";
-      this.$("#v2ServerAbout").textContent="Servers, chat and shortcuts.";
+      this.$("#v2ServerAbout").textContent="Find your people.";
     }
     navRoot.insertAdjacentHTML("afterbegin",
       '<div class="v3-nav-kicker">WORKSPACE</div>'+
@@ -288,48 +297,48 @@ export function installWorkspaceV3(Hub){
     }
   };
   Hub.prototype.v3Overview=function(){
-    this.header("Overview","Your home base");
-    const recent=["general","games","suggestions","support"].flatMap(c=>(this.history?.[c]||[])
-      .filter(m=>!m.deleted).slice(-10)).sort((a,b)=>b.at-a.at).slice(0,5);
-    const members=this.summary?.users??this.users.length;
-    const rooms=this.v2Servers?.length||0;
+    this.header("Home","Your space");
+    const recent=["general","games","suggestions","support"].flatMap(channel=>(this.history?.[channel]||[])
+      .filter(message=>!message.deleted).slice(-10)).sort((a,b)=>b.at-a.at).slice(0,4);
+    const hour=new Date().getHours();
+    const greeting=hour<12?"Good morning":hour<18?"Good afternoon":"Good evening";
+    const displayName=safe(this.name||"there");
+    const date=new Intl.DateTimeFormat(undefined,{weekday:"long",month:"long",day:"numeric"}).format(new Date());
     this.$("#hubContent").innerHTML=
-      '<div class="v3-overview"><div class="v3-overview-inner">'+
-        '<section class="v3-landing-hero"><div class="v3-landing-atmosphere" aria-hidden="true"><div class="v3-art-orb"></div><div class="v3-art-grid"></div><span class="v3-art-mark">ϟ</span></div>'+
-          '<div class="v3-landing-content"><span class="v3-hero-kicker"><i></i> YOUR WORKSPACE · VERSION 2</span>'+
-          '<h1>One place for<br><em>everything.</em></h1>'+
-          '<p>Your friends, favorite games, communities and AI tools—connected in a single workspace.</p>'+
-          '<div class="v3-hero-ctas"><button class="v3-main-button" data-v3="arcade">Explore games <span>↗</span></button>'+
-          '<button class="v3-secondary-button" data-v3="ai">✧ Open AI</button></div></div>'+
-          '<div class="v3-landing-index"><span>LIGHTNING / NEW EXPERIENCE</span><strong>02</strong><small>MAKE IT YOURS.</small></div>'+
-        '</section>'+
-        '<div class="v3-stat-strip">'+
-          '<div><span class="v3-stat-symbol">●</span><strong>'+members+'</strong><small>PEOPLE ONLINE</small></div>'+
-          '<div><span class="v3-stat-symbol">◈</span><strong>'+rooms+'</strong><small>YOUR SERVERS</small></div>'+
-          '<div><span class="v3-stat-symbol">▣</span><strong>'+catalog.length+'</strong><small>GAMES AVAILABLE</small></div>'+
-          '<div><span class="v3-stat-symbol">✧</span><strong>AI</strong><small>READY TO ASSIST</small></div>'+
-        '</div>'+
-        sectionHeading("DISCOVER & PLAY","Jump into something",
-          '<button class="v3-inline-link" data-v3="arcade">Full library ↗</button>')+
-        '<div class="v3-featured-row">'+catalog.slice(0,4).map(g=>gameCard(g,true)).join("")+'</div>'+
-        '<div class="v3-lower-grid"><section class="v3-overview-panel">'+
-          sectionHeading("LATEST FROM THE COMMUNITY","The conversation",
-            '<button class="v3-inline-link" data-v3="channel">Open chat ↗</button>')+
-          (recent.length?recent.map(m=>'<button class="v3-feed-row" data-v3="goChannel" data-channel="'+safe(m.channel)+'">'+
-            '<span class="v3-feed-avatar">'+safe(m.by?.[0]?.toUpperCase()||"?")+'</span>'+
-            '<span><strong>'+safe(m.by)+'</strong><small>#'+safe(m.channel)+' · '+relative(m.at)+'</small><p>'+safe(m.message.slice(0,150))+'</p></span></button>').join(""):
-            '<div class="v3-empty-feed">It is quiet here. Start something in #general.<button data-v3="channel">Go to chat →</button></div>')+
-          '</section><section class="v3-overview-panel">'+
-          sectionHeading("YOUR SPACES","Community servers",'<button class="v3-inline-link" data-v3="goDirectory">Discover ↗</button>')+
-          (this.v2Servers.length?this.v2Servers.slice(0,6).map(s=>
-            '<button class="v3-space-row" data-v3="goServer" data-id="'+safe(s.id)+'"><span>'+safe(s.icon||"✦")+'</span>'+
-              '<div><strong>'+safe(s.name)+'</strong><small>'+s.memberCount+' members · '+s.channels.length+' channels</small></div><b>↗</b></button>').join(""):
-            '<div class="v3-new-server"><span>◈</span><h3>Find your crowd.</h3><p>Discover or create a server for your community.</p>'+
-            '<button class="v3-secondary-button" data-v3="goDirectory">Browse servers ↗</button></div>')+
+      '<div class="v4-home"><div class="v4-home-inner">'+
+        '<header class="v4-welcome"><div><span class="v4-overline">'+safe(date)+'</span>'+
+          '<h1>'+greeting+', <em>'+displayName+'.</em></h1>'+
+          '<p>Here’s what’s happening in your space.</p></div>'+
+          '<button class="v4-welcome-search" data-v3="command"><span>⌕</span> Find anything <kbd>Ctrl K</kbd></button></header>'+
+        '<div class="v4-lead-grid"><section class="v4-feature-panel">'+
+          '<div class="v4-feature-copy"><span class="v4-overline">PICK UP WHERE YOU LEFT OFF</span>'+
+            '<h2>Your next <em>move.</em></h2><p>Play a match of chess, challenge a friend, or just take on the computer.</p>'+
+            '<div class="v4-feature-actions"><button class="v4-gold-button" data-v3="play" data-game="chess">Play chess ↗</button>'+
+              '<button class="v4-ghost-button" data-v3="arcade">Browse games</button></div></div>'+
+          '<div class="v4-chess-art" aria-hidden="true"><div class="v4-chess-halo"></div><span>♞</span><small>YOUR TURN</small></div></section>'+
+          '<section class="v4-quick-panel">'+
+            '<div class="v4-panel-heading"><span class="v4-overline">SHORTCUTS</span><strong>Jump right in</strong></div>'+
+            '<button data-v3="channel"><span class="v4-shortcut-icon">#</span><span><strong>Community</strong><small>Chat with everyone</small></span><b>↗</b></button>'+
+            '<button data-v3="ai"><span class="v4-shortcut-icon">✧</span><span><strong>AI assistant</strong><small>Search, write, explore</small></span><b>↗</b></button>'+
+            '<button data-v3="browser"><span class="v4-shortcut-icon">◎</span><span><strong>Browser</strong><small>Open your tabs</small></span><b>↗</b></button>'+
+            '<button data-v3="goDirectory"><span class="v4-shortcut-icon">◈</span><span><strong>Discover servers</strong><small>Find a community</small></span><b>↗</b></button>'+
           '</section></div>'+
-        '<div class="v3-update-ribbon"><div><small>VERSION TWO</small><strong>Rebuilt for you.</strong><p>Cleaner navigation, richer chat, a smarter workspace and more games.</p></div>'+
-          '<button data-v3="goUpdates">See what changed ↗</button></div>'+
-      '</div></div>';
+        '<div class="v4-section-heading"><div><span class="v4-overline">ARCADE</span><h2>Something to play</h2></div>'+
+          '<button data-v3="arcade">View all games <span>↗</span></button></div>'+
+        '<div class="v3-featured-row">'+catalog.filter(g=>["world","uma","2048","mines"].includes(g.id)).map(g=>gameCard(g,true)).join("")+'</div>'+
+        '<div class="v4-bottom-grid">'+
+          '<section class="v4-info-panel"><div class="v4-panel-heading"><span class="v4-overline">ACTIVITY</span><strong>Recent conversations</strong></div>'+
+            (recent.length?recent.map(m=>'<button class="v3-feed-row" data-v3="goChannel" data-channel="'+safe(m.channel)+'">'+
+              '<span class="v3-feed-avatar">'+safe(m.by?.[0]?.toUpperCase()||"?")+'</span>'+
+              '<span><strong>'+safe(m.by)+'</strong><small>#'+safe(m.channel)+' · '+relative(m.at)+'</small><p>'+safe(String(m.message||"").slice(0,150))+'</p></span></button>').join(""):
+              '<div class="v4-empty-info">No recent messages yet.<button data-v3="channel">Start a conversation ↗</button></div>')+
+          '</section>'+
+          '<section class="v4-info-panel"><div class="v4-panel-heading"><span class="v4-overline">YOUR COMMUNITY</span><strong>Servers</strong></div>'+
+            (this.v2Servers.length?this.v2Servers.slice(0,5).map(s=>
+              '<button class="v3-space-row" data-v3="goServer" data-id="'+safe(s.id)+'"><span>'+safe(s.icon||"✦")+'</span>'+
+                '<div><strong>'+safe(s.name)+'</strong><small>'+s.memberCount+' members · '+s.channels.length+' channels</small></div><b>↗</b></button>').join(""):
+              '<div class="v4-empty-info">You haven’t joined a server yet.<button data-v3="goDirectory">Find one ↗</button></div>')+
+          '</section></div></div></div>';
     this.v3Sync();
   };
   Hub.prototype.games=function(){
