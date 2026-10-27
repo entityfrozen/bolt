@@ -20,12 +20,33 @@ export function installCommunityUI(Hub){
   dialog.innerHTML='<div class="cm-shell"><header><div><small>SERVER SETTINGS</small><h2 id="communityManagerTitle">Manage server</h2></div><button type="button" data-cm="close" aria-label="Close settings">×</button></header>'+
     '<nav id="cmTabs" aria-label="Management sections"></nav><div id="cmContent" class="cm-content"></div></div>';
   this.root.append(dialog);
+  this.$(".v2-topbar-name")?.insertAdjacentHTML("afterend",
+    '<div class="cm-channel-picker" id="cmChannelPicker" hidden>'+
+      '<label class="cm-picker-label" for="cmChannelSelect">CHANNEL</label>'+
+      '<button type="button" data-cm="previous" aria-label="Previous channel" title="Previous channel">'+icon("chevron-right","cm-chevron-up")+'</button>'+
+      '<select id="cmChannelSelect" aria-label="Switch channel"></select>'+
+      '<button type="button" data-cm="next" aria-label="Next channel" title="Next channel">'+icon("chevron-right")+'</button>'+
+    '</div>');
   this.root.addEventListener("click",event=>{
    const b=event.target.closest("[data-cm]");if(!b)return;
    const action=b.dataset.cm,s=this.currentCommunity?.();
    if(action==="close")return dialog.close();
-   if(action==="main"){this.v2ServerId=MAIN;this.v2Channel="announcements";this.show("room");return;}
-   if(action==="go"){this.v2ServerId=b.dataset.server||MAIN;this.v2Channel=b.dataset.channel;this.show("room");return;}
+   if(action==="main"){const main=this.v2Servers.find(s=>s.id===MAIN);this.v2ServerId=MAIN;this.v2Channel=this.v2ChooseChannel(main);this.show("room");return;}
+   if(action==="go"){
+    this.v2ServerId=b.dataset.server||MAIN;this.v2Channel=b.dataset.channel;
+    this.v2RememberChannel(this.v2ServerId,this.v2Channel);this.show("room");return;
+   }
+   if(action==="previous"||action==="next"){
+    const server=this.currentCommunity(),channels=server?.channels||[];
+    if(!channels.length)return;
+    const current=channels.findIndex(c=>c.id===this.v2Channel);
+    const offset=action==="next"?1:-1;
+    const at=(current+offset+channels.length)%channels.length;
+    this.v2ServerId=server.id;this.v2Channel=channels[at].id;
+    this.v2RememberChannel(server.id,this.v2Channel);this.show("room");return;
+   }
+   if(action==="account"){window.LightningAccount?.open("profile");return;}
+   if(action==="dm"){window.LightningAccount?.open("messages",b.dataset.member||null);return;}
    if(action==="manage"){
     if(!s?.canManage)return this.flash("You do not have server management access.");
     this.manageTab="channels";this.drawCommunityManager();dialog.showModal();return;
@@ -69,7 +90,14 @@ export function installCommunityUI(Hub){
    }
   });
   this.root.addEventListener("change",event=>{
-   const el=event.target,s=this.currentCommunity?.();
+   const el=event.target;
+   if(el.id==="cmChannelSelect"){
+    const server=this.currentCommunity();
+    if(!server?.channels.some(c=>c.id===el.value))return;
+    this.v2ServerId=server.id;this.v2Channel=el.value;
+    this.v2RememberChannel(server.id,el.value);this.show("room");return;
+   }
+   const s=this.currentCommunity?.();
    if(!s?.canManage)return;
    if(el.matches("[data-cm-role]"))this.send({type:"v2AssignRole",serverId:s.id,memberId:el.dataset.member,roleId:el.value});
    if(el.matches("[data-cm-color]"))this.send({type:"v2EditRole",serverId:s.id,roleId:el.dataset.roleId,color:el.value});
@@ -94,6 +122,8 @@ export function installCommunityUI(Hub){
    '<button class="v3-nav-destination'+(main&&this.view==="room"?" active":"")+'" data-cm="main">'+icon("message-circle")+'<span>Community</span></button>'+
    '<button class="v3-nav-destination'+(this.view==="games"?" active":"")+'" data-v3="arcade">'+icon("gamepad-2")+'<span>Games</span></button>'+
    '<button class="v3-nav-destination" data-v3="browser">'+icon("monitor")+'<span>Browser</span></button>'+
+   '<button class="v3-nav-destination" data-cm="dm">'+icon("message-circle")+'<span>Direct messages</span></button>'+
+   '<button class="v3-nav-destination" data-cm="account">'+icon("users")+'<span>My profile</span></button>'+
    '<button class="v3-nav-destination" data-v3="theme">'+icon("settings")+'<span>Settings</span></button>'+
    '<div class="cm-nav-divider"></div>';
   const categories=[...new Set((current?.channels||[]).map(c=>c.category))];
@@ -106,6 +136,7 @@ export function installCommunityUI(Hub){
   ).join("");
   const manager=current?.canManage?'<button class="cm-manage" data-cm="manage">'+icon("sliders-horizontal")+'<span>Manage server</span>'+icon("chevron-right")+'</button>':"";
   const leave=current&&!current.permanent&&!current.canManage?'<button class="v2-nav-aux" data-v2="leave">'+icon("log-out")+' Leave server</button>':"";
+  const scrollTop=nav.scrollTop;
   nav.innerHTML=general+
    '<div class="cm-server-heading">'+icon("users")+'<strong>'+esc(current?.name||"Lightning")+'</strong>'+
    (current?.permanent?'<small>OFFICIAL</small>':"")+'</div>'+
@@ -113,7 +144,28 @@ export function installCommunityUI(Hub){
    '<div class="hub-nav-title cm-category">EXPLORE</div>'+
    '<button class="hub-link cm-channel" data-v2="discover">'+icon("compass")+'<span>Find servers</span></button>'+
    '<button class="hub-link cm-channel" data-v2="create">'+icon("plus")+'<span>Create server</span></button>';
+  nav.scrollTop=scrollTop;
+  this.cmSyncPicker();
   if(this.v3Ready)this.v3Sync();
+ };
+ Hub.prototype.cmSyncPicker=function(){
+  const holder=this.$("#cmChannelPicker"),select=this.$("#cmChannelSelect"),server=this.currentCommunity();
+  if(!holder||!select)return;
+  const visible=this.view==="room"&&!!server?.channels?.length;
+  holder.hidden=!visible;
+  if(!visible)return;
+  const fingerprint=server.id+"|"+server.channels.map(c=>c.id+":"+c.name+":"+c.category).join(",");
+  if(holder.dataset.fingerprint!==fingerprint){
+   const categories=[...new Set(server.channels.map(c=>c.category))];
+   select.innerHTML=categories.map(category=>'<optgroup label="'+esc(cat(category))+'">'+
+    server.channels.filter(c=>c.category===category).map(c=>
+     '<option value="'+esc(c.id)+'">'+(c.id==="announcements"?"● ":"# ")+esc(c.name)+'</option>').join("")+
+    '</optgroup>').join("");
+   holder.dataset.fingerprint=fingerprint;
+  }
+  select.value=this.v2Channel;
+  holder.querySelector('[data-cm="previous"]').disabled=server.channels.length<2;
+  holder.querySelector('[data-cm="next"]').disabled=server.channels.length<2;
  };
  Hub.prototype.v2Room=function(){
   room.call(this);
@@ -129,8 +181,9 @@ export function installCommunityUI(Hub){
   if(memberPanel){
    const heading=memberPanel.querySelector("h3"),body=memberPanel.querySelector("div");
    if(heading)heading.textContent="MEMBERS · "+(s.members?.length||0);
-   if(body)body.innerHTML=(s.members||[]).slice(0,40).map(m=>'<div class="cm-member-preview"><span class="v2-avatar">'+esc(m.name?.[0]?.toUpperCase()||"?")+'</span><div><strong>'+esc(m.name)+'</strong><small>'+
-    (m.admin?"Lightning admin":esc(s.roles?.find(r=>r.id===m.role)?.name||"Member"))+'</small></div></div>').join("");
+   if(body)body.innerHTML=(s.members||[]).slice(0,40).map(m=>'<button type="button" class="cm-member-preview" data-cm="dm" data-member="'+esc(m.id)+'" title="Private message">'+
+    '<span class="v2-avatar">'+esc(m.name?.[0]?.toUpperCase()||"?")+'</span><div><strong>'+esc(m.name)+'</strong><small>'+
+    (m.admin?"Lightning admin":esc(s.roles?.find(r=>r.id===m.role)?.name||"Member"))+'</small></div></button>').join("");
   }
  };
  Hub.prototype.drawCommunityManager=function(){

@@ -1,0 +1,96 @@
+/* Account and messages – readable glass, not ornamental gradients. */
+.account-space{position:fixed;inset:0;margin:auto;width:min(990px,calc(100vw - 24px));height:min(735px,calc(100dvh - 26px));max-width:none;max-height:none;padding:0;overflow:hidden;border-radius:23px;border:1px solid #ffffff4f;background:linear-gradient(155deg,#ffffff13,#ffffff03),#171820ed;color:#f8f3f6;box-shadow:0 38px 130px #000c,inset 0 1px #ffffff38;backdrop-filter:blur(26px) saturate(135%);z-index:10000;font-family:"Instrument Sans",system-ui,sans-serif}
+.account-space::backdrop{background:#090a13bd;backdrop-filter:blur(9px)}
+.account-space *{box-sizing:border-box}
+.account-space button,.account-space input,.account-space textarea{font:inherit}
+.account-space button{cursor:pointer}
+.account-space button:focus-visible,.account-space input:focus-visible,.account-space textarea:focus-visible{outline:2px solid var(--lg-accent,#a9bdd1);outline-offset:3px}
+.account-space .as-layout{display:grid;grid-template-columns:212px minmax(0,1fr);height:100%;min-height:0}
+.account-space .as-rail{background:#0c0d16a6;border-right:1px solid #ffffff23;padding:25px 15px;display:flex;flex-direction:column;gap:24px}
+.account-space .as-rail header{display:flex;align-items:center;gap:11px;border-bottom:1px solid #ffffff24;padding:0 8px 23px}
+.account-space .as-rail header img{width:30px;height:30px}
+.account-space .as-rail header strong{font-size:14px}
+.account-space .as-rail nav{display:flex;flex-direction:column;gap:7px}
+.account-space .as-rail nav button{border:1px solid transparent;text-align:left;border-radius:11px;padding:13px 12px;background:transparent;color:#c8c4d0;font-weight:670;font-size:12px}
+.account-space .as-rail nav button.active{background:rgba(var(--lg-rgb,170,184,201),.17);border-color:rgba(var(--lg-rgb,170,184,201),.45);color:#fff}
+.account-space .as-rail nav button:hover{background:#ffffff18}
+.account-space .as-rail p{margin:auto 5px 0;font-size:10px;color:#aaa7b7;line-height:1.5}
+.account-space .as-main{min-height:0;display:flex;flex-direction:column}
+.account-space .as-top{display:flex;align-items:center;justify-content:space-between;padding:24px 30px 20px;border-bottom:1px solid #ffffff21}
+.account-space .as-top small{font:800 10px ui-monospace,monospace;color:var(--lg-accent,#a9bdd1);letter-spacing:.13em}
+.account-space .as-top h2{font-size:26px;letter-spacing:-.045em;margin:9px 0 0}
+.account-space .as-top button{border:1px solid #ffffff36;border-radius:50%;width:34px;height:34px;background:#ffffff14;color:#fff;font-size:23px}
+.account-space .as-content{flex:1;overflow:auto;min-height:0;padding:25px 30px;scrollbar-color:#ffffff33 transparent}
+.account-space #accountNotice{font-size:11px;color:#b9d7c9;padding:0 30px 15px;min-height:24px}
+.account-space .as-profile-hero{display:flex;align-items:center;gap:16px;padding:21px;border:1px solid #ffffff2d;border-radius:16px;background:#ffffff10;margin-bottom:23px}
+.account-space .as-avatar,.account-space .as-large-avatar{display:grid;place-items:center;border:1px solid #ffffff43;background:linear-gradient(150deg,var(--user-color,#a9bdd1),#272633);color:#1b1921;font-weight:780;flex:none}
+.account-space .as-large-avatar{width:72px;height:72px;border-radius:23px;font-size:29px}
+.account-space .as-profile-hero h3{font-size:22px;margin:0 0 5px;letter-spacing:-.04em}
+.account-space .as-profile-hero p{margin:0;color:#aaa5b2;font-size:12px}
+.account-space .as-role{margin-left:auto;padding:5px 9px;border-radius:7px;border:1px solid #ffffff37;color:#d8d0de;text-transform:capitalize;font-size:10px}
+.account-space .as-profile-form{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.account-space .as-profile-form label{display:flex;flex-direction:column;gap:9px;font-size:12px;font-weight:700;color:#e7dfe9}
+.account-space .as-profile-form label:nth-child(3){grid-column:1/-1}
+.account-space .as-profile-form small{color:#a49aa9;font-size:10px;font-weight:400}
+.account-space input:not([type=color]),.account-space textarea{width:100%;border:1px solid #ffffff34;background:#ffffff10;border-radius:11px;color:#fcf8fb;padding:12px 13px;font-size:12px}
+.account-space input:disabled{opacity:.56}
+.account-space textarea{resize:vertical;min-height:90px}
+.account-space input[type=color]{height:43px;width:75px;border:1px solid #ffffff42;background:#ffffff12;padding:4px;border-radius:10px;cursor:pointer}
+.account-space .as-primary,.account-space .as-search button,.account-space .as-message-form button{background:var(--lg-accent,#a9bdd1);color:#16121c;padding:12px 18px;border:0;border-radius:10px;font-weight:780}
+.account-space .as-primary{grid-column:1/-1;justify-self:start}
+.account-space .as-search{display:flex;gap:9px;margin-bottom:15px}
+.account-space .as-search input{flex:1;min-width:0}
+.account-space .as-person{display:flex;align-items:center;gap:11px;width:100%;padding:11px 9px;text-align:left;background:transparent;border:0;border-top:1px solid #ffffff1b;color:#fff}
+.account-space .as-person:hover{background:#ffffff10;border-radius:10px}
+.account-space .as-avatar{height:37px;width:37px;border-radius:11px;font-size:15px}
+.account-space .as-person>span:nth-child(2){display:flex;flex-direction:column;gap:4px;flex:1;min-width:0}
+.account-space .as-person strong{font-size:12px;overflow:hidden;text-overflow:ellipsis}
+.account-space .as-person small{font-size:10px;color:#aaa3b1}
+.account-space .as-person i{font-size:11px;font-style:normal;color:var(--lg-accent,#a9bdd1)}
+.account-space .as-thread-title{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #ffffff20;padding:13px 0;color:#e9e4ef;font-size:13px}
+.account-space .as-thread-title button{border:0;background:transparent;color:var(--lg-accent,#a9bdd1);font-size:11px}
+.account-space .as-muted{padding:24px 8px;font-size:12px;color:#aba4b3;line-height:1.6}
+.account-space .as-chat-head{display:flex;align-items:center;gap:12px;margin:15px 0;padding:12px;border-radius:12px;background:#ffffff12}
+.account-space .as-chat-head>button{border:1px solid #ffffff33;color:#eee;background:#ffffff12;border-radius:8px;padding:7px 10px}
+.account-space .as-chat-head>div{display:flex;flex-direction:column;gap:4px}
+.account-space .as-chat-head strong{font-size:13px}
+.account-space .as-chat-head small{font-size:10px;color:#aaa1ac}
+.account-space .as-messages{display:flex;flex-direction:column;gap:12px;min-height:190px;max-height:285px;overflow:auto;padding:10px 2px}
+.account-space .as-message{max-width:83%;padding:10px 13px;border:1px solid #ffffff25;border-radius:13px;background:#ffffff11;white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.55}
+.account-space .as-message.mine{align-self:flex-end;background:rgba(var(--lg-rgb,170,184,201),.21);border-color:rgba(var(--lg-rgb,170,184,201),.4)}
+.account-space .as-message.theirs{align-self:flex-start}
+.account-space .as-message time{display:block;margin-top:5px;text-align:right;color:#a59ba8;font-size:9px}
+.account-space .as-message-form{display:flex;gap:11px;align-items:end;border-top:1px solid #ffffff22;padding-top:15px;margin-top:15px}
+.account-space .as-message-form textarea{min-height:60px;max-height:125px;flex:1}
+@media(max-width:680px){.account-space{width:calc(100vw - 12px);height:calc(100dvh - 12px);border-radius:15px}.account-space .as-layout{grid-template-columns:1fr;grid-template-rows:82px minmax(0,1fr)}.account-space .as-rail{padding:10px;display:block;border-right:0;border-bottom:1px solid #ffffff23}.account-space .as-rail header,.account-space .as-rail p{display:none}.account-space .as-rail nav{flex-direction:row;gap:7px}.account-space .as-rail nav button{padding:13px 12px}.account-space .as-main{min-height:0}.account-space .as-top{padding:15px}.account-space .as-content{padding:15px}.account-space .as-profile-form{grid-template-columns:1fr}.account-space .as-profile-form label:nth-child(3){grid-column:auto}.account-space .as-primary{grid-column:auto}.account-space #accountNotice{padding:0 15px 12px}}
+/* Brand mark reused across browser, hub, assistant and sign in. */
+.lightning-mark{display:block;width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 2px 4px #0003)}
+#hubMount .v2-home .lightning-mark{width:27px;height:27px}
+#hubMount .v3-brand-flash .lightning-mark{width:28px;height:28px}
+.bolt-brand .brand-symbol .lightning-mark{width:25px;height:25px}
+.lg-brand i .lightning-mark{width:26px;height:26px}
+.lg-sample-island i .lightning-mark{width:17px;height:17px}
+.bolt-aux-brand .lightning-mark{width:24px;height:24px}
+.bolt-bubble .lightning-mark{width:29px;height:29px}
+#hubMount .cm-channel-picker{display:flex;min-width:0;align-items:center;gap:6px;border:1px solid #ffffff32;background:#ffffff0f;border-radius:12px;padding:4px 6px}
+#hubMount .cm-channel-picker[hidden]{display:none!important}
+#hubMount .cm-picker-label{font:700 8px ui-monospace,monospace;letter-spacing:.1em;color:#a9a4b1;margin:0 5px}
+#hubMount .cm-channel-picker select{background:#151722;color:#f6f0f5;border:0;border-radius:6px;padding:7px 5px;max-width:175px;min-width:110px;min-height:31px;cursor:pointer;font-size:11px;outline-offset:2px}
+#hubMount .cm-channel-picker select option,#hubMount .cm-channel-picker optgroup{color:#fff;background:#171926}
+#hubMount .cm-channel-picker button{display:grid;place-items:center;height:30px;width:30px;flex:none;background:transparent;border:1px solid transparent;border-radius:8px;color:#cac2cd;cursor:pointer}
+#hubMount .cm-channel-picker button:hover{background:#ffffff1a;border-color:#ffffff2e}
+#hubMount .cm-channel-picker button:disabled{opacity:.35;cursor:default}
+#hubMount .cm-channel-picker .ui-icon{width:15px;height:15px}
+#hubMount .cm-chevron-up{transform:rotate(180deg)}
+#hubMount .cm-channel-picker option{font-size:12px}
+@media(max-width:1140px){#hubMount .cm-picker-label{display:none}#hubMount .cm-channel-picker select{max-width:125px}}
+@media(max-width:760px){#hubMount .cm-channel-picker{flex:1;max-width:245px;gap:2px;padding:3px}#hubMount .cm-channel-picker select{flex:1;min-width:0;max-width:none;width:calc(100% - 62px)}#hubMount .cm-channel-picker button{width:25px}#hubMount .v2-topbar-name p{display:none}}
+/* Quiet floating assistant; accent follows the selected appearance, never old gold. */
+body.app-page .bolt-bubble{display:grid;place-items:center;width:53px;height:53px;right:18px;border-radius:18px!important;background:linear-gradient(145deg,#ffffff25,#ffffff07),#20202ee6!important;border:1px solid #ffffff5b!important;box-shadow:inset 0 1px #fff6,0 12px 32px #0009,0 0 20px rgba(var(--lg-rgb,170,184,201),.14)!important;backdrop-filter:blur(19px)}
+body.app-page .bolt-bubble:hover{transform:translateY(-2px);border-color:var(--lg-accent)!important}
+body.app-page .bolt-aux-brand{background:rgba(var(--lg-rgb,170,184,201),.18)!important;border:1px solid rgba(var(--lg-rgb,170,184,201),.45)!important;border-radius:10px!important}
+body.app-page .bolt-ai-send,body.app-page .bolt-ai-head-tool:focus-visible{background:var(--lg-accent)!important;color:#17131b!important}
+/* Remove hard-coded champagne details in favor of the active theme. */
+body.app-page .hero-seal{border-color:rgba(var(--lg-rgb),.4)!important;background:linear-gradient(145deg,rgba(var(--lg-rgb),.13),#161721)!important}
+body.app-page .v3-browser-home .newtab-search:focus-within{border-color:var(--lg-accent)!important}
+body.app-page .v3-browser-home .newtab-wordmark{background:linear-gradient(175deg,#fff 7%,var(--lg-accent) 74%,#d3cbd6 100%)!important;-webkit-background-clip:text!important;background-clip:text!important}

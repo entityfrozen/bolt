@@ -11,7 +11,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Sans:wdth,wght@90..100,400..700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/bolt.css">
 <link rel="stylesheet" href="/assets/bolt-v6.css?v=7">
-<script defer src="/assets/login.js?v=2"></script>
+<link rel="stylesheet" href="/assets/login-polish.css?v=1">
+<script defer src="/assets/login.js?v=3"></script>
 <style>
 .auth-pending{display:none;padding:18px 16px;border:1px solid #a9925669;border-radius:8px;background:#221e16;color:#eee4cb;line-height:1.7}.auth-pending.active{display:block}.auth-pending h2{font-size:19px;margin:0 0 7px}.auth-pending p{font-size:12px;color:#c5bbab}.auth-pending button{margin-top:8px;background:#dac38c;color:#241e16;border:0;padding:10px 14px;border-radius:6px;cursor:pointer}.auth-hint{font-size:10px;line-height:1.6;color:#969ca1;margin:0}
 </style>
@@ -19,10 +20,10 @@
 <body class="auth-page">
   <main class="auth-shell">
     <section class="auth-brand">
-      <div class="auth-logo"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M37 5 14 35h17l-3 24L52 26H36Z"/><path d="M30 20h12l-5 6H25Z" fill="#16130e" opacity=".65"/></svg></div>
+      <div class="auth-logo"><img src="/assets/lightning-mark.svg?v=1" alt="" class="lightning-mark"></div>
       <div>
         <div class="auth-name">Lightning</div>
-        <p>Perfect place to stop those "Watchers"</p>
+        <p>Your browser, your communities, your space. All in one place.</p>
       </div>
       <div class="auth-signature">Made by Amare</div>
     </section>
@@ -33,13 +34,13 @@
       </div>
       <form class="auth-form active" id="accountForm" data-auth-form="account">
         <label>Username<input id="loginUsername" autocomplete="username" required></label>
-        <label>Password<input id="loginPassword" type="password" autocomplete="current-password" required></label>
+        <label>Password<input id="loginPassword" type="password" autocomplete="current-password" required></label><button type="button" class="auth-show-password" data-password-toggle="loginPassword" aria-pressed="false">Show password</button>
         <button class="auth-submit" type="submit">Enter Lightning →</button>
       </form>
       <form class="auth-form" id="registerForm" data-auth-form="register">
         <label>Username<input id="registerUsername" autocomplete="username" minlength="3" maxlength="32" pattern="[A-Za-z0-9._-]{3,32}" required placeholder="Choose your name"></label>
         <label>Password<input id="registerPassword" autocomplete="new-password" type="password" minlength="10" maxlength="128" required></label>
-        <label>Confirm password<input id="registerConfirm" autocomplete="new-password" type="password" minlength="10" maxlength="128" required></label>
+        <label>Confirm password<input id="registerConfirm" autocomplete="new-password" type="password" minlength="10" maxlength="128" required></label><button type="button" class="auth-show-password" data-password-toggle="registerPassword,registerConfirm" aria-pressed="false">Show passwords</button>
         <p class="auth-hint">New accounts need a manual admin approval before they can use Lightning.</p>
         <button class="auth-submit" type="submit">Request access →</button>
       </form>

@@ -34,6 +34,12 @@ const dom={
   toast:$("#toast")
 };
 
+let accountHistory=[];
+let accountHistoryJob=null;
+function saveAccountHistory(){
+ clearTimeout(accountHistoryJob);
+ accountHistoryJob=setTimeout(()=>{void window.LightningAccount?.history.save("browser",accountHistory).catch(e=>console.warn("History sync:",e.message));},450);
+}
 const store={
   get(key,fallback){
     try{
@@ -136,7 +142,7 @@ async function loadConfig(){
   me=data.user;
   config=data.settings;
   document.body.classList.toggle("admin-mode",me.role==="admin");
-  dom.accountInitial.textContent=(me.username||"B").slice(0,1).toUpperCase();
+  dom.accountInitial.textContent=(me.displayName||me.username||"B").slice(0,1).toUpperCase();
   dom.roleChip.textContent=me.role;
   dom.roleChip.style.display=me.role==="admin"?"inline-flex":"none";
 }
@@ -405,9 +411,9 @@ function navigate(value){
 
 function rememberVisit(tab){
   if(!/^https?:\/\//i.test(tab.url||""))return;
-  const list=store.get("bolt.history",[]).filter(item=>item.url!==tab.url);
+  const list=accountHistory.filter(item=>item.url!==tab.url);
   list.unshift({url:tab.url,title:tab.title||tab.url,at:Date.now()});
-  store.set("bolt.history",list.slice(0,80));
+  accountHistory=list.slice(0,100);saveAccountHistory();
   renderNewtabLists();
 }
 
@@ -435,7 +441,7 @@ function renderList(container,items,empty){
 }
 
 function renderNewtabLists(){
-  renderList(dom.recents,store.get("bolt.history",[]),"Nothing here yet.");
+  renderList(dom.recents,accountHistory,"Nothing here yet.");
   renderList(dom.bookmarks,store.get("bolt.bookmarks",[]),"No saved pages.");
 }
 
@@ -489,7 +495,7 @@ function panelHead(kicker,title){
 
 function renderHistoryPanel(){
   panelHead("BROWSING","History");
-  const history=store.get("bolt.history",[]);
+  const history=accountHistory;
   const section=document.createElement("section");
   section.className="panel-section";
   const row=document.createElement("div");
@@ -510,7 +516,7 @@ function renderHistoryPanel(){
   }
   dom.panelBody.append(section,list);
   $("#clearHistory")?.addEventListener("click",()=>{
-    store.set("bolt.history",[]);
+    accountHistory=[];saveAccountHistory();
     renderHistoryPanel();
     renderNewtabLists();
   });
@@ -997,7 +1003,9 @@ function formatDate(value){
 
 function accountPopover(){
   dom.accountPopover.hidden=false;
-  dom.accountPopover.innerHTML=`<div class="popover-head"><strong>${escapeHtml(me.username)}</strong><span>${escapeHtml(me.role)}${me.temporary?" · temporary":""}</span></div><button type="button" id="popoverSettings">Settings</button>${me.role==="admin"?'<button type="button" id="popoverAdmin">Admin</button>':""}<button type="button" id="popoverLogout">Sign out</button>`;
+  dom.accountPopover.innerHTML=`<div class="popover-head"><strong>${escapeHtml(me.displayName||me.username)}</strong><span>@${escapeHtml(me.username)} · ${escapeHtml(me.role)}</span></div><button type="button" id="popoverProfile">My profile</button><button type="button" id="popoverDMs">Direct messages</button><button type="button" id="popoverSettings">Appearance settings</button>${me.role==="admin"?'<button type="button" id="popoverAdmin">Admin</button>':""}<button type="button" id="popoverLogout">Sign out</button>`;
+  $("#popoverProfile").addEventListener("click",()=>{dom.accountPopover.hidden=true;window.LightningAccount?.open("profile")});
+  $("#popoverDMs").addEventListener("click",()=>{dom.accountPopover.hidden=true;window.LightningAccount?.open("messages")});
   $("#popoverSettings").addEventListener("click",()=>{dom.accountPopover.hidden=true;if(window.LightningGlass)window.LightningGlass.open();else openPanel("settings")});
   $("#popoverAdmin")?.addEventListener("click",()=>{dom.accountPopover.hidden=true;openPanel("admin")});
   $("#popoverLogout").addEventListener("click",logout);
@@ -1010,7 +1018,7 @@ async function logout(){
 
 function openLightningHub(view){
   closePanel();
-  import("/assets/hub.js?v=30").then(hub=>hub.openHub(view)).catch(()=>toast("Could not open the Lightning hub."));
+  import("/assets/hub.js?v=31").then(hub=>hub.openHub(view)).catch(()=>toast("Could not open the Lightning hub."));
 }
 
 function bindUi(){
@@ -1072,9 +1080,11 @@ async function start(){
   renderNewtabLists();
   try{
     await loadConfig();
+    try{accountHistory=await window.LightningAccount?.history.load("browser")||[];}catch(error){console.warn("Account history unavailable:",error.message)}
+    renderNewtabLists();
   }catch{return}
   restoreTabs();
-  import("/assets/hub.js?v=30").then(hub=>{
+  import("/assets/hub.js?v=31").then(hub=>{
     hub.startHubNotifications();
     if(new URL(location.href).searchParams.get("view")!=="browser")hub.openHub("overview");
   }).catch(error=>console.warn("Workspace unavailable:",error));

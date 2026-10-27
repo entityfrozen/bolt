@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Lightning">
+  <defs>
+    <linearGradient id="l" x1="0.1" y1="0" x2="0.88" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="0.48" stop-color="#DBEAFF"/>
+      <stop offset="1" stop-color="#91B5DD"/>
+    </linearGradient>
+  </defs>
+  <path d="M35.7 6.3 14.9 34.1a1.85 1.85 0 0 0 1.49 2.96h14.7l-3.2 20.64L49.5 29.4a1.87 1.87 0 0 0-1.49-2.97H33.2l2.5-20.13Z" fill="url(#l)" stroke="#EDF5FF" stroke-width=".55" stroke-linejoin="round"/>
+  <path d="m32 11.9-12.4 20.5h13.1" fill="none" stroke="#FFFFFF" stroke-opacity=".55" stroke-linecap="round" stroke-width="2"/>
+</svg>

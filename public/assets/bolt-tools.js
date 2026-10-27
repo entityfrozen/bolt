@@ -4,9 +4,9 @@
 
   const root = document.createElement("div");
   root.id = "boltTools";
-  root.innerHTML = '<button type="button" class="bolt-bubble" id="boltBubble" aria-label="Open Lightning AI" aria-expanded="false" aria-controls="boltAiPanel" title="Lightning AI · drag to move"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M37 5 14 35h17l-3 24L52 26H36Z"/><path d="M30 20h12l-5 6H25Z" fill="#16130e" opacity=".65"/></svg></button>' +
+  root.innerHTML = '<button type="button" class="bolt-bubble" id="boltBubble" aria-label="Open Lightning AI" aria-expanded="false" aria-controls="boltAiPanel" title="Lightning AI · drag to move"><img class="lightning-mark" src="/assets/lightning-mark.svg?v=1" alt="" aria-hidden="true"></button>' +
     '<aside class="bolt-ai-panel" id="boltAiPanel" role="dialog" aria-label="Lightning AI" aria-modal="false" aria-hidden="true">' +
-      '<header class="bolt-aux-head" id="boltAiDrag" tabindex="0" title="Drag to move · Alt+arrow keys to move"><span class="bolt-aux-brand"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M37 5 14 35h17l-3 24L52 26H36Z"/><path d="M30 20h12l-5 6H25Z" fill="#16130e" opacity=".65"/></svg></span><div><div class="bolt-aux-title">Lightning AI</div><div class="bolt-aux-subtitle">Your browsing companion</div></div><span class="bolt-aux-spacer"></span><button class="bolt-aux-btn" id="boltAiClear" title="New chat">New chat</button><button type="button" class="bolt-ai-head-tool" id="boltAiSize" aria-label="Maximize AI" title="Maximize or restore">□</button><button class="bolt-aux-btn" id="boltAiClose" type="button" aria-label="Close AI" title="Close AI">×</button></header>' +
+      '<header class="bolt-aux-head" id="boltAiDrag" tabindex="0" title="Drag to move · Alt+arrow keys to move"><span class="bolt-aux-brand"><img class="lightning-mark" src="/assets/lightning-mark.svg?v=1" alt="" aria-hidden="true"></span><div><div class="bolt-aux-title">Lightning AI</div><div class="bolt-aux-subtitle">Your browsing companion</div></div><span class="bolt-aux-spacer"></span><button class="bolt-aux-btn" id="boltAiClear" title="New chat">New chat</button><button type="button" class="bolt-ai-head-tool" id="boltAiSize" aria-label="Maximize AI" title="Maximize or restore">□</button><button class="bolt-aux-btn" id="boltAiClose" type="button" aria-label="Close AI" title="Close AI">×</button></header>' +
       '<div class="bolt-ai-messages" id="boltAiMessages" aria-live="polite"></div>' +
       '<div class="bolt-ai-activity" id="boltAiActivity" role="status" hidden><b>ACTIVITY</b><span>Ready</span></div>' +
       '<span class="bolt-ai-grip" aria-hidden="true"></span>' +
@@ -33,13 +33,16 @@
   let selectedText = "";
   let pickerCleanup = null;
 
-  try {
-    const loaded = JSON.parse(localStorage.getItem("bolt.ai.messages") || "[]");
-    if (Array.isArray(loaded)) messages = loaded.filter(x => x && ["user","assistant"].includes(x.role) && typeof x.content === "string").slice(-24);
-  } catch {}
+  // History belongs to the signed-in account, never a shared device.
+  window.LightningAccount?.history.load("ai").then(items=>{
+    if(messages.length||!Array.isArray(items))return;
+    messages=items.filter(x=>x&&["user","assistant"].includes(x.role)&&typeof x.content==="string").slice(-24);
+    renderChat();
+  }).catch(error=>console.warn("AI history sync:",error.message));
 
   function saveChat() {
-    try { localStorage.setItem("bolt.ai.messages", JSON.stringify(messages.slice(-24))); } catch {}
+    void window.LightningAccount?.history.save("ai",messages.slice(-24))
+      .catch(error=>console.warn("AI history sync:",error.message));
   }
   function openAI(open = !document.body.classList.contains("bolt-ai-open")) {
     document.body.classList.toggle("bolt-ai-open", open);

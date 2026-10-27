@@ -1,0 +1,30 @@
+/* Lightning sign-in: focused layout; the product, not a marketing landing page. */
+body.auth-page{margin:0;min-height:100dvh;background:radial-gradient(ellipse at 17% 13%,rgba(112,124,162,.27),transparent 51%),radial-gradient(ellipse at 86% 84%,rgba(var(--lg-rgb,163,180,210),.1),transparent 57%),#11121b!important;color:#f9f5f6;font-family:"Instrument Sans",system-ui,sans-serif}
+body.auth-page .auth-shell{display:grid!important;grid-template-columns:minmax(0,1.04fr) minmax(360px,.96fr);width:min(1050px,calc(100vw - 44px));height:auto;min-height:min(620px,calc(100dvh - 70px));margin:min(7vh,64px) auto;overflow:hidden;border:1px solid #ffffff38;border-radius:26px;background:linear-gradient(125deg,#ffffff12,#ffffff02),#1a1b25d9;box-shadow:inset 0 1px #ffffff24,0 45px 110px #0009;backdrop-filter:blur(22px)}
+body.auth-page .auth-brand{position:relative;display:flex!important;flex-direction:column;align-items:flex-start;justify-content:center;padding:55px clamp(35px,5vw,65px);overflow:hidden;background:radial-gradient(circle at 35% 31%,#8895b338,transparent 48%),linear-gradient(145deg,#242631,#161722);border-right:1px solid #ffffff2d;color:#f6f2f5;text-align:left}
+body.auth-page .auth-brand:after{content:"";position:absolute;right:-160px;bottom:-220px;width:460px;height:460px;border:1px solid #ffffff20;border-radius:50%;box-shadow:0 0 0 45px #ffffff07,0 0 0 110px #ffffff06;pointer-events:none}
+body.auth-page .auth-logo{width:78px;height:78px;display:grid;place-items:center;border:1px solid #ffffff4c;border-radius:25px;background:linear-gradient(135deg,#ffffff22,#ffffff0d);box-shadow:inset 0 1px #fff5,0 12px 28px #0006}
+body.auth-page .auth-logo img{width:54px;height:54px}
+body.auth-page .auth-name{font:750 clamp(35px,4vw,51px)/1.05 "Instrument Sans",sans-serif;letter-spacing:-.065em;color:#fdf9f6;margin:28px 0 12px}
+body.auth-page .auth-brand p{max-width:350px;color:#bdbac9;font-size:14px;line-height:1.7;margin:0}
+body.auth-page .auth-signature{position:static;margin-top:60px;color:#9e9ba9;font-size:11px;letter-spacing:.06em}
+body.auth-page .auth-form-wrap{display:flex;flex-direction:column;justify-content:center;gap:22px;min-width:0;padding:45px clamp(25px,4vw,53px);background:#18192380}
+body.auth-page .auth-form-wrap:before{content:"Welcome back";color:#f8f4f6;font:700 28px "Instrument Sans",system-ui;letter-spacing:-.045em}
+body.auth-page .auth-tabs{display:flex;gap:5px;width:100%;padding:5px;border:1px solid #ffffff22;border-radius:12px;background:#ffffff0c}
+body.auth-page .auth-tabs button{flex:1;min-height:39px;background:transparent;border:1px solid transparent;border-radius:9px;color:#b2acbb;cursor:pointer;font-weight:670;font-size:12px}
+body.auth-page .auth-tabs button.active{color:#f8f4fa;border-color:#ffffff40;background:#ffffff19;box-shadow:0 4px 11px #0003}
+body.auth-page .auth-form{gap:16px}
+body.auth-page .auth-form label{display:flex;flex-direction:column;gap:9px;color:#e6dfe9;font-size:12px;font-weight:680}
+body.auth-page .auth-form input{width:100%;min-height:47px;background:#ffffff0f;border:1px solid #ffffff39;border-radius:10px;padding:12px 14px;color:#fff9ff;font-size:13px;outline-offset:3px}
+body.auth-page .auth-form input:focus{border-color:#b4c2d9;box-shadow:0 0 0 3px #9cadc51b}
+body.auth-page .auth-submit{min-height:47px;background:linear-gradient(120deg,#fafbff,#b7bfd0)!important;color:#1c1a23!important;border:1px solid #ffffff8c!important;border-radius:11px!important;font-weight:750;font-size:12px;cursor:pointer;box-shadow:0 12px 25px #0004}
+body.auth-page .auth-submit:hover{filter:brightness(1.05)}
+body.auth-page .auth-submit:disabled{opacity:.62;cursor:wait}
+body.auth-page .auth-hint{padding:12px;border:1px solid #ffffff24;background:#ffffff09;border-radius:9px;font-size:11px;line-height:1.65;color:#bcb5c2}
+body.auth-page .auth-error{color:#ffbfc2;font-size:11px;min-height:16px}
+body.auth-page .auth-pending.active{background:#ffffff10;border:1px solid #ffffff35;border-radius:12px;color:#e7ddec}
+body.auth-page .auth-pending h2{color:#fff}
+body.auth-page .auth-pending button{border:1px solid #ffffff44;background:#ffffff17;color:#fff;border-radius:9px;padding:11px 14px;cursor:pointer}
+body.auth-page .auth-show-password{align-self:end;margin-top:-8px;border:0;background:transparent;color:#b9c6dc;font-size:11px;cursor:pointer}
+body.auth-page .auth-show-password:hover{text-decoration:underline}
+@media(max-width:740px){body.auth-page .auth-shell{width:calc(100vw - 18px);min-height:calc(100dvh - 18px);margin:9px auto;grid-template-columns:1fr;border-radius:18px}body.auth-page .auth-brand{padding:24px;min-height:180px;justify-content:flex-start}body.auth-page .auth-logo{width:50px;height:50px;border-radius:16px}body.auth-page .auth-logo img{width:34px;height:34px}body.auth-page .auth-name{font-size:28px;margin:14px 0 6px}body.auth-page .auth-brand p{font-size:11px}body.auth-page .auth-signature{display:none}body.auth-page .auth-form-wrap{padding:23px;justify-content:flex-start}body.auth-page .auth-form-wrap:before{font-size:23px}}

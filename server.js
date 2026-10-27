@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import express from "express";
 import { bootstrap } from "@mercuryworkshop/proxy-bootstrap";
 import { attachLightningLive } from "./live.js";
+import { registerAccountSpace } from "./account-space.js";
 import { needsWebSearch, searchWeb } from "./web-search.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -13,6 +14,7 @@ const port = Number(process.env.PORT || 3030);
 const dataDir = path.resolve(here, process.env.BOLT_DATA_DIR || "data");
 const dataFile = path.join(dataDir, "bolt.json");
 const sessionHours = Math.max(1, Number(process.env.BOLT_SESSION_TTL_HOURS || 168));
+let accountSpace=null;
 
 fs.mkdirSync(dataDir, { recursive: true });
 
@@ -107,6 +109,7 @@ function publicUser(user) {
   return {
     id: user.id,
     username: user.username,
+    displayName:accountSpace?.getDisplayName(user.id,user.username)||user.username,
     role: user.role,
     enabled: user.enabled,
     approved: user.approved !== false,
@@ -288,6 +291,7 @@ app.use((req, res, next) => {
   next();
 });
 
+accountSpace=registerAccountSpace({app,dataDir,mustBeSignedIn,sameOrigin,listUsers:()=>state.users});
 app.get("/api/me", (req, res) => {
   const found = sessionFromRequest(req);
   if (!found) return res.status(401).json({ signedIn: false });
@@ -673,7 +677,7 @@ server.on("upgrade", (req, socket, head) => {
   routeUpgrade(req, socket, head);
 });
 
-attachLightningLive({server,sessionFromHeaders,dataDir});
+attachLightningLive({server,sessionFromHeaders,dataDir,getDisplayName:(id,username)=>accountSpace?.getDisplayName(id,username)||username});
 
 server.listen(port, () => {
   console.log(`Lightning listening on http://localhost:${port}`);

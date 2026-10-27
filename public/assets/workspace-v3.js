@@ -97,7 +97,7 @@ export function installWorkspaceV3(Hub){
     const shell=this.$(".v2-shell");shell.classList.add("v3-shell");
     shell.insertAdjacentHTML("beforeend",
       '<header class="v3-global-bar">'+
-        '<div class="v3-global-brand"><span class="v3-brand-flash">ϟ</span><div><strong>Lightning</strong><small>YOUR WORKSPACE</small></div></div>'+
+        '<div class="v3-global-brand"><span class="v3-brand-flash"><img class="lightning-mark" src="/assets/lightning-mark.svg?v=1" alt="" aria-hidden="true"></span><div><strong>Lightning</strong><small>YOUR WORKSPACE</small></div></div>'+
         '<nav class="v3-primary-tabs" aria-label="Workspace">'+
           '<button data-v3="overview" class="active">'+icon("home")+'<span>Overview</span></button>'+
           '<button data-v3="channel">'+icon("message-circle")+'<span>Community</span></button>'+
@@ -143,7 +143,7 @@ export function installWorkspaceV3(Hub){
       if(!button)return;
       const action=button.dataset.v3;
       if(action==="overview")this.show("overview");
-      else if(action==="channel"){this.v2ServerId="lightning-main";this.v2Channel="announcements";this.show("room");}
+      else if(action==="channel"){const s=this.v2Servers.find(s=>s.id==="lightning-main");this.v2ServerId="lightning-main";this.v2Channel=this.v2ChooseChannel(s);this.show("room");}
       else if(action==="arcade")this.show("games");
       else if(action==="browser"){this.close();document.querySelector("#newtabInput")?.focus();}
       else if(action==="ai")document.getElementById("boltBubble")?.click();
@@ -163,7 +163,7 @@ export function installWorkspaceV3(Hub){
       else if(action==="goChannel"){this.v2ServerId="lightning-main";this.v2Channel=button.dataset.channel;this.show("room");}
       else if(action==="goServer"){
         const s=this.v2Servers.find(x=>x.id===button.dataset.id);
-        if(s){this.v2ServerId=s.id;this.v2Channel=s.channels[0]?.id||"general";this.show("room");}
+        if(s){this.v2ServerId=s.id;this.v2Channel=this.v2ChooseChannel(s);this.show("room");}
       }else if(action==="goDirectory")this.v2Discover();
       else if(action==="goUpdates")this.show("updates");
       else if(action==="commandResult"){this.v3ExecuteCommand(button.dataset.key);this.$("#v3CommandDialog").close();}
@@ -447,7 +447,7 @@ export function installWorkspaceV3(Hub){
   };
   Hub.prototype.v3ExecuteCommand= function(key){
     if(key==="overview")this.show("overview");
-    else if(key==="chat"){this.v2ServerId="lightning-main";this.v2Channel="announcements";this.show("room");}
+    else if(key==="chat"){const s=this.v2Servers.find(s=>s.id==="lightning-main");this.v2ServerId="lightning-main";this.v2Channel=this.v2ChooseChannel(s);this.show("room");}
     else if(key==="directory")this.v2Discover();
     else if(key==="browser")this.close();
     else if(key==="ai")document.getElementById("boltBubble")?.click();
@@ -456,7 +456,7 @@ export function installWorkspaceV3(Hub){
     else if(key.startsWith("game:"))this.v3Launch(key.slice(5));
     else if(key.startsWith("server:")){
       const s=this.v2Servers.find(s=>s.id===key.slice(7));
-      if(s){this.v2ServerId=s.id;this.v2Channel=s.channels[0]?.id||"general";this.show("room");}
+      if(s){this.v2ServerId=s.id;this.v2Channel=this.v2ChooseChannel(s);this.show("room");}
     }
   };
   Hub.prototype.v3Start2048=function(){

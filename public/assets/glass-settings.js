@@ -2,7 +2,7 @@
 (function(){
 "use strict";
 const KEY="lightning.glass.appearance";
-const DEFAULTS={accent:"#e2bb75",preset:"gold",wallpaper:"amber",opacity:72,blur:28,saturation:145,radius:22,scale:100,layout:"island",sidebar:"wide",inspector:true,dock:true,motion:true,shadows:true,contrast:false};
+const DEFAULTS={accent:"#a3cef8",preset:"ice",wallpaper:"arctic",opacity:72,blur:28,saturation:145,radius:22,scale:100,layout:"island",sidebar:"wide",inspector:true,dock:true,motion:true,shadows:true,contrast:false};
 const COLORS=[["gold","Champagne","#e2bb75"],["rose","Rose","#f0acc7"],["ice","Frost","#a3cef8"],["lilac","Lavender","#bca9f1"],["copper","Copper","#d99f78"],["silver","Silver","#d0d4df"]];
 const WALLS=[["amber","Golden mist","#81654b","#262027","#524431"],["night","After dark","#4b3c63","#171722","#28334b"],["arctic","Glacier","#436d88","#1a2939","#7b8da9"],["ember","Ember","#92563c","#291a21","#754830"],["graphite","Graphite","#3c434d","#141820","#53535a"]];
 const $=(s,r=document)=>r.querySelector(s);
@@ -24,6 +24,10 @@ function sanitize(raw){
 }
 function load(){try{return sanitize(JSON.parse(localStorage.getItem(KEY)||"null"))}catch{return {...DEFAULTS}}}
 let prefs=load(),currentTab="appearance";
+if(prefs.preset==="gold"&&prefs.accent.toLowerCase()==="#e2bb75"){
+ prefs={...prefs,preset:DEFAULTS.preset,accent:DEFAULTS.accent,wallpaper:DEFAULTS.wallpaper};
+ try{localStorage.setItem(KEY,JSON.stringify(prefs))}catch{}
+}
 // The original green experiment used these hard-coded accents.
 // Migrate them once; preserve every other user-selected color.
 if(["#44eda7","#38f0a4","#42f5a9","#40ffa8","#3df0a3","#38eea6","#52f7ab"].includes(prefs.accent.toLowerCase())){
@@ -73,7 +77,7 @@ function initDialog(){
  const dialog=document.createElement("dialog");dialog.id="lgSettings";dialog.className="lg-settings";
  dialog.setAttribute("aria-labelledby","lgSettingsTitle");
  dialog.innerHTML='<div class="lg-shell"><aside class="lg-sidebar">'+
-   '<div class="lg-brand"><i>ϟ</i><span><strong>Lightning</strong><small>Preferences</small></span></div>'+
+   '<div class="lg-brand"><i><img class="lightning-mark" src="/assets/lightning-mark.svg?v=1" alt=""></i><span><strong>Lightning</strong><small>Preferences</small></span></div>'+
    '<span class="lg-rail-kicker">PERSONALIZATION</span>'+
    '<nav aria-label="Settings sections"><button data-lg-tab="appearance">◈ <span>Appearance</span></button>'+
    '<button data-lg-tab="layout">▣ <span>Layout & space</span></button>'+
@@ -85,7 +89,7 @@ function initDialog(){
   '<div id="lgSettingsBody" class="lg-body"></div></div>'+
   '<aside class="lg-preview-side"><header><span>LIVE PREVIEW</span><b>● INSTANT</b></header>'+
   '<div id="lgPreview" class="lg-preview" data-wallpaper="amber">'+
-   '<div class="lg-sample"><div class="lg-sample-island"><i>ϟ</i><span>⌂</span><span>♞</span><span>✧</span></div>'+
+   '<div class="lg-sample"><div class="lg-sample-island"><i><img class="lightning-mark" src="/assets/lightning-mark.svg?v=1" alt=""></i><span>⌂</span><span>♞</span><span>✧</span></div>'+
    '<div class="lg-sample-row"><div class="lg-sample-menu"><i></i><i></i><i></i><i></i></div>'+
    '<div class="lg-sample-content"><small>GOOD EVENING</small><strong>Make it yours.</strong><div class="lg-sample-art"></div>'+
    '<div class="lg-sample-bars"><i></i><i></i></div></div></div></div></div>'+

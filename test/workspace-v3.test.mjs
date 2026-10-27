@@ -101,7 +101,7 @@ test("Old green theme is migrated to the original Lightning accent",()=>{
  const settings=fs.readFileSync(new URL("../public/assets/glass-settings.js",import.meta.url),"utf8");
  assert.match(settings,/#44eda7/);
  assert.match(settings,/accent:DEFAULTS.accent/);
- assert.match(browser,/glass-settings\.js\?v=2/);
+ assert.match(browser,/glass-settings\.js\?v=4/);
 });
 
 test("Dashboard shows real announcement feed and direct community links",()=>{
@@ -113,4 +113,40 @@ test("Dashboard shows real announcement feed and direct community links",()=>{
  assert.match(styles,/v5-lead-grid/);
  assert.match(styles,/v5-middle-grid/);
  assert.doesNotMatch(workspace,/YOUR TURN/);
+});
+
+test("Single-brand vector mark is used throughout browser and community",()=>{
+ const room=fs.readFileSync(new URL("../public/assets/v2.js",import.meta.url),"utf8");
+ const glass=fs.readFileSync(new URL("../public/assets/glass-settings.js",import.meta.url),"utf8");
+ const assistant=fs.readFileSync(new URL("../public/assets/bolt-tools.js",import.meta.url),"utf8");
+ const asset=fs.readFileSync(new URL("../public/assets/lightning-mark.svg",import.meta.url),"utf8");
+ assert.match(asset,/<svg/);assert.match(asset,/viewBox="0 0 64 64"/);
+ for(const page of [room,glass,assistant,workspace,browser])assert.match(page,/lightning-mark\.svg/);
+ assert.doesNotMatch(room,/title="Home">ϟ/);
+});
+test("Channel picker is always reachable and remembers the chosen server channel",()=>{
+ const navigation=fs.readFileSync(new URL("../public/assets/community-ui.js",import.meta.url),"utf8");
+ const room=fs.readFileSync(new URL("../public/assets/v2.js",import.meta.url),"utf8");
+ assert.match(navigation,/id="cmChannelSelect"/);
+ assert.match(navigation,/aria-label="Switch channel"/);
+ assert.match(navigation,/cmSyncPicker/);
+ assert.match(navigation,/data-cm="previous"/);
+ assert.match(navigation,/data-cm="next"/);
+ assert.match(navigation,/nav\.scrollTop=scrollTop/);
+ assert.match(room,/lightning\.recent\.channels/);
+ assert.match(room,/v2ChooseChannel/);
+ assert.match(room,/v2RememberChannel/);
+});
+test("Accounts, DMs, server history and appearance links are all integrated",()=>{
+ const app=fs.readFileSync(new URL("../public/assets/app.js",import.meta.url),"utf8");
+ const ai=fs.readFileSync(new URL("../public/assets/bolt-tools.js",import.meta.url),"utf8");
+ const account=fs.readFileSync(new URL("../public/assets/account-space-ui.js",import.meta.url),"utf8");
+ assert.match(browser,/account-space-ui\.js/);
+ assert.match(browser,/account-refine\.css/);
+ assert.match(app,/LightningAccount\?\.history\.load\("browser"\)/);
+ assert.match(app,/popoverDMs/);assert.match(app,/popoverProfile/);
+ assert.match(ai,/LightningAccount\?\.history\.load\("ai"\)/);
+ assert.doesNotMatch(ai,/localStorage\.getItem\("bolt\.ai\.messages"\)/);
+ assert.match(account,/api\/account\/dms/);
+ assert.match(account,/data-as-form="profile"/);
 });

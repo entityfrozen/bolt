@@ -1,22 +1,35 @@
 // Community screens retain the existing server-backed messaging protocol.
-import {serverIcon} from "./ui-icons.js?v=1";
+import {serverIcon,icon} from "./ui-icons.js?v=1";
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const time=t=>new Date(t).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"});
 export function installV2(Hub){
   const baseOpen=Hub.prototype.open,baseClose=Hub.prototype.close,baseShow=Hub.prototype.show;
   const baseRender=Hub.prototype.render,baseChat=Hub.prototype.chat,baseMessage=Hub.prototype.onMessage,baseHeader=Hub.prototype.header;
+  Hub.prototype.v2RememberChannel=function(serverId,channel){
+    if(!serverId||!channel)return;
+    (this.v2RecentChannels??={})[serverId]=channel;
+    try{localStorage.setItem("lightning.recent.channels",JSON.stringify(this.v2RecentChannels));}catch{}
+  };
+  Hub.prototype.v2ChooseChannel=function(server){
+    if(!server?.channels?.length)return "general";
+    const remembered=this.v2RecentChannels?.[server.id];
+    return server.channels.find(c=>c.id===remembered)?.id||
+      server.channels.find(c=>c.id==="announcements")?.id||
+      server.channels[0].id;
+  };
   Hub.prototype.v2Setup=function(){
     if(this.v2Ready)return;
     this.v2Ready=true;this.v2Servers=[];this.v2Directory=[];this.v2ServerId=null;this.v2Channel="general";this.v2Search="";
+    try{const stored=JSON.parse(localStorage.getItem("lightning.recent.channels")||"{}");this.v2RecentChannels=stored&&typeof stored==="object"&&!Array.isArray(stored)?stored:{};}catch{this.v2RecentChannels={};}
     this.root.innerHTML=
       '<div class="hub-shell v2-shell"><nav class="v2-servers" aria-label="Community servers">'+
-      '<button class="v2-home active" data-v2="home" aria-label="Community home" title="Home">ϟ</button><div class="v2-rail-divider"></div><div id="v2ServerIcons"></div>'+
+      '<button class="v2-home active" data-v2="home" aria-label="Community home" title="Lightning community"><img class="lightning-mark" src="/assets/lightning-mark.svg?v=1" alt="" aria-hidden="true"></button><div class="v2-rail-divider"></div><div id="v2ServerIcons"></div>'+
       '<button class="v2-add" data-v2="discover" aria-label="Discover servers" title="Discover servers">+</button><div class="v2-rail-spacer"></div>'+
       '<button class="v2-ai-mini" data-v2="ai" title="AI workspace">✧</button></nav>'+
       '<aside class="hub-rail v2-sidebar"><div class="hub-logo"><span class="v2-mini-label">COMMUNITY</span><strong id="v2ServerTitle">Lightning</strong><small id="v2ServerAbout">Your space to connect.</small></div>'+
       '<nav class="hub-nav" id="v2Channels" aria-label="Community channels"></nav>'+
       '<div class="hub-user"><div class="hub-avatar" id="hubAvatar">L</div><div><strong id="hubUsername">Account</strong><span id="hubConnection">Connecting…</span></div><button data-v2="ai" class="v2-account-ai" title="AI workspace">✧</button></div></aside>'+
-      '<main class="hub-main v2-main"><header class="hub-head v2-topbar"><button type="button" class="v2-menu-button" data-v2="toggleNav" aria-label="Toggle channel list" aria-expanded="false">☰</button><div class="v2-topbar-name"><h2 id="hubTitle"># general</h2><p id="hubSubtitle">Community</p></div><span class="hub-spacer"></span>'+
+      '<main class="hub-main v2-main"><header class="hub-head v2-topbar"><button type="button" class="v2-menu-button" data-v2="toggleNav" aria-label="Toggle channel list" aria-expanded="false">'+icon("menu")+'</button><div class="v2-topbar-name"><h2 id="hubTitle"># general</h2><p id="hubSubtitle">Community</p></div><span class="hub-spacer"></span>'+
       '<label class="v2-search"><span>⌕</span><input type="search" id="v2Search" placeholder="Search messages or servers" aria-label="Search messages or servers" maxlength="120"></label>'+
       '<button class="v2-ai-button" data-v2="ai">✧ AI</button><span class="hub-pill" id="hubOnline">0 online</span>'+
       '<button class="hub-x" data-act="close" title="Return to browser" aria-label="Return to browser">×</button></header>'+
@@ -41,8 +54,8 @@ export function installV2(Hub){
       else if(act==="closeModal")this.$("#v2CreateDialog").close();
       else if(act==="server"){
         const s=this.v2Servers.find(s=>s.id===b.dataset.id);
-        if(!s)return;this.v2ServerId=s.id;this.v2Channel=s.channels[0]?.id||"general";this.show("room");
-      }else if(act==="channel"){this.v2Channel=b.dataset.channel;this.show("room");}
+        if(!s)return;this.v2ServerId=s.id;this.v2Channel=this.v2ChooseChannel(s);this.show("room");
+      }else if(act==="channel"){this.v2Channel=b.dataset.channel;this.v2RememberChannel(this.v2ServerId,this.v2Channel);this.show("room");}
       else if(act==="join"){if(this.send({type:"v2Join",serverId:b.dataset.id}))b.disabled=true;}
       else if(act==="addChannel"){
         const name=prompt("New channel name");
@@ -184,9 +197,13 @@ export function installV2(Hub){
     if(m.type==="v2State"){
       this.v2Servers=Array.isArray(m.servers)?m.servers:[];
       this.v2Directory=Array.isArray(m.directory)?m.directory:[];
-      if(m.selected){this.v2ServerId=m.selected;this.v2Channel=this.v2Servers.find(s=>s.id===m.selected)?.channels[0]?.id||"general";this.show("room");}
+      if(m.selected){this.v2ServerId=m.selected;this.v2Channel=this.v2ChooseChannel(this.v2Servers.find(s=>s.id===m.selected));this.show("room");}
       else if(this.v2ServerId&&!this.v2Servers.some(s=>s.id===this.v2ServerId)){this.v2ServerId=null;this.show("chat","general");}
       else if(this.view==="directory")this.v2Discover(true);
+      else if(this.view==="chat"&&!this.v2ServerId){
+        const home=this.v2Servers.find(s=>s.id==="lightning-main");
+        if(home){this.v2ServerId=home.id;this.v2Channel=this.v2ChooseChannel(home);this.show("room");}
+      }
       this.v2Nav();
     }else if(m.type==="v2Directory"){this.v2Directory=m.directory||[];if(this.view==="directory")this.v2Discover(true);}
     else if(m.type==="v2Server"){

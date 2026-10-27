@@ -37,7 +37,7 @@ for(const seed of landIndices){
 const makeMap=()=>Array.from({length:WORLD_W*WORLD_H},(_,i)=>isLand(i)?{owner:null,def:4+(i*17%5),kind:"",fort:0}:{owner:"sea"});
 const colors=["#f0bd67","#72b9c1","#f08381","#9c91d3","#89c574","#d9a0da","#d5c777","#87a5de","#c28d78","#9bc4a6"];
 const channelsFileName="lightning-social.json";
-export function attachLightningLive({server,sessionFromHeaders,dataDir}){
+export function attachLightningLive({server,sessionFromHeaders,dataDir,getDisplayName=(_id,username)=>username}){
  // An isolated game engine per HTTP server: tests and previews must never
  // receive WebSocket state from other Lightning instances in the process.
  const clients=new Map(),queues={chess:[],rps:[]},chessGames=new Map(),rpsGames=new Map(),tournaments=new Map();
@@ -422,7 +422,7 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir}){
   wss.handleUpgrade(req,socket,head,ws=>wss.emit("connection",ws,auth,req));
  });
  wss.on("connection",(ws,auth,req)=>{
-  const id=auth.identity.id,u={ws,id,name:nameOf(auth.identity),role:auth.identity.role,last:0,world:false};
+  const id=auth.identity.id,u={ws,id,name:getDisplayName(id,nameOf(auth.identity)),role:auth.identity.role,last:0,world:false};
   clients.set(ws,u);
   safeSend(ws,{type:"hello",id,name:u.name,role:u.role,channels:CHANNELS,history,online:usersOnline().map(id=>({id,name:clientOf(id)[0]?.[1]?.name||id})),summary:summary()});
   safeSend(ws,{type:"v2State",...communities.snapshot(u)});
@@ -433,6 +433,7 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir}){
      ws.close(4003,"Session expired");return;
    }
    u.role=current.identity.role;
+   u.name=getDisplayName(u.id,nameOf(current.identity));
    let data;try{data=JSON.parse(raw.toString())}catch{return}
    if(!data||typeof data!=="object")return;
    if(!validateSend(ws,data))return;

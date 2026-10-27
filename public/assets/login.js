@@ -51,3 +51,12 @@ document.getElementById("registerForm").addEventListener("submit",async event=>{
   finally{button.disabled=false}
 });
 document.getElementById("pendingSignIn").addEventListener("click",()=>setTab("account"));
+
+document.querySelectorAll("[data-password-toggle]").forEach(button=>{
+ button.addEventListener("click",()=>{
+  const fields=button.dataset.passwordToggle.split(",").map(id=>document.getElementById(id)).filter(Boolean);
+  const show=fields[0]?.type==="password";
+  for(const field of fields)field.type=show?"text":"password";
+  button.setAttribute("aria-pressed",String(show));button.textContent=show?"Hide password":"Show password";
+ });
+});
