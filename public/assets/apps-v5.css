@@ -33,7 +33,7 @@
 #hubMount .v3-app-empty{padding:17px;color:#aeb9c8;border-radius:11px;border:1px dashed #ffffff2f;background:#ffffff08;font-size:12px}
 #hubMount .v3-add-app{border-top:1px solid #ffffff22;margin:9px 0 15px;padding-top:24px}
 #hubMount .v3-add-app p{color:#b3bfd0;font-size:12px;margin:9px 0 16px}
-#hubMount .v3-add-app form{display:grid;grid-template-columns:minmax(110px,1fr) minmax(180px,2fr) minmax(130px,.9fr) auto;gap:11px;align-items:end}
+#hubMount .v3-add-app form{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:11px;align-items:end}
 #hubMount .v3-add-app label{display:flex;flex-direction:column;gap:7px;font:700 11px "Instrument Sans",system-ui;color:#d9e2f0}
 #hubMount .v3-add-app input,#hubMount .v3-add-app select{width:100%;min-height:39px;background:#ffffff10;border:1px solid #ffffff37;border-radius:8px;padding:10px;color:#f7f9ff;font:12px "Instrument Sans",system-ui}
 #hubMount .v3-add-app select option{background:#252939}
@@ -82,3 +82,6 @@
  #hubMount .rps-select{min-height:86px}
  #hubMount .uma-stage-bar{padding:8px}
 }
+
+#hubMount .v3-add-app form select[name="visibility"]{border-color:rgba(var(--lg-rgb,163,206,248),.55)}
+#hubMount .v3-app-tile .v3-app-info small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}

@@ -7,7 +7,7 @@ import {installChessVisuals} from "./chess-visuals.js?v=1";
 import {installRpsVisuals} from "./rps-visuals.js?v=2";
 import {installV2} from "./v2.js?v=7";
 import {installWorkspaceV3} from "./workspace-v3.js?v=9";
-import {installApps} from "./apps-v5.js?v=1";
+import {installApps} from "./apps-v5.js?v=2";
 import {installCommunityUI} from "./community-ui.js?v=4";
 import {installSplitChat} from "./split-chat.js?v=3";
 
@@ -422,7 +422,7 @@ function ensureHubStyles(){
     const interactions=document.createElement("link");interactions.id="lightningInteractions";interactions.rel="stylesheet";interactions.href="/assets/workspace-interactions.css?v=1";document.head.append(interactions);
      const worldStyle=document.createElement("link");worldStyle.id="lightningWorldOverhaul";worldStyle.rel="stylesheet";worldStyle.href="/assets/worldpvp-overhaul.css?v=1";document.head.append(worldStyle);
      const cleanup=document.createElement("link");cleanup.id="lightningThemeCleanup";cleanup.rel="stylesheet";cleanup.href="/assets/theme-cleanup.css?v=1";document.head.append(cleanup);
-     const apps=document.createElement("link");apps.id="lightningAppsCss";apps.rel="stylesheet";apps.href="/assets/apps-v5.css?v=1";document.head.append(apps);
+     const apps=document.createElement("link");apps.id="lightningAppsCss";apps.rel="stylesheet";apps.href="/assets/apps-v5.css?v=2";document.head.append(apps);
  }
 }
 export function openHub(view="chat"){

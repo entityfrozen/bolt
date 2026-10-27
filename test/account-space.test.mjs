@@ -162,3 +162,27 @@ test("Custom Apps are per-account and cannot contain unsafe schemes",{timeout:50
  assert.equal((await request(origin,"/api/account/settings/customApps",cookie,"PUT",{value:[app,app]})).status,400);
  assert.deepEqual((await request(origin,"/api/account/settings",cookie)).data.settings.customApps,[app]);
 });
+
+test("Admins publish shared apps for everyone; ordinary members can only read them",{timeout:50000},async t=>{
+ const origin=await runServer(t);
+ const admin=(await request(origin,"/api/login","","POST",{username:"account-admin",password:"safe-test-admin-password"})).cookie;
+ const created=await request(origin,"/api/admin/users",admin,"POST",{username:"regular-app-user",password:"regular-pass-123"});
+ assert.equal(created.status,201);
+ const member=(await request(origin,"/api/login","","POST",{username:"regular-app-user",password:"regular-pass-123"})).cookie;
+ assert.equal((await request(origin,"/api/apps")).status,401);
+ const empty=await request(origin,"/api/apps",member);
+ assert.equal(empty.status,200);assert.equal(empty.data.canManage,false);assert.deepEqual(empty.data.apps,[]);
+ const input={name:"Shared Video",url:"https://example.com/stream",category:"Streaming"};
+ assert.equal((await request(origin,"/api/apps",member,"POST",input)).status,403);
+ const publish=await request(origin,"/api/apps",admin,"POST",input);
+ assert.equal(publish.status,201);assert.match(publish.data.app.id,/^shared-/);
+ const id=publish.data.app.id;
+ const visible=await request(origin,"/api/apps",member);
+ assert.equal(visible.data.apps.length,1);assert.equal(visible.data.apps[0].name,"Shared Video");
+ assert.equal((await request(origin,"/api/apps",admin)).data.canManage,true);
+ assert.equal((await request(origin,"/api/apps",admin,"POST",{...input,url:"javascript:alert(1)"})).status,400);
+ assert.equal((await request(origin,"/api/apps",admin,"POST",input)).status,409);
+ assert.equal((await request(origin,"/api/apps/"+id,member,"DELETE")).status,403);
+ assert.equal((await request(origin,"/api/apps/"+id,admin,"DELETE")).status,200);
+ assert.deepEqual((await request(origin,"/api/apps",member)).data.apps,[]);
+});

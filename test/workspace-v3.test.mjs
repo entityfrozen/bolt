@@ -219,3 +219,17 @@ test("Community roles and administrator message moderation are visible",()=>{
  assert.match(community,/Existing roles/);
  assert.match(channels,/s\.canManage/);
 });
+
+test("YouTube and external app links use Lightning browser tabs",()=>{
+ const apps=fs.readFileSync(new URL("../public/assets/apps-v5.js",import.meta.url),"utf8");
+ const browserApp=fs.readFileSync(new URL("../public/assets/app.js",import.meta.url),"utf8");
+ assert.match(apps,/name:"YouTube",type:"Streaming"/);
+ assert.match(apps,/lightning:open-browser-tab/);
+ assert.match(browserApp,/addEventListener\("lightning:open-browser-tab"/);
+ assert.match(browserApp,/newTab\(\{url:link\.href,title:/);
+ assert.doesNotMatch(apps,/window\.open\(external\.url/);
+ assert.match(apps,/this\.sharedApps/);
+ assert.match(apps,/Visible to<select name="visibility"/);
+ assert.match(apps,/canShareApps/);
+ assert.match(apps,/\/api\/apps/);
+});

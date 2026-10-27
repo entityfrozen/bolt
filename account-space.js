@@ -5,12 +5,13 @@ import crypto from "node:crypto";
 // Private, session-scoped account data. Never infer identity from a request body.
 export function registerAccountSpace({app,dataDir,mustBeSignedIn,sameOrigin,listUsers}){
  const filename=path.join(dataDir,"lightning-accounts.json");
- let data={profiles:{},history:{},dm:{},settings:{}};
+ let data={profiles:{},history:{},dm:{},settings:{},sharedApps:[]};
  try{
   const parsed=JSON.parse(fs.readFileSync(filename,"utf8"));
   if(parsed&&typeof parsed==="object"){
-   for(const key of Object.keys(data))
+   for(const key of ["profiles","history","dm","settings"])
     if(parsed[key]&&!Array.isArray(parsed[key])&&typeof parsed[key]==="object")data[key]=parsed[key];
+   if(Array.isArray(parsed.sharedApps))data.sharedApps=parsed.sharedApps.slice(0,100);
   }
  }catch{}
  const persist=()=>{
@@ -95,6 +96,43 @@ export function registerAccountSpace({app,dataDir,mustBeSignedIn,sameOrigin,list
   "favorites","theme","inspector","dock","channels","gameScores","customApps"]);
  const cleanSettings=record=>Object.fromEntries(Object.entries(record||{})
   .filter(([key])=>allowedSettings.has(key)));
+ // Shared apps are managed centrally, never by changing a personal preference.
+ // All accounts can read them; only a platform admin can publish or remove them.
+ const sharedCategories=new Set(["Games","Music","Streaming"]);
+ const validateShared=(name,url,category)=>{
+  if(typeof name!=="string"||name.trim().length<2||name.length>48)return "Name must be 2–48 characters.";
+  if(!sharedCategories.has(category))return "Choose Games, Music or Streaming.";
+  if(typeof url!=="string"||url.length>1800)return "Enter a valid website URL.";
+  try{
+   const parsed=new URL(url);
+   if(!["http:","https:"].includes(parsed.protocol)||parsed.username||parsed.password)return "Use an http or https website.";
+  }catch{return "Enter a valid website URL.";}
+  return "";
+ };
+ const sharedView=()=>data.sharedApps.map(a=>({...a}));
+ app.get("/api/apps",mustBeSignedIn,(req,res)=>{
+  res.setHeader("Cache-Control","no-store");
+  res.json({apps:sharedView(),canManage:req.auth.identity.role==="admin"});
+ });
+ app.post("/api/apps",mustBeSignedIn,sameOrigin,(req,res)=>{
+  if(req.auth.identity.role!=="admin")return fail(res,403,"Admin only.");
+  if(data.sharedApps.length>=100)return fail(res,400,"The shared app library is full.");
+  const {name,url,category}=req.body||{};
+  const error=validateShared(name,url,category);
+  if(error)return fail(res,400,error);
+  const address=new URL(url).href;
+  if(data.sharedApps.some(a=>a.url===address))return fail(res,409,"This link is already shared.");
+  const item={id:"shared-"+crypto.randomBytes(9).toString("hex"),name:name.trim(),url:address,category};
+  data.sharedApps.push(item);
+  persist();res.status(201).json({app:item});
+ });
+ app.delete("/api/apps/:id",mustBeSignedIn,sameOrigin,(req,res)=>{
+  if(req.auth.identity.role!=="admin")return fail(res,403,"Admin only.");
+  const before=data.sharedApps.length;
+  data.sharedApps=data.sharedApps.filter(app=>app.id!==req.params.id);
+  if(data.sharedApps.length===before)return fail(res,404,"App not found.");
+  persist();res.json({ok:true});
+ });
  app.get("/api/account/settings",mustBeSignedIn,(req,res)=>{
   res.setHeader("Cache-Control","no-store");
   res.json({settings:cleanSettings(data.settings[req.auth.identity.id])});

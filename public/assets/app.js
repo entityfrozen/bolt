@@ -1013,12 +1013,23 @@ async function logout(){
 
 function openLightningHub(view){
   closePanel();
-  import("/assets/hub.js?v=35").then(hub=>hub.openHub(view)).catch(()=>toast("Could not open the Lightning hub."));
+  import("/assets/hub.js?v=36").then(hub=>hub.openHub(view)).catch(()=>toast("Could not open the Lightning hub."));
 }
 
 function bindUi(){
   dom.newTabBtn.addEventListener("click",()=>newTab());
   document.querySelectorAll("[data-hub]").forEach(button=>button.addEventListener("click",()=>openLightningHub(button.dataset.hub)));
+  // Apps open in a real Lightning browser tab, not an external browser window.
+  // Hide the workspace without closing its game frames or websocket.
+  document.addEventListener("lightning:open-browser-tab",event=>{
+    try{
+      const link=new URL(event.detail?.url);
+      if(!["https:","http:"].includes(link.protocol)||link.username||link.password)throw Error("Invalid website.");
+      newTab({url:link.href,title:String(event.detail?.title||link.hostname).slice(0,80)});
+      const workspace=document.getElementById("hubMount");
+      if(workspace)workspace.hidden=true;
+    }catch(error){toast("Couldn't open website: "+error.message);}
+  });
   $("#lightningSuggestionButton")?.addEventListener("click",()=>openLightningHub("suggestions"));
   document.querySelectorAll(".lightning-quick").forEach(button=>button.addEventListener("click",()=>navigate(button.dataset.lightningQuick)));
   dom.homeMark.addEventListener("click",()=>newTab());
@@ -1082,7 +1093,7 @@ async function start(){
     renderNewtabLists();
   }catch{return}
   restoreTabs();
-  import("/assets/hub.js?v=35").then(hub=>{
+  import("/assets/hub.js?v=36").then(hub=>{
     hub.startHubNotifications();
     if(new URL(location.href).searchParams.get("view")!=="browser")hub.openHub("overview");
   }).catch(error=>console.warn("Workspace unavailable:",error));
