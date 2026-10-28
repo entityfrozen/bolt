@@ -25,7 +25,12 @@ html=html.replace('<title data-i18n="main.title">OpenFront (ALPHA)</title>','<ti
 html=html.replace('<meta property="og:title" content="OpenFront - Battle Royale" />','<meta property="og:title" content="WorldPvP — Global Conquest" />');
 html=html.replace('content="Conquer the world in this multiplayer battle royale! Expand your nation, eliminate opponents, and dominate the map in this fast-paced IO game."','content="WorldPvP — real-time strategy, online conquest, and private multiplayer battles."');
 html=html.replace('    <meta charset="UTF-8" />',
-  '    <meta charset="UTF-8" />\n    <script>window.WORLDPVP_STANDALONE=true;</script>\n    <style id="worldpvp-native-home">\n'+read("worldpvp-home.css")+'\n    </style>');
+  '    <meta charset="UTF-8" />\n    <script>window.WORLDPVP_STANDALONE=true;</script>');
+html=html.replace(
+  'class="select-none font-sans min-h-screen bg-neutral-800 transition-opacity',
+  'class="worldpvp-ui select-none font-sans min-h-screen bg-neutral-800 transition-opacity'
+);
+if(!html.includes('class="worldpvp-ui select-none'))throw new Error("WorldPvP body class not applied");
 write(htmlPath,html);
 
 // WorldPvP is the installed app's name as well as its visible website name.
