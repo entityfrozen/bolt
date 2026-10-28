@@ -31,7 +31,6 @@ export async function completeAi({
     signal?.addEventListener("abort",onAbort,{once:true});
     const budget=budgets[Math.min(index,budgets.length-1)]||19000;
     const timeout=setTimeout(()=>controller.abort(new Error("Model did not respond within "+Math.round(budget/1000)+" seconds")),budget);
-    timeout.unref?.();
     let emitted=false;
     const started=Date.now();
     try{
