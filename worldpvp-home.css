@@ -49,3 +49,203 @@ body:has(.worldpvp-home) homepage-promos,body:has(.worldpvp-home) streaming-now,
 @media(max-width:900px){.worldpvp-mobile-top{position:sticky;top:0;z-index:48;display:flex;align-items:center;gap:12px;min-height:56px;margin:-15px -16px 16px;padding:7px 15px;background:#08131cef;border-bottom:1px solid #335c6a;backdrop-filter:blur(16px)}.worldpvp-mobile-top>strong{font-size:20px;letter-spacing:-.07em;white-space:nowrap}.worldpvp-mobile-top>strong span{color:var(--wp-cyan)}.worldpvp-mobile-top>div{display:flex;align-items:center;gap:3px;margin-left:auto}.worldpvp-mobile-menu{padding:5px 10px;border:1px solid #517281;border-radius:8px;background:#132b37;color:#e1f3f4;cursor:pointer;font-size:17px}}
 @media(max-width:700px){.worldpvp-home{padding:15px 13px 38px}.worldpvp-mobile-top{margin:-15px -13px 15px}.worldpvp-banner{min-height:290px;border-radius:15px}.worldpvp-banner-content{padding:28px 23px;width:100%}.worldpvp-banner h1{font-size:clamp(49px,11vw,78px)}.worldpvp-banner-content p{font-size:12px;max-width:460px}.worldpvp-banner-art{inset:0 -65% 0 8%;opacity:.3}.worldpvp-banner-glow{background:linear-gradient(90deg,#07131ae8,#08172566)}.worldpvp-banner-tags{gap:5px;margin-top:16px}.worldpvp-banner-tags>span{font-size:8px;padding:6px}.worldpvp-mode-actions{grid-template-columns:1fr;gap:8px}.worldpvp-mode{min-height:92px;padding:14px 16px;gap:3px}.worldpvp-mode strong{font-size:16px}.worldpvp-mode small{font-size:11px}.worldpvp-public-header h2{font-size:22px}.worldpvp-public-header>span{display:none}}
 @media(prefers-reduced-motion:reduce){.worldpvp-mode{transition:none}.worldpvp-mode:hover{transform:none}}
+
+
+/* FULL GAME-SHELL OVERHAUL — applied after the upstream Vite stylesheet.
+   Unlike the previous first-pass PlayPage skin, these rules reach MainLayout,
+   navigation, lobby feed, and inline lobby/setting screens. */
+body.worldpvp-ui:not(.in-game){
+  --color-malibu-blue:#50bea9;
+  --color-aquarius:#79e9d5;
+  --color-surface:#102333;
+  --color-surface-container:#132635;
+  --wp-base:#080e17;
+  background:radial-gradient(circle at 78% -10%,#154353 0,transparent 38%),
+             radial-gradient(circle at 0% 50%,#112939 0,transparent 43%),#080e17 !important;
+  color:#eaf7f9;
+  min-width:0;
+}
+body.worldpvp-ui:not(.in-game) #hex-grid{
+  background:transparent !important;
+  display:none!important; /* Remove enormous OpenFront watermark behind our native UI. */
+}
+body.worldpvp-ui:not(.in-game) main-layout{display:block;width:100%;min-width:0;flex:1}
+body.worldpvp-ui:not(.in-game) .worldpvp-main-shell{
+  width:100%;max-width:none!important;padding:0!important;margin:0!important;
+  display:flex;flex-direction:column;align-items:stretch;
+}
+body.worldpvp-ui:not(.in-game) .worldpvp-layout-inner{
+  width:100%;max-width:none!important;margin:0!important;padding:0!important;
+  min-height:0;gap:0!important;
+}
+body.worldpvp-ui:not(.in-game) play-page{
+  display:block!important;max-width:none!important;width:100%!important;flex:none;
+}
+body.worldpvp-ui:not(.in-game) .worldpvp-home{
+  max-width:none;width:100%;min-height:calc(100dvh - 83px);
+  padding:clamp(18px,2.3vw,34px) clamp(18px,3.1vw,64px) 64px;
+}
+body.worldpvp-ui:not(.in-game) desktop-nav-bar{
+  display:block;width:100%;box-shadow:0 6px 32px #0004;
+}
+body.worldpvp-ui:not(.in-game) desktop-nav-bar nav{
+  min-height:72px;width:100%;justify-content:flex-start!important;
+  padding:12px clamp(18px,3.1vw,64px)!important;
+  background:#091722ee!important;
+  border-bottom:1px solid #65cbbb39!important;
+  gap:clamp(12px,2vw,31px)!important;
+  backdrop-filter:blur(18px);
+}
+body.worldpvp-ui:not(.in-game) desktop-nav-bar nav>div:first-child{
+  margin-right:clamp(12px,4vw,64px);
+  display:flex;flex-direction:column;align-items:flex-start;justify-content:center;
+}
+body.worldpvp-ui .worldpvp-nav-brand{
+  font-family:system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:clamp(22px,2vw,30px)!important;font-weight:900;
+  line-height:1;letter-spacing:-.095em;color:#f4fafa;
+  white-space:nowrap;
+}
+body.worldpvp-ui .worldpvp-nav-brand span{color:#78e9d5}
+body.worldpvp-ui:not(.in-game) desktop-nav-bar .nav-menu-item{
+  border:1px solid transparent;
+  border-radius:9px;padding:10px 12px;line-height:1.25;
+  color:#a5bac5;font-size:11px;font-weight:760;letter-spacing:.11em;
+}
+body.worldpvp-ui:not(.in-game) desktop-nav-bar .nav-menu-item:hover,
+body.worldpvp-ui:not(.in-game) desktop-nav-bar .nav-menu-item.active{
+  color:#9af6e4!important;border-color:#51cbb24f;
+  background:#3aaf9c16;
+}
+body.worldpvp-ui:not(.in-game) #sidebar-menu{
+  background:#0d1d29f5!important;border-right:1px solid #65cbbb4d!important;
+  box-shadow:12px 0 40px #0009;
+}
+body.worldpvp-ui:not(.in-game) mobile-nav-bar .nav-menu-item{
+  color:#c1d7df!important;border-bottom:1px solid #c3ffed1c;
+}
+body.worldpvp-ui:not(.in-game) mobile-nav-bar .nav-menu-item.active{
+  color:#92f5e0!important;
+}
+body.worldpvp-ui:not(.in-game) homepage-promos,
+body.worldpvp-ui:not(.in-game) page-footer,
+body.worldpvp-ui:not(.in-game) #background-layer {display:none!important;}
+body.worldpvp-ui:not(.in-game) .worldpvp-banner{
+  min-height:clamp(330px,32vh,470px);border-color:#78e9d54a;
+  box-shadow:0 21px 70px #0009,0 0 60px #00a99013;
+}
+body.worldpvp-ui:not(.in-game) .worldpvp-banner-content{width:min(800px,72%)}
+body.worldpvp-ui:not(.in-game) .worldpvp-start-panel{
+  grid-template-columns:minmax(215px,1fr) minmax(0,3.9fr);gap:16px;
+}
+body.worldpvp-ui:not(.in-game) .worldpvp-mode{min-height:155px;justify-content:center}
+body.worldpvp-ui:not(.in-game) .worldpvp-mode-primary{
+  background:linear-gradient(130deg,#156359,#10383b);
+  border-color:#50c5ac;
+}
+body.worldpvp-ui:not(.in-game) .worldpvp-hidden-legacy{
+  display:none!important;
+}
+body.worldpvp-ui:not(.in-game) .worldpvp-home game-mode-selector{
+  width:100%;display:block;
+}
+body.worldpvp-ui:not(.in-game) .worldpvp-lobby-board{
+  display:grid!important;gap:16px!important;
+  width:100%!important;padding:0!important;
+  margin:0!important;max-width:none!important;
+  grid-template-columns:minmax(0,1.8fr) minmax(300px,1fr)!important;
+  grid-template-rows:minmax(240px,auto)!important;
+  align-items:stretch;
+}
+body.worldpvp-ui:not(.in-game) .worldpvp-lobby-board>.worldpvp-featured-lobby{
+  grid-column:1!important;grid-row:1!important;
+  min-height:265px;max-height:none;
+}
+body.worldpvp-ui:not(.in-game) .worldpvp-lobby-board>.worldpvp-upcoming-lobbies{
+  grid-column:2!important;grid-row:1!important;
+  display:grid!important;gap:12px!important;
+  grid-template-rows:auto minmax(110px,1fr) minmax(110px,1fr)!important;
+  min-height:265px;max-height:none;
+}
+body.worldpvp-ui:not(.in-game) .worldpvp-lobby-board>ios-add-to-home-screen-banner{
+  grid-column:1 / -1!important;grid-row:auto!important;
+}
+body.worldpvp-ui:not(.in-game) game-mode-selector button,
+body.worldpvp-ui:not(.in-game) game-mode-selector .bg-surface{
+  border-color:#4674866b!important;
+}
+body.worldpvp-ui:not(.in-game) game-mode-selector button:hover{
+  border-color:#7cefd3!important;
+}
+body.worldpvp-ui:not(.in-game) game-mode-selector [class*="border-white"]{
+  border-color:#54758657!important;
+}
+body.worldpvp-ui:not(.in-game) game-mode-selector [class*="bg-black"]{
+  background-color:#142735d6!important;
+}
+body.worldpvp-ui:not(.in-game) game-mode-selector h2{
+  font-size:13px!important;color:#9beddd;letter-spacing:.09em;
+}
+/* Inline Host, Join, Solo, Settings, Store and other game menu routes */
+body.worldpvp-ui:not(.in-game) .page-content{
+  width:100%!important;max-width:none!important;min-height:0;
+  padding:clamp(15px,2vw,28px)!important;
+  background:transparent!important;
+}
+body.worldpvp-ui:not(.in-game) .page-content o-modal,
+body.worldpvp-ui:not(.in-game) .page-content o-modal>div{
+  width:100%;max-width:none!important;
+}
+body.worldpvp-ui:not(.in-game) o-modal section{
+  color:#edf9f9!important;
+  background:linear-gradient(150deg,#142637ef,#0b1824f5)!important;
+  border:1px solid #376776b0!important;
+  border-radius:18px!important;
+  box-shadow:0 15px 50px #0008;
+}
+body.worldpvp-ui:not(.in-game) o-modal [class*="border-white"]{
+  border-color:#6ca4ad3b!important;
+}
+body.worldpvp-ui:not(.in-game) o-modal [class*="bg-black"]{
+  background-color:#101e2de8!important;
+}
+body.worldpvp-ui:not(.in-game) o-modal button:not([disabled]):hover{
+  border-color:#80ead5;
+}
+body.worldpvp-ui:not(.in-game) o-modal input,
+body.worldpvp-ui:not(.in-game) o-modal select,
+body.worldpvp-ui:not(.in-game) o-modal textarea{
+  border-color:#4a7c85a8;
+  border-radius:8px;color:#f1fafb;
+}
+body.worldpvp-ui:not(.in-game) o-modal input:focus-visible,
+body.worldpvp-ui:not(.in-game) o-modal select:focus-visible{
+  outline:2px solid #8fe5d4;outline-offset:2px;
+}
+body.worldpvp-ui:not(.in-game) .worldpvp-source-credit{
+  border-top:1px solid #3d69705a;padding-top:16px;
+}
+@media(max-width:1100px){
+  body.worldpvp-ui:not(.in-game) .worldpvp-start-panel{grid-template-columns:1fr}
+  body.worldpvp-ui:not(.in-game) .worldpvp-banner-content{width:85%}
+  body.worldpvp-ui:not(.in-game) .worldpvp-lobby-board{
+    grid-template-columns:minmax(0,1fr) minmax(240px,1fr)!important;
+  }
+  body.worldpvp-ui:not(.in-game) desktop-nav-bar nav{gap:7px!important}
+  body.worldpvp-ui:not(.in-game) desktop-nav-bar nav>div:first-child{margin-right:10px}
+}
+@media(max-width:750px){
+  body.worldpvp-ui:not(.in-game) .worldpvp-home{
+    min-height:100dvh;padding:15px 13px 36px;
+  }
+  body.worldpvp-ui:not(.in-game) .worldpvp-banner-content{width:100%}
+  body.worldpvp-ui:not(.in-game) .worldpvp-start-panel{grid-template-columns:1fr}
+  body.worldpvp-ui:not(.in-game) .worldpvp-lobby-board{
+    display:flex!important;flex-direction:column!important;gap:13px!important;
+  }
+  body.worldpvp-ui:not(.in-game) .worldpvp-lobby-board>.worldpvp-featured-lobby,
+  body.worldpvp-ui:not(.in-game) .worldpvp-lobby-board>.worldpvp-upcoming-lobbies{
+    min-height:150px;grid-column:auto!important;grid-row:auto!important;
+  }
+  body.worldpvp-ui:not(.in-game) .page-content{padding:10px!important}
+}
