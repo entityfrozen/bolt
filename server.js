@@ -481,11 +481,17 @@ app.post("/api/ai/chat", mustBeSignedIn, sameOrigin, async (req, res) => {
   // Search runs on our server. The language model never gets to choose a URL to fetch.
   const latestQuestion = messages.at(-1).content;
   const searchRequested = req.body?.webSearch === true || (req.body?.webSearch !== false && needsWebSearch(latestQuestion));
+  sendAiEvent("status",{message:searchRequested?"Searching the web for current sources…":"Preparing the answer…"});
   const web = searchRequested
     ? await aiSearch.search(req.auth.identity.id,latestQuestion)
     : {sources: [], provider: null, error: null};
+  if(disconnected)return;
+  if(searchRequested){
+    sendAiEvent("sources",{provider:web.provider,sources:web.sources.map(source=>({title:source.title,url:source.url})).slice(0,6)});
+    sendAiEvent("status",{message:web.sources.length?"Reading "+web.sources.length+" search results…":"No verified live search results found."});
+  }
   if (searchRequested && !web.sources.length) {
-    return res.json({
+    return aiAnswer({
       reply: "No verified live results came back. Ask an admin to check the web-search provider. "+(web.error||"Try again later."),
       searched: true,
       sources: [],
@@ -498,7 +504,12 @@ app.post("/api/ai/chat", mustBeSignedIn, sameOrigin, async (req, res) => {
     "[" + (index + 1) + "] " + source.title + "\nURL: " + source.url + "\n" + source.snippet
   ).join("\n\n");
 
+  sendAiEvent("status",{message:"Connecting to the AI model…"});
   try {
+    modelSignal=new AbortController();
+    const timeout=setTimeout(()=>modelSignal.abort(new DOMException("AI request timed out","TimeoutError")),105000);
+    timeout.unref?.();
+    try{
     const upstream = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
       method: "POST",
       headers: { "Authorization": "Bearer " + key, "Content-Type": "application/json" },
@@ -508,7 +519,7 @@ app.post("/api/ai/chat", mustBeSignedIn, sameOrigin, async (req, res) => {
         temperature: 1,
         top_p: 1,
         reasoning_effort: "low",
-        stream: false,
+        stream: streamMode,
         messages: [
           {role:"system",content:
             "You are Lightning AI. Be direct, useful, and natural. Answer with specifics instead of canned disclaimers. " +
@@ -520,9 +531,9 @@ app.post("/api/ai/chat", mustBeSignedIn, sameOrigin, async (req, res) => {
           ...messages
         ]
       }),
-      signal: AbortSignal.timeout(45000)
+      signal: modelSignal.signal
     });
-    const data = await upstream.json().catch(() => ({}));
+    const data = !streamMode || !upstream.ok ? await upstream.json().catch(() => ({})) : null;
     if (!upstream.ok) {
       const model = process.env.NVIDIA_MODEL || "openai/gpt-oss-20b";
       console.warn("Lightning AI NVIDIA request failed:", upstream.status, "model:", model);
@@ -536,18 +547,24 @@ app.post("/api/ai/chat", mustBeSignedIn, sameOrigin, async (req, res) => {
         429: "NVIDIA's request limit was reached (429). Please retry shortly.",
         503: "NVIDIA is temporarily unavailable (503). Please retry soon."
       };
-      return res.status(502).json({ error: errors[upstream.status] || "NVIDIA returned an error (" + upstream.status + "). Please retry later." });
+      return aiError(errors[upstream.status] || "NVIDIA returned an error (" + upstream.status + "). Please retry later.");
     }
-    const reply = data?.choices?.[0]?.message?.content;
-    if (typeof reply !== "string" || !reply.trim()) return res.status(502).json({ error: "The AI provider returned no text." });
+    sendAiEvent("status",{message:"Generating the answer…"});
+    const reply=streamMode
+      ? await readAiCompletionStream(upstream,chunk=>sendAiEvent("delta",{text:chunk}))
+      : data?.choices?.[0]?.message?.content;
+    if (typeof reply !== "string" || !reply.trim()) return aiError("The AI provider returned no final answer. Try again.");
     const unsupportedClaim = /^(?:sorry[,.!]?\s*)?(?:i (?:can't|cannot|do not|don't|am unable to)|as an ai)\b.{0,110}(?:search|browse|internet|web)/i.test(reply.trim());
     const groundedReply = searchRequested && web.sources.length && unsupportedClaim
       ? "I found these pages through Lightning's web search. Open the sources below for the details.\n\n" +
         web.sources.slice(0, 4).map((source, index) => "[" + (index+1) + "] " + source.title + " — " + source.snippet).join("\n\n")
       : reply;
-    return res.json({ reply: groundedReply.slice(0, 18000), searched: searchRequested, sources: web.sources, searchError: web.error, provider: web.provider });
+    return aiAnswer({ reply: groundedReply.slice(0, 18000), searched: searchRequested, sources: web.sources, searchError: web.error, provider: web.provider });
+    }finally{clearTimeout(timeout);}
   } catch (error) {
-    return res.status(502).json({ error: error?.name === "TimeoutError" ? "AI request timed out." : "Couldn't reach the AI provider." });
+    const timedOut=error?.name==="TimeoutError"||modelSignal?.signal?.reason?.name==="TimeoutError";
+    console.warn("Lightning AI request issue:",timedOut?"provider timeout":String(error?.message||error).slice(0,180));
+    return aiError(timedOut?"The AI model took too long to answer. Try a shorter question or retry.":error?.message?.startsWith("The AI provider")?error.message:"Could not reach the AI provider. Please try again.");
   }
 });
 
