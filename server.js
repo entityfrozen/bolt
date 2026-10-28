@@ -550,8 +550,17 @@ app.post("/api/ai/chat", mustBeSignedIn, sameOrigin, async (req, res) => {
       return aiError(errors[upstream.status] || "NVIDIA returned an error (" + upstream.status + "). Please retry later.");
     }
     sendAiEvent("status",{message:"Generating the answer…"});
+    let answerStarted=false,reasoningStarted=false;
     const reply=streamMode
-      ? await readAiCompletionStream(upstream,chunk=>sendAiEvent("delta",{text:chunk}))
+      ? await readAiCompletionStream(upstream,chunk=>{
+          if(!answerStarted){answerStarted=true;sendAiEvent("status",{message:"Writing the answer…"});}
+          sendAiEvent("delta",{text:chunk});
+        },()=>{
+          if(!reasoningStarted&&!answerStarted){
+            reasoningStarted=true;
+            sendAiEvent("status",{message:"Working through the question…"});
+          }
+        })
       : data?.choices?.[0]?.message?.content;
     if (typeof reply !== "string" || !reply.trim()) return aiError("The AI provider returned no final answer. Try again.");
     const unsupportedClaim = /^(?:sorry[,.!]?\s*)?(?:i (?:can't|cannot|do not|don't|am unable to)|as an ai)\b.{0,110}(?:search|browse|internet|web)/i.test(reply.trim());
