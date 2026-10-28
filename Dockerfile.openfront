@@ -10,7 +10,7 @@
 FROM node:24-slim AS upstream-source
 RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates \
     && rm -rf /var/lib/apt/lists/*
-# Pin the upstream source; don't silently change game protocols on every deploy.
+# Pin upstream game code: old interface and self-hosted lobby worker.
 ARG OPENFRONT_REV=184e6cf207f68d30362bbbc524e2ef6c982483e7
 RUN git init /opt/openfront \
     && git -C /opt/openfront remote add origin https://github.com/openfrontio/OpenFrontIO.git \
@@ -26,20 +26,13 @@ RUN npm install --global --ignore-scripts npm@12.1.0
 FROM node-base AS build
 ENV HUSKY=0
 COPY --from=upstream-source /opt/openfront/ ./
-# Edit the real upstream client and worker source before Vite compiles it.
-COPY worldpvp-source-patch.mjs worldpvp-party-patch.mjs worldpvp-party-ui-patch.mjs worldpvp-party-server-patch.mjs worldpvp-playpage.ts worldpvp-standalone.ts worldpvp-home.css ./
-RUN node worldpvp-source-patch.mjs && node worldpvp-party-patch.mjs && node worldpvp-party-ui-patch.mjs && node worldpvp-party-server-patch.mjs
 RUN npm ci --ignore-scripts
 ARG GIT_COMMIT=standalone
 ENV GIT_COMMIT=${GIT_COMMIT}
-# Validate TypeScript and build game assets in separate phases to avoid\n# exhausting the build container with two compiler processes at once.
-RUN ./node_modules/.bin/tsc --noEmit --pretty false
-RUN ./node_modules/.bin/vite build && ./node_modules/.bin/tsx scripts/buildAssetHashes.ts
-# The final theme goes AFTER Vite's compiled stylesheet and covers all menus.
-# Keep the Lightning identity bridge intact, without modifying multiplayer.
+RUN npm run build-prod
+# The name bridge is inserted into the built HTML (not the game engine).
 COPY openfront-name-bridge.html /tmp/lightning-name-bridge.html
-COPY worldpvp-home.css /tmp/worldpvp-home.css
-RUN node -e 'const fs=require("node:fs"); const f="static/index.html"; const h=fs.readFileSync(f,"utf8"); if(!h.includes("</head>"))throw Error("WorldPvP HTML head missing");const theme="<style id=\"worldpvp-complete-shell\">"+fs.readFileSync("/tmp/worldpvp-home.css","utf8")+"</style>";const bridge=fs.readFileSync("/tmp/lightning-name-bridge.html","utf8");fs.writeFileSync(f,h.replace("</head>",bridge+theme+"</head>"))'
+RUN node -e 'const fs=require("node:fs"); const file="static/index.html"; const html=fs.readFileSync(file,"utf8"); if(!html.includes("</head>"))throw Error("OpenFront head missing"); fs.writeFileSync(file,html.replace("</head>",fs.readFileSync("/tmp/lightning-name-bridge.html","utf8")+"</head>"))'
 
 FROM node-base AS production-dependencies
 ENV HUSKY=0 NPM_CONFIG_IGNORE_SCRIPTS=1
@@ -65,14 +58,13 @@ COPY --from=upstream-source /opt/openfront/resources ./resources
 RUN rm -rf ./resources/maps
 COPY --from=upstream-source /opt/openfront/tsconfig.json /opt/openfront/tsconfig.base.json ./
 COPY --from=upstream-source /opt/openfront/client-api.json ./
-COPY --from=build /usr/src/app/src ./src
+COPY --from=upstream-source /opt/openfront/src ./src
 COPY --from=upstream-source /opt/openfront/packages ./packages
 COPY --from=upstream-source /openfront-revision ./static/commit.txt
 
 # Dev mode uses OpenFront's official standalone configuration and test CAPTCHA
 # key; it must not connect to production authentication or matchmaking.
 ENV GAME_ENV=dev \
-    WORLDPVP_STANDALONE=1 \
     DOMAIN=lightning-openfront-production.up.railway.app \
     NUM_WORKERS=1 \
     LOBBY_COORDINATOR=off \
