@@ -34,9 +34,11 @@ ARG GIT_COMMIT=standalone
 ENV GIT_COMMIT=${GIT_COMMIT}
 # Run the upstream production build now that patched TypeScript passes validation.
 RUN npm run build-prod
-# The name bridge is inserted into the built HTML (not the game engine).
+# The final theme goes AFTER Vite's compiled stylesheet and covers all menus.
+# Keep the Lightning identity bridge intact, without modifying multiplayer.
 COPY openfront-name-bridge.html /tmp/lightning-name-bridge.html
-RUN node -e 'const fs=require("node:fs"); const file="static/index.html"; const html=fs.readFileSync(file,"utf8"); if(!html.includes("</head>"))throw Error("OpenFront head missing"); fs.writeFileSync(file,html.replace("</head>",fs.readFileSync("/tmp/lightning-name-bridge.html","utf8")+"</head>"))'
+COPY worldpvp-home.css /tmp/worldpvp-home.css
+RUN node -e 'const fs=require("node:fs"); const f="static/index.html"; const h=fs.readFileSync(f,"utf8"); if(!h.includes("</head>"))throw Error("WorldPvP HTML head missing");const theme="<style id=\"worldpvp-complete-shell\">"+fs.readFileSync("/tmp/worldpvp-home.css","utf8")+"</style>";const bridge=fs.readFileSync("/tmp/lightning-name-bridge.html","utf8");fs.writeFileSync(f,h.replace("</head>",bridge+theme+"</head>"))'
 
 FROM node-base AS production-dependencies
 ENV HUSKY=0 NPM_CONFIG_IGNORE_SCRIPTS=1
