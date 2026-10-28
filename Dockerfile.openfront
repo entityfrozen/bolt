@@ -32,8 +32,9 @@ RUN node worldpvp-source-patch.mjs && node worldpvp-party-patch.mjs && node worl
 RUN npm ci --ignore-scripts
 ARG GIT_COMMIT=standalone
 ENV GIT_COMMIT=${GIT_COMMIT}
-# Run the upstream production build now that patched TypeScript passes validation.
-RUN npm run build-prod
+# Validate TypeScript and build game assets in separate phases to avoid\n# exhausting the build container with two compiler processes at once.
+RUN ./node_modules/.bin/tsc --noEmit --pretty false
+RUN ./node_modules/.bin/vite build && ./node_modules/.bin/tsx scripts/buildAssetHashes.ts
 # The final theme goes AFTER Vite's compiled stylesheet and covers all menus.
 # Keep the Lightning identity bridge intact, without modifying multiplayer.
 COPY openfront-name-bridge.html /tmp/lightning-name-bridge.html
