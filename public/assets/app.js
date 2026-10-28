@@ -1162,6 +1162,37 @@ function bindUi(){
   });
 }
 
+const lastDmIds=new Map();
+let dmPollStarted=false,dmPollBusy=false;
+async function pollDirectMessages(){
+ if(dmPollBusy)return;
+ dmPollBusy=true;
+ try{
+  const response=await fetch("/api/account/dms",{credentials:"same-origin",cache:"no-store"});
+  if(!response.ok)return;
+  const data=await response.json();
+  document.dispatchEvent(new CustomEvent("lightning:dm-unread",{detail:{count:data.totalUnread||0}}));
+  for(const thread of data.threads||[]){
+   const peer=thread.user?.id,last=thread.last;
+   if(!peer||!last?.id)continue;
+   const prior=lastDmIds.get(peer);
+   if(dmPollStarted&&prior&&prior!==last.id&&last.from!==me?.id){
+    const sender=thread.user.displayName||thread.user.username||"Member";
+    if(document.hidden&&window.Notification?.permission==="granted"){
+     try{
+      const notification=new Notification("Lightning · "+sender,{body:String(last.text||"New direct message").slice(0,140),icon:"/favicon.svg",tag:"lightning-dm-"+peer});
+      notification.onclick=()=>{window.focus();window.LightningAccount?.open("messages",peer);notification.close()};
+     }catch{}
+    }else if(!document.querySelector("#lightningAccountSpace")?.open){
+     toast("New DM from "+sender);
+    }
+   }
+   lastDmIds.set(peer,last.id);
+  }
+  dmPollStarted=true;
+ }catch(error){console.warn("DM notifications:",error.message)}
+ finally{dmPollBusy=false}
+}
 async function start(){
   applyPrefs();
   bindUi();
