@@ -40,13 +40,16 @@ export function registerAccountSpace({app,dataDir,mustBeSignedIn,sameOrigin,list
  const threadKey=(a,b)=>[a,b].sort().join(":");
  // Existing conversations predate read receipts. Start them at their latest
  // message rather than treating months of old messages as new notifications.
+ let migratedReads=false;
  for(const thread of Object.values(data.dm)){
   if(!thread||!Array.isArray(thread.people)||!Array.isArray(thread.messages))continue;
   if(!thread.readAt){
    const last=thread.messages.at(-1)?.at||0;
    thread.readAt=Object.fromEntries(thread.people.map(id=>[id,last]));
+   migratedReads=true;
   }
  }
+ if(migratedReads)persist();
  const unreadIn=(thread,userId)=>thread.messages.filter(message=>
   message.from!==userId&&message.at>Number(thread.readAt?.[userId]||0)).length;
  const historyTypes=["browser","ai"];
