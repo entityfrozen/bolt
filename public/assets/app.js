@@ -366,6 +366,80 @@ async function ensureProxy(){
   catch(error){controllerPromise=null;throw error}
 }
 
+// Open websites inside Lightning's own tab strip, never through a new
+// top-level browser window. Relative links are resolved against their source.
+function openInsideLightning(value,sourceUrl="",title=""){
+  let destination;
+  try{
+    const link=new URL(String(value||""),sourceUrl||activeTab()?.url||location.href);
+    if(!["http:","https:"].includes(link.protocol)||link.username||link.password)return false;
+    // Escape routes from older Scramjet clients may wrap the real destination.
+    if(link.origin===location.origin&&link.pathname==="/"&&link.searchParams.has("goto")){
+      return openInsideLightning(link.searchParams.get("goto"),sourceUrl,title);
+    }
+    destination=link.href;
+  }catch{return false}
+  const hub=document.getElementById("hubMount");
+  if(hub)hub.hidden=true;
+  newTab({url:destination,title:String(title||new URL(destination).hostname).slice(0,80)});
+  return true;
+}
+
+function popupRoutingPlugin(){
+  // Hook the proxied document itself: document-level listeners cannot see
+  // iframe clicks, and a parent window.open patch doesn't intercept its JS.
+  class LightningPopupRoutingPlugin extends $scramjetUtils.ManagedPlugin{
+    constructor(){super("lightning-popup-routing",[])}
+    install(frame){
+      super.install(frame);
+      this.tap(frame.hooks.init.post,context=>{
+        const win=context.window;
+        const doc=win.document;
+        const base=()=>String(context.client?.url||"");
+        const open=(url,title)=>openInsideLightning(url,base(),title);
+        const handleLink=event=>{
+          if(event.defaultPrevented)return;
+          const target=event.target;
+          const anchor=target?.closest?.("a[href]");
+          if(!anchor||anchor.hasAttribute("download"))return;
+          const t=(anchor.getAttribute("target")||"").toLowerCase();
+          const modified=event.ctrlKey||event.metaKey;
+          const isNew=event.type==="auxclick"&&event.button===1
+            ||event.type==="click"&&event.button===0&&(t==="_blank"||modified);
+          if(!isNew)return;
+          let url;
+          try{url=new URL(anchor.getAttribute("href"),base()).href}catch{return}
+          if(!open(url,anchor.textContent?.trim().slice(0,80)))return;
+          event.preventDefault();
+          event.stopPropagation();
+          event.stopImmediatePropagation();
+        };
+        doc.addEventListener("click",handleLink,true);
+        doc.addEventListener("auxclick",handleLink,true);
+        // JavaScript window.open() is not a link click. Redirect supported
+        // HTTP(S) requests to our tab manager as well.
+        try{
+          const original=win.open;
+          win.open=function(url,target,features){
+            if(url==null||String(url).trim()===""){
+              newTab();return null;
+            }
+            if(target==="_self"||target==="_top"||target==="_parent"){
+              return original.call(this,url,target,features);
+            }
+            if(open(url))return null;
+            // Non-web protocols and downloads keep the browser's native handling.
+            return original.call(this,url,target,features);
+          };
+        }catch(error){
+          console.warn("Lightning popup interception unavailable:",error);
+        }
+      });
+    }
+  }
+  return new LightningPopupRoutingPlugin();
+}
+
 async function makeFrame(tab){
   if(tab.frame)return tab.frame;
   const proxy=await ensureProxy();
@@ -382,9 +456,14 @@ async function makeFrame(tab){
     rememberVisit(tab);
     persistTabs();
   });
-  const escaped=new $scramjetUtils.CatchEscapedLinksPlugin(url=>new URL(`/?goto=${encodeURIComponent(url.href)}`,location.origin));
+  // Last-chance redirect for escaped links; ordinary _blank and window.open
+  // are handled before a native popup can be created by popupRoutingPlugin.
+  const escaped=new $scramjetUtils.CatchEscapedLinksPlugin(url=>{
+    if(openInsideLightning(url.href,tab.url))return new URL("/",location.origin);
+    return new URL("/",location.origin);
+  });
   tab.iframe=iframe;
-  tab.frame=proxy.createFrame(iframe,{plugins:[cache,watcher,escaped]});
+  tab.frame=proxy.createFrame(iframe,{plugins:[cache,watcher,popupRoutingPlugin(),escaped]});
   iframe.addEventListener("load",()=>{
     setTimeout(()=>refreshTabMeta(tab),60);
   });
