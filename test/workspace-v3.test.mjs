@@ -228,7 +228,7 @@ test("YouTube and external app links use Lightning browser tabs",()=>{
  assert.match(apps,/name:"YouTube",type:"Streaming"/);
  assert.match(apps,/lightning:open-browser-tab/);
  assert.match(browserApp,/addEventListener\("lightning:open-browser-tab"/);
- assert.match(browserApp,/newTab\(\{url:link\.href,title:/);
+ assert.match(browserApp,/openInsideLightning\(event\.detail\?\.url/);
  assert.doesNotMatch(apps,/window\.open\(external\.url/);
  assert.match(apps,/this\.sharedApps/);
  assert.match(apps,/Visible to<select name="visibility"/);
