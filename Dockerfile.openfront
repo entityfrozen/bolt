@@ -27,8 +27,8 @@ FROM node-base AS build
 ENV HUSKY=0
 COPY --from=upstream-source /opt/openfront/ ./
 # Edit the real upstream client and worker source before Vite compiles it.
-COPY worldpvp-source-patch.mjs worldpvp-playpage.ts worldpvp-standalone.ts worldpvp-home.css ./
-RUN node worldpvp-source-patch.mjs
+COPY worldpvp-source-patch.mjs worldpvp-party-patch.mjs worldpvp-party-ui-patch.mjs worldpvp-party-server-patch.mjs worldpvp-playpage.ts worldpvp-standalone.ts worldpvp-home.css ./
+RUN node worldpvp-source-patch.mjs && node worldpvp-party-patch.mjs && node worldpvp-party-ui-patch.mjs && node worldpvp-party-server-patch.mjs
 RUN npm ci --ignore-scripts
 ARG GIT_COMMIT=standalone
 ENV GIT_COMMIT=${GIT_COMMIT}
