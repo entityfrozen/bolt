@@ -1,6 +1,6 @@
 /* Lightning community chat: account-scoped read markers and realtime controls. */
 const CHANNELS=["general","games","suggestions","support"];
-const EMOJI=["👍","❤️","😂","🔥"];
+const EMOJI=["👍","❤️","😂","🔥","😭","💀","🎉","👀","🙏","✨"];
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const get=(k,def)=>{try{return JSON.parse(localStorage.getItem(k))??def}catch{return def}};
 const put=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}};
@@ -55,7 +55,7 @@ export function installSocial(Hub){
      if(!badge){badge=document.createElement("span");badge.className="social-app-unread";rail.append(badge)}
      badge.hidden=!total;badge.textContent=total>99?"99+":String(total);
    }
-   document.title=(total?"("+total+") ":"")+this.originalTitle;
+   document.dispatchEvent(new CustomEvent("lightning:community-unread",{detail:{count:total}}));
    const mode=this.$("#socialMode");if(mode)mode.textContent="Alerts: "+this.notifyMode;
    const desktop=this.$("#socialDesktop");if(desktop)desktop.textContent=this.desktopAlerts&&window.Notification?.permission==="granted"?"Desktop on":"Enable desktop";
  };
@@ -84,7 +84,8 @@ export function installSocial(Hub){
    if(entry.userId===this.id)return;
    if(this.active&&this.view==="chat"&&this.channel===entry.channel&&!document.hidden){this.readChannel(entry.channel);return}
    this.unread[entry.channel]=(this.unread[entry.channel]||0)+1;this.badges();
-   const mentions=String(entry.message||"").toLowerCase().includes("@"+String(this.name||"").toLowerCase());
+   const mentioned=[...String(entry.message||"").matchAll(/(?:^|[^a-z0-9._-])@([a-z0-9._-]{3,32})(?![a-z0-9._-])/gi)].map(m=>m[1].toLowerCase());
+   const mentions=mentioned.includes(String(this.username||this.name||"").toLowerCase());
    if(this.notifyMode==="off"||(this.notifyMode==="mentions"&&!mentions))return;
    if(this.desktopAlerts&&window.Notification?.permission==="granted"&&document.hidden){
      try{
@@ -101,8 +102,16 @@ export function installSocial(Hub){
    this.socialInit();
    oldMessage.call(this,m);
    if(m.type==="hello"){
+     this.username=m.username||this.name;
      this.restoreUnread();if(this.active&&this.view==="chat")this.readChannel(this.channel);
    }else if(m.type==="chat"&&m.entry)this.newChatNotice(m.entry);
+   else if(m.type==="chatDeleted"){
+     const rows=this.history[m.channel]||[];
+     const index=rows.findIndex(row=>row.id===m.id);
+     if(index>=0)rows.splice(index,1);
+     if(this.view==="chat"&&this.channel===m.channel)this.messages();
+     this.restoreUnread();
+   }
    else if(m.type==="chatUpdate"&&m.entry){
      const rows=this.history[m.channel]||[],index=rows.findIndex(x=>x.id===m.entry.id);
      if(index>=0){rows[index]=m.entry;if(this.view==="chat"&&this.channel===m.channel)this.messages()}
@@ -154,7 +163,7 @@ export function installSocial(Hub){
  Hub.prototype.messages=function(){
    const el=this.$("#hubMessages");if(!el)return;
    const bottom=el.scrollHeight-el.scrollTop-el.clientHeight<80;
-   const rows=this.history[this.channel]||[],byId=new Map(rows.map(row=>[row.id,row]));
+   const rows=(this.history[this.channel]||[]).filter(row=>!row.deleted),byId=new Map(rows.map(row=>[row.id,row]));
    if(!rows.length){el.innerHTML='<div class="social-empty"><strong># '+esc(this.channel)+'</strong><p>Be the first to say something.</p></div>';return}
    el.innerHTML=rows.slice(-120).map(m=>{
      const reply=byId.get(m.replyTo),deleted=!!m.deleted;
