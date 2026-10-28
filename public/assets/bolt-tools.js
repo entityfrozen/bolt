@@ -376,7 +376,7 @@
     const log = el("boltAiThoughtLog");
     log.append(entry);
     while (log.children.length > 6) log.firstElementChild.remove();
-    entry.scrollIntoView?.({block:"nearest",behavior:"instant"});
+    if (el("boltAiThinkingDetails").open) activity.scrollTop = activity.scrollHeight;
   }
   function showSearchedSites(data) {
     const list = el("boltAiActivitySites");
@@ -404,6 +404,7 @@
       } catch {}
     }
     list.hidden = !list.querySelector("a");
+    if (!list.hidden && el("boltAiThinkingDetails").open) el("boltAiActivity").scrollTop = el("boltAiActivity").scrollHeight;
   }
   function showGeneratedText(chunk) {
     // Completion chunks mark genuine answer progress. The full answer is
