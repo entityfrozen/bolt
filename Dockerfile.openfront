@@ -10,8 +10,12 @@
 FROM node:24-slim AS upstream-source
 RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates \
     && rm -rf /var/lib/apt/lists/*
-RUN git clone --depth 1 --single-branch --branch main \
-    https://github.com/openfrontio/OpenFrontIO.git /opt/openfront \
+# Pin the upstream source; don't silently change game protocols on every deploy.
+ARG OPENFRONT_REV=184e6cf207f68d30362bbbc524e2ef6c982483e7
+RUN git init /opt/openfront \
+    && git -C /opt/openfront remote add origin https://github.com/openfrontio/OpenFrontIO.git \
+    && git -C /opt/openfront fetch --depth=1 origin "${OPENFRONT_REV}" \
+    && git -C /opt/openfront checkout --detach FETCH_HEAD \
     && git -C /opt/openfront rev-parse HEAD > /openfront-revision \
     && rm -rf /opt/openfront/.git
 
@@ -22,6 +26,9 @@ RUN npm install --global --ignore-scripts npm@12.1.0
 FROM node-base AS build
 ENV HUSKY=0
 COPY --from=upstream-source /opt/openfront/ ./
+# Edit the real upstream client and worker source before Vite compiles it.
+COPY worldpvp-source-patch.mjs worldpvp-playpage.ts worldpvp-standalone.ts worldpvp-home.css ./
+RUN node worldpvp-source-patch.mjs
 RUN npm ci --ignore-scripts
 ARG GIT_COMMIT=standalone
 ENV GIT_COMMIT=${GIT_COMMIT}
@@ -61,6 +68,7 @@ COPY --from=upstream-source /openfront-revision ./static/commit.txt
 # Dev mode uses OpenFront's official standalone configuration and test CAPTCHA
 # key; it must not connect to production authentication or matchmaking.
 ENV GAME_ENV=dev \
+    WORLDPVP_STANDALONE=1 \
     DOMAIN=lightning-openfront-production.up.railway.app \
     NUM_WORKERS=1 \
     LOBBY_COORDINATOR=off \
