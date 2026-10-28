@@ -512,7 +512,7 @@ app.post("/api/ai/chat", mustBeSignedIn, sameOrigin, async (req, res) => {
     try{
     const upstream = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
       method: "POST",
-      headers: { "Authorization": "Bearer " + key, "Content-Type": "application/json" },
+      headers: { "Authorization": "Bearer " + key, "Content-Type": "application/json", "Accept": streamMode ? "text/event-stream" : "application/json" },
       body: JSON.stringify({
         model: process.env.NVIDIA_MODEL || "openai/gpt-oss-20b",
         max_tokens: 2000,
