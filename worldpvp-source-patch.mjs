@@ -97,5 +97,5 @@ replace(worker,
 '  if (process.env.WORLDPVP_STANDALONE !== "1") setTimeout(\n    () => {\n      // The ranked loop follows the deployment-active flag');
 replace(worker,
 '  const privilegeRefresher = new PrivilegeRefresher(\n    ServerEnv.jwtIssuer() + "/cosmetics.json",\n    ServerEnv.apiKey(),\n    ServerEnv.jwtIssuer() + "/reserved_clan_tags",\n    log,\n  );\n  void privilegeRefresher.start();',
-'  if (process.env.WORLDPVP_STANDALONE !== "1") {\n    const privilegeRefresher = new PrivilegeRefresher(\n      ServerEnv.jwtIssuer() + "/cosmetics.json",\n      ServerEnv.apiKey(),\n      ServerEnv.jwtIssuer() + "/reserved_clan_tags",\n      log,\n    );\n    void privilegeRefresher.start();\n  }');
+'  const privilegeRefresher = new PrivilegeRefresher(\n    ServerEnv.jwtIssuer() + "/cosmetics.json",\n    ServerEnv.apiKey(),\n    ServerEnv.jwtIssuer() + "/reserved_clan_tags",\n    log,\n  );\n  if (process.env.WORLDPVP_STANDALONE !== "1") void privilegeRefresher.start();');
 console.log("WorldPvP source patches complete.");
