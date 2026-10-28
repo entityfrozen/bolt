@@ -36,17 +36,137 @@
   let selectedText = "";
   let pickerCleanup = null;
 
-  // History belongs to the signed-in account, never a shared device.
-  window.LightningAccount?.history.load("ai").then(items=>{
-    if(messages.length||!Array.isArray(items))return;
-    messages=items.filter(x=>x&&["user","assistant"].includes(x.role)&&typeof x.content==="string").slice(-24);
-    renderChat();
-  }).catch(error=>console.warn("AI history sync:",error.message));
-
-  function saveChat() {
-    void window.LightningAccount?.history.save("ai",messages.slice(-24))
-      .catch(error=>console.warn("AI history sync:",error.message));
+  // AI conversations live on the account, not in one shared browser transcript.
+  let chats=[],activeChatId=null,workspaceReady=false,preferences={name:"Lightning AI",tone:"balanced",length:"balanced",instructions:""};
+  let writeQueue=Promise.resolve(),switchingChat=false;
+  const apiAi=async(url,options={})=>{
+    const response=await fetch(url,{credentials:"same-origin",cache:"no-store",...options,
+      headers:{"Content-Type":"application/json",...(options.headers||{})}});
+    const data=await response.json().catch(()=>({}));
+    if(!response.ok)throw new Error(data.error||"AI workspace request failed");
+    return data;
+  };
+  const safeText=value=>String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  function renderChatList(){
+    const list=el("boltAiThreadList");
+    if(!list)return;
+    list.innerHTML=chats.length?chats.slice().sort((a,b)=>b.updatedAt-a.updatedAt).map(chat=>
+      '<div class="bolt-ai-thread'+(chat.id===activeChatId?" current":"")+'"><button type="button" data-ai-chat="'+safeText(chat.id)+'" title="'+safeText(chat.title)+'"><strong>'+safeText(chat.title)+'</strong><small>'+Number(chat.messageCount||0)+' messages</small></button>'+
+      '<button type="button" class="bolt-ai-thread-action" data-ai-rename="'+safeText(chat.id)+'" aria-label="Rename '+safeText(chat.title)+'" title="Rename">✎</button>'+
+      '<button type="button" class="bolt-ai-thread-action" data-ai-delete="'+safeText(chat.id)+'" aria-label="Delete '+safeText(chat.title)+'" title="Delete">×</button></div>'
+    ).join(""):'<p class="bolt-ai-thread-empty">No conversations yet.</p>';
+    el("boltAiChatTitle").textContent=chats.find(chat=>chat.id===activeChatId)?.title||"New conversation";
   }
+  function renderPreferences(){
+    el("boltAiPersonaName").value=preferences.name||"Lightning AI";
+    el("boltAiTone").value=preferences.tone||"balanced";
+    el("boltAiLength").value=preferences.length||"balanced";
+    el("boltAiInstructions").value=preferences.instructions||"";
+    document.querySelector(".bolt-aux-title").textContent=preferences.name||"AI chat";
+  }
+  async function loadWorkspace(){
+    try{
+      const state=await apiAi("/api/account/ai/workspace");
+      chats=state.chats||[];preferences=state.preferences||preferences;
+      renderPreferences();
+      if(!chats.length){await createChat();return}
+      workspaceReady=true;
+      await switchChat(state.activeId&&chats.some(c=>c.id===state.activeId)?state.activeId:chats[0].id);
+    }catch(error){setError(error.message);workspaceReady=true;sendButton.disabled=false}
+  }
+  async function createChat(){
+    if(busy||switchingChat)return;
+    try{
+      await writeQueue.catch(()=>{});
+      const data=await apiAi("/api/account/ai/chats",{method:"POST",body:JSON.stringify({title:"New conversation"})});
+      chats.unshift({...data.chat,messageCount:0});
+      activeChatId=data.chat.id;messages=[];workspaceReady=true;
+      setError("");setActivity("");renderChatList();renderChat();input.focus();
+    }catch(error){setError(error.message)}
+  }
+  async function switchChat(id){
+    if(!id||busy||switchingChat)return;
+    switchingChat=true;
+    try{
+      await writeQueue.catch(()=>{});
+      const {chat}=await apiAi("/api/account/ai/chats/"+encodeURIComponent(id));
+      activeChatId=chat.id;messages=Array.isArray(chat.messages)?chat.messages.slice(-48):[];
+      el("boltAiChatsDrawer").hidden=true;el("boltAiChatsToggle").setAttribute("aria-expanded","false");
+      setError("");setActivity("");renderChatList();renderChat();
+    }catch(error){setError(error.message)}
+    finally{switchingChat=false}
+  }
+  function saveChat(){
+    const id=activeChatId;
+    if(!id)return Promise.resolve();
+    const snapshot=messages.slice(-48).map(({role,content,sources,searched})=>({role,content,
+      ...(sources?{sources}:{}),...(searched?{searched:true}:{})}));
+    const next=writeQueue.catch(()=>{}).then(()=>apiAi("/api/account/ai/chats/"+encodeURIComponent(id)+"/messages",{
+      method:"PUT",body:JSON.stringify({messages:snapshot})
+    })).then(({chat})=>{
+      const existing=chats.find(c=>c.id===chat.id);
+      if(existing)Object.assign(existing,chat);
+      if(activeChatId===chat.id)renderChatList();
+    });
+    writeQueue=next;
+    next.catch(error=>setError("Chat sync: "+error.message));
+    return next;
+  }
+  el("boltAiChatsToggle").addEventListener("click",()=>{
+    const drawer=el("boltAiChatsDrawer");drawer.hidden=!drawer.hidden;
+    el("boltAiChatsToggle").setAttribute("aria-expanded",String(!drawer.hidden));
+    el("boltAiPersonality").hidden=true;
+    renderChatList();
+  });
+  el("boltAiCreateChat").addEventListener("click",createChat);
+  el("boltAiThreadList").addEventListener("click",async event=>{
+    const button=event.target.closest("button");if(!button)return;
+    const open=button.dataset.aiChat,rename=button.dataset.aiRename,remove=button.dataset.aiDelete;
+    if(open){await switchChat(open);return}
+    if(busy||switchingChat)return;
+    const item=chats.find(c=>c.id===(rename||remove));if(!item)return;
+    if(rename){
+      const title=prompt("Rename conversation",item.title);
+      if(title===null||!title.trim())return;
+      try{
+        const {chat}=await apiAi("/api/account/ai/chats/"+encodeURIComponent(item.id),{
+          method:"PATCH",body:JSON.stringify({title:title.trim().slice(0,80)})});
+        Object.assign(item,chat);renderChatList();
+      }catch(error){setError(error.message)}
+    }else if(remove){
+      if(!confirm('Delete "'+item.title+'"? This cannot be undone.'))return;
+      try{
+        await writeQueue.catch(()=>{});
+        await apiAi("/api/account/ai/chats/"+encodeURIComponent(item.id),{method:"DELETE"});
+        chats=chats.filter(c=>c.id!==item.id);
+        if(activeChatId===item.id){
+          activeChatId=null;messages=[];
+          if(chats.length)await switchChat(chats[0].id);
+          else await createChat();
+        }
+        renderChatList();renderChat();
+      }catch(error){setError(error.message)}
+    }
+  });
+  el("boltAiPersonalityToggle").addEventListener("click",()=>{
+    const panel=el("boltAiPersonality");panel.hidden=!panel.hidden;
+    el("boltAiChatsDrawer").hidden=true;el("boltAiChatsToggle").setAttribute("aria-expanded","false");
+  });
+  el("boltAiPersonalityClose").addEventListener("click",()=>{el("boltAiPersonality").hidden=true});
+  el("boltAiPreferencesForm").addEventListener("submit",async event=>{
+    event.preventDefault();
+    const body={name:el("boltAiPersonaName").value.trim(),tone:el("boltAiTone").value,
+      length:el("boltAiLength").value,instructions:el("boltAiInstructions").value};
+    const button=el("boltAiPrefsSave");button.disabled=true;
+    try{
+      const data=await apiAi("/api/account/ai/preferences",{method:"PATCH",body:JSON.stringify(body)});
+      preferences=data.preferences;renderPreferences();el("boltAiPersonality").hidden=true;
+      setError("");setActivity("AI preferences saved for future replies");
+    }catch(error){setError(error.message)}
+    finally{button.disabled=false}
+  });
+  sendButton.disabled=true;
+  void loadWorkspace();
   function openAI(open = !document.body.classList.contains("bolt-ai-open")) {
     document.body.classList.toggle("bolt-ai-open", open);
     bubble.setAttribute("aria-expanded", String(open));
