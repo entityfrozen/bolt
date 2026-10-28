@@ -78,18 +78,18 @@ export function installSplitChat(Hub){
   input.disabled=readonly;
   input.placeholder=readonly?"Only staff can post here":"Message #"+this.splitChannel+"…";
   this.$("#splitCompose button").disabled=readonly;
-  const entries=(server.messages?.[this.splitChannel]||[]).slice(-90);
+  const entries=(server.messages?.[this.splitChannel]||[]).filter(entry=>!entry.deleted).slice(-90);
   list.innerHTML=entries.length?entries.map(m=>
    '<article class="sc-message"><div><strong>'+escapeText(m.by)+'</strong><time>'+
    new Date(m.at).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})+'</time></div>'+
-   '<p>'+escapeText(m.deleted?"Message deleted":m.message)+'</p></article>').join(""):
+   '<p>'+escapeText(m.message)+'</p></article>').join(""):
    '<div class="sc-empty">No messages in #'+escapeText(this.splitChannel)+' yet.</div>';
   list.scrollTop=list.scrollHeight;
  };
  Hub.prototype.onMessage=function(m){
   receive.call(this,m);
   if(!this.splitReady)return;
-  if(["v2State","v2Server","v2Message","v2MessageUpdate"].includes(m.type)){
+  if(["v2State","v2Server","v2Message","v2MessageUpdate","v2MessageDeleted"].includes(m.type)){
    if(!this.$("#lightningSideChat")?.hidden)this.splitDraw();
   }
  };
