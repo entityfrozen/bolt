@@ -558,7 +558,7 @@ installArenaPolish(Hub);
 export function openHub(view="chat"){
  const root=document.getElementById("hubMount");if(!root)return;
  if(!document.getElementById("lightningHubCss")){
-  const css=document.createElement("link");css.id="lightningHubCss";css.rel="stylesheet";css.href="/assets/hub.css?v=3";document.head.append(css);
+  const css=document.createElement("link");css.id="lightningHubCss";css.rel="stylesheet";css.href="/assets/hub.css?v=4";document.head.append(css);
    const arena=document.createElement("link");arena.id="lightningArenaCss";arena.rel="stylesheet";arena.href="/assets/arena-v3.css?v=2";document.head.append(arena);
  }
  if(!INSTANCE)INSTANCE=new Hub(root);
