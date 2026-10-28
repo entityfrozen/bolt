@@ -5,11 +5,11 @@ import crypto from "node:crypto";
 // Private, session-scoped account data. Never infer identity from a request body.
 export function registerAccountSpace({app,dataDir,mustBeSignedIn,sameOrigin,listUsers}){
  const filename=path.join(dataDir,"lightning-accounts.json");
- let data={profiles:{},history:{},dm:{},settings:{},sharedApps:[]};
+ let data={profiles:{},history:{},dm:{},settings:{},sharedApps:[],aiWorkspaces:{}};
  try{
   const parsed=JSON.parse(fs.readFileSync(filename,"utf8"));
   if(parsed&&typeof parsed==="object"){
-   for(const key of ["profiles","history","dm","settings"])
+   for(const key of ["profiles","history","dm","settings","aiWorkspaces"])
     if(parsed[key]&&!Array.isArray(parsed[key])&&typeof parsed[key]==="object")data[key]=parsed[key];
    if(Array.isArray(parsed.sharedApps))data.sharedApps=parsed.sharedApps.slice(0,100);
   }
@@ -246,5 +246,97 @@ export function registerAccountSpace({app,dataDir,mustBeSignedIn,sameOrigin,list
   if(!entry.reactions[emoji].length)delete entry.reactions[emoji];
   persist();res.json({ok:true,reactions:entry.reactions});
  });
- return {getDisplayName,profile};
+
+ // Each AI workspace is owned by its authenticated Lightning account.
+ const AI_TONES=["balanced","casual","professional","direct","creative"];
+ const AI_LENGTHS=["short","balanced","detailed"];
+ const aiMessage=value=>{
+  if(!value||!["user","assistant"].includes(value.role)||typeof value.content!=="string")return null;
+  const content=value.content.trim().slice(0,9000);
+  if(!content)return null;
+  return {role:value.role,content,
+   ...(Array.isArray(value.sources)?{sources:value.sources.slice(0,8).filter(x=>x&&typeof x.url==="string").map(x=>({
+    title:clip(x.title,120),url:clip(x.url,1600)
+   })).filter(x=>/^https?:\/\//i.test(x.url))}:{}),
+   ...(value.searched===true?{searched:true}:{})};
+ };
+ const aiDefaults=()=>({name:"Lightning AI",tone:"balanced",length:"balanced",instructions:""});
+ function aiWorkspace(userId){
+  let ws=data.aiWorkspaces[userId];
+  if(!ws||!Array.isArray(ws.chats)){
+   const old=Array.isArray(data.history[userId]?.ai)?data.history[userId].ai.map(aiMessage).filter(Boolean).slice(-48):[];
+   const first=old.length?{id:crypto.randomBytes(12).toString("hex"),title:"Previous conversation",messages:old,createdAt:Date.now(),updatedAt:Date.now()}:null;
+   ws={chats:first?[first]:[],activeId:first?.id||null,preferences:aiDefaults()};
+   data.aiWorkspaces[userId]=ws;
+   persist();
+  }
+  return ws;
+ }
+ const aiSummary=chat=>({id:chat.id,title:chat.title,createdAt:chat.createdAt,updatedAt:chat.updatedAt,
+  messageCount:chat.messages.length,preview:chat.messages.at(-1)?.content?.slice(0,110)||""});
+ app.get("/api/account/ai/workspace",mustBeSignedIn,(req,res)=>{
+  const ws=aiWorkspace(req.auth.identity.id);
+  res.setHeader("Cache-Control","no-store");
+  res.json({chats:ws.chats.map(aiSummary).sort((a,b)=>b.updatedAt-a.updatedAt),
+   activeId:ws.activeId,preferences:{...aiDefaults(),...ws.preferences}});
+ });
+ app.post("/api/account/ai/chats",mustBeSignedIn,sameOrigin,(req,res)=>{
+  const ws=aiWorkspace(req.auth.identity.id);
+  if(ws.chats.length>=40)return fail(res,409,"You can keep up to 40 AI conversations. Delete one to create another.");
+  const now=Date.now(),title=clip(req.body?.title,80)||"New conversation";
+  const chat={id:crypto.randomBytes(12).toString("hex"),title,messages:[],createdAt:now,updatedAt:now};
+  ws.chats.push(chat);ws.activeId=chat.id;persist();
+  res.status(201).json({chat});
+ });
+ app.get("/api/account/ai/chats/:id",mustBeSignedIn,(req,res)=>{
+  const ws=aiWorkspace(req.auth.identity.id),chat=ws.chats.find(c=>c.id===req.params.id);
+  if(!chat)return fail(res,404,"Conversation not found.");
+  res.setHeader("Cache-Control","no-store");res.json({chat});
+ });
+ app.patch("/api/account/ai/chats/:id",mustBeSignedIn,sameOrigin,(req,res)=>{
+  const ws=aiWorkspace(req.auth.identity.id),chat=ws.chats.find(c=>c.id===req.params.id);
+  if(!chat)return fail(res,404,"Conversation not found.");
+  const title=clip(req.body?.title,80);
+  if(!title)return fail(res,400,"Give this conversation a title.");
+  chat.title=title;chat.updatedAt=Date.now();ws.activeId=chat.id;persist();res.json({chat:aiSummary(chat)});
+ });
+ app.put("/api/account/ai/chats/:id/messages",mustBeSignedIn,sameOrigin,(req,res)=>{
+  const ws=aiWorkspace(req.auth.identity.id),chat=ws.chats.find(c=>c.id===req.params.id);
+  if(!chat)return fail(res,404,"Conversation not found.");
+  if(!Array.isArray(req.body?.messages)||req.body.messages.length>48)return fail(res,400,"Conversation is too long.");
+  const messages=req.body.messages.map(aiMessage);
+  if(messages.some(x=>!x))return fail(res,400,"Invalid conversation messages.");
+  chat.messages=messages;chat.updatedAt=Date.now();ws.activeId=chat.id;
+  if(chat.title==="New conversation"&&messages.length){
+   const first=messages.find(m=>m.role==="user")?.content;
+   if(first)chat.title=first.replace(/\s+/g," ").slice(0,56)+(first.length>56?"…":"");
+  }
+  persist();res.json({chat:aiSummary(chat)});
+ });
+ app.delete("/api/account/ai/chats/:id",mustBeSignedIn,sameOrigin,(req,res)=>{
+  const ws=aiWorkspace(req.auth.identity.id),before=ws.chats.length;
+  ws.chats=ws.chats.filter(c=>c.id!==req.params.id);
+  if(ws.chats.length===before)return fail(res,404,"Conversation not found.");
+  if(ws.activeId===req.params.id)ws.activeId=ws.chats.at(-1)?.id||null;
+  persist();res.json({ok:true,activeId:ws.activeId});
+ });
+ app.patch("/api/account/ai/preferences",mustBeSignedIn,sameOrigin,(req,res)=>{
+  const ws=aiWorkspace(req.auth.identity.id),body=req.body||{};
+  if(body.tone!==undefined&&!AI_TONES.includes(body.tone))return fail(res,400,"Invalid tone.");
+  if(body.length!==undefined&&!AI_LENGTHS.includes(body.length))return fail(res,400,"Invalid response length.");
+  if(body.name!==undefined&&(typeof body.name!=="string"||body.name.length>50))return fail(res,400,"Assistant name is too long.");
+  if(body.instructions!==undefined&&(typeof body.instructions!=="string"||body.instructions.length>1200))return fail(res,400,"Instructions must be under 1,200 characters.");
+  ws.preferences={...aiDefaults(),...ws.preferences,
+   ...(body.tone!==undefined?{tone:body.tone}:{}),
+   ...(body.length!==undefined?{length:body.length}:{}),
+   ...(body.name!==undefined?{name:clip(body.name,50)||"Lightning AI"}:{}),
+   ...(body.instructions!==undefined?{instructions:body.instructions.trim()}: {})};
+  persist();res.json({preferences:ws.preferences});
+ });
+ function getAiPreferences(userId){
+  const ws=aiWorkspace(userId);
+  return {...aiDefaults(),...ws.preferences};
+ }
+
+ return {getDisplayName,profile,getAiPreferences};
 }
