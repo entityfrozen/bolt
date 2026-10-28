@@ -1183,14 +1183,20 @@ function bindUi(){
   // Apps open in a real Lightning browser tab, not an external browser window.
   // Hide the workspace without closing its game frames or websocket.
   document.addEventListener("lightning:open-browser-tab",event=>{
-    try{
-      const link=new URL(event.detail?.url);
-      if(!["https:","http:"].includes(link.protocol)||link.username||link.password)throw Error("Invalid website.");
-      newTab({url:link.href,title:String(event.detail?.title||link.hostname).slice(0,80)});
-      const workspace=document.getElementById("hubMount");
-      if(workspace)workspace.hidden=true;
-    }catch(error){toast("Couldn't open website: "+error.message);}
+    if(!openInsideLightning(event.detail?.url,"",event.detail?.title)){
+      toast("Couldn't open that website inside Lightning.");
+    }
   });
+  // Links in Lightning's own apps, credits and game hubs also stay in the
+  // in-app tab strip; proxied website links are handled per frame below.
+  document.addEventListener("click",event=>{
+    const anchor=event.target?.closest?.('a[href][target="_blank"]');
+    if(!anchor||anchor.hasAttribute("download")||event.defaultPrevented)return;
+    if(openInsideLightning(anchor.href,location.href,anchor.textContent?.trim())){
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  },true);
   $("#lightningSuggestionButton")?.addEventListener("click",()=>openLightningHub("suggestions"));
   document.querySelectorAll(".lightning-quick").forEach(button=>button.addEventListener("click",()=>navigate(button.dataset.lightningQuick)));
   dom.homeMark.addEventListener("click",()=>newTab());
