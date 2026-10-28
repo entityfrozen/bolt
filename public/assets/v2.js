@@ -70,6 +70,7 @@ export function installV2(Hub){
         if(name?.trim())this.send({type:"v2AddChannel",serverId:this.v2ServerId,name:name.trim(),category:"TEXT"});
       }else if(act==="leave"){if(confirm("Leave this community?"))this.send({type:"v2Leave",serverId:this.v2ServerId});}
       else if(act==="delete"&&confirm("Delete this message?"))this.send({type:"v2DeleteMessage",serverId:this.v2ServerId,channel:this.v2Channel,messageId:b.dataset.id});
+      else if(act==="react")this.send({type:"v2React",serverId:this.v2ServerId,channel:this.v2Channel,messageId:b.dataset.id,emoji:b.dataset.emoji});
       else if(act==="mention"){
         const field=this.$("#v2ChatInput")||this.$("#hubChatInput");
         if(field){field.value+=(field.value?" ":"")+"@"+b.dataset.name+" ";field.focus();}
@@ -190,12 +191,19 @@ export function installV2(Hub){
       '<strong>'+esc(user.name)+'</strong><i>●</i></button>').join("");
   };
   Hub.prototype.v2Messages=function(){
-    const el=this.$("#v2RoomMessages"),s=this.v2Servers.find(s=>s.id===this.v2ServerId);
-    if(!el||!s)return;
-    const q=this.v2Search||"",rows=(s.messages?.[this.v2Channel]||[]).filter(m=>!q||(m.by+" "+m.message).toLowerCase().includes(q));
-    el.innerHTML=rows.length?rows.map(m=>'<article class="v2-row"><span class="v2-avatar">'+esc(m.by?.[0]?.toUpperCase()||"?")+'</span><div class="v2-row-body"><header><strong>'+esc(m.by)+'</strong><time>'+time(m.at)+'</time></header><p>'+(m.deleted?"<i>Message deleted</i>":esc(m.message).replace(/\\n/g,"<br>"))+'</p></div>'+
-      (!m.deleted&&(m.userId===this.id||s.canManage)?'<button class="v2-delete" data-v2="delete" data-id="'+esc(m.id)+'" aria-label="Delete message">×</button>':"")+'</article>').join(""):
-      '<div class="v2-room-empty">'+(q?"No messages match that search.":"Be the first to say something.")+'</div>';
+    const el=this.$("#v2RoomMessages"),server=this.v2Servers.find(s=>s.id===this.v2ServerId);
+    if(!el||!server)return;
+    const query=this.v2Search||"",rows=(server.messages?.[this.v2Channel]||[])
+      .filter(m=>m&&!m.deleted&&(!query||(m.by+" "+m.message).toLowerCase().includes(query)));
+    el.innerHTML=rows.length?rows.map(m=>{
+      const reactions=Object.entries(m.reactions||{}).filter(([,ids])=>Array.isArray(ids)&&ids.length)
+        .map(([emoji,ids])=>'<button class="v2-reaction'+(ids.includes(this.id)?" mine":"")+'" type="button" data-v2="react" data-id="'+esc(m.id)+'" data-emoji="'+esc(emoji)+'">'+esc(emoji)+' '+ids.length+'</button>').join("");
+      const actions='<div class="v2-reaction-actions">'+reactions+
+        ["❤️","😂","🔥"].map(emoji=>'<button type="button" data-v2="react" data-id="'+esc(m.id)+'" data-emoji="'+emoji+'" title="React '+emoji+'">'+emoji+'</button>').join("")+'</div>';
+      const content=esc(m.message).replace(/(^|\s)(@[a-z0-9._-]{3,32})/gi,'$1<mark class="v2-mention">$2</mark>').replace(/\n/g,"<br>");
+      return '<article class="v2-row"><span class="v2-avatar">'+esc(m.by?.[0]?.toUpperCase()||"?")+'</span><div class="v2-row-body"><header><strong>'+esc(m.by)+'</strong><time>'+time(m.at)+'</time></header><p>'+content+'</p>'+actions+'</div>'+
+      ((m.userId===this.id||server.canManage)?'<button class="v2-delete" data-v2="delete" data-id="'+esc(m.id)+'" aria-label="Delete message">×</button>':"")+'</article>';
+    }).join(""):'<div class="v2-room-empty">'+(query?"No messages match that search.":"Be the first to say something.")+'</div>';
     el.scrollTop=el.scrollHeight;
   };
   Hub.prototype.onMessage=function(m){
@@ -233,6 +241,11 @@ export function installV2(Hub){
       const s=this.v2Servers.find(s=>s.id===m.serverId);
       if(s){(s.messages[m.entry.channel]??=[]).push(m.entry);s.messages[m.entry.channel]=s.messages[m.entry.channel].slice(-150);}
       if(this.view==="room"&&this.v2ServerId===m.serverId&&this.v2Channel===m.entry.channel)this.v2Messages();
+    }else if(m.type==="v2MessageDeleted"){
+      const server=this.v2Servers.find(item=>item.id===m.serverId);
+      const rows=server?.messages?.[m.channel];
+      if(rows){const i=rows.findIndex(row=>row.id===m.id);if(i>=0)rows.splice(i,1);}
+      if(this.view==="room"&&this.v2ServerId===m.serverId&&this.v2Channel===m.channel)this.v2Messages();
     }else if(m.type==="v2MessageUpdate"&&m.entry){
       const rows=this.v2Servers.find(s=>s.id===m.serverId)?.messages?.[m.entry.channel];
       if(rows){const index=rows.findIndex(entry=>entry.id===m.entry.id);if(index>=0)rows[index]=m.entry;}
