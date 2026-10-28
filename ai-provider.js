@@ -1,7 +1,8 @@
 import {readAiCompletionStream} from "./ai-stream.js";
 
 const ENDPOINT="https://integrate.api.nvidia.com/v1/chat/completions";
-// NVIDIA removed mistral-nemotron on 2026-09-28. This endpoint remains hosted.\nconst DEFAULT_BACKUP="meta/llama-3.2-11b-vision-instruct";
+// NVIDIA removed mistral-nemotron on 2026-09-28. This endpoint remains hosted.
+const DEFAULT_BACKUP="meta/llama-3.2-11b-vision-instruct";
 const modelCooldowns=new Map();
 
 export function activeRoleplay(messages){
