@@ -2,6 +2,8 @@
 (()=>{
  "use strict";
  const escape=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+ const emojiNames={smile:"😄",heart:"❤️",fire:"🔥",laugh:"😂",joy:"😂",cry:"😢",sob:"😭",skull:"💀",thumbsup:"👍",eyes:"👀",party:"🎉",wave:"👋",sparkles:"✨"};
+ const emojiify=text=>String(text).replace(/:([a-z0-9_]+):/gi,(word,name)=>emojiNames[name.toLowerCase()]||word);
  const $=(s,r=document)=>r.querySelector(s);
  const all=(s,r=document)=>Array.from(r.querySelectorAll(s));
  const identity=()=>window.LightningAccount?.profile;
@@ -76,11 +78,18 @@
     if(form.dataset.asForm==="message"){
      const input=$("#asMessage");
      if(!selected||!input?.value.trim())return;
-     await api("/api/account/dms/"+encodeURIComponent(selected),{method:"POST",body:JSON.stringify({text:input.value})});
+     await api("/api/account/dms/"+encodeURIComponent(selected),{method:"POST",body:JSON.stringify({text:window.LightningPrefs?.autoEmoji===false?input.value:emojiify(input.value)})});
      input.value="";await loadMessages();await loadThreads();renderChat();
     }
    }catch(error){notice(error.message);}
    finally{busy=false;if(submit)submit.disabled=false;}
+  });
+  box.addEventListener("input",event=>{
+   if(event.target.id!=="asMessage"||window.LightningPrefs?.autoEmoji===false)return;
+   const input=event.target,before=input.value,caret=input.selectionStart;
+   input.value=emojiify(before);
+   const at=Math.max(0,caret-(before.length-input.value.length));
+   input.setSelectionRange(at,at);
   });
   box.addEventListener("keydown",event=>{
    if(event.target.id==="asMessage"&&event.key==="Enter"&&!event.shiftKey){
