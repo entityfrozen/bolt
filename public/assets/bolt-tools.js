@@ -399,24 +399,23 @@
     sendButton.disabled = true;
     sendButton.textContent = "Thinking…";
     setError("");
-    setActivity(webMode === "on" ? "Requesting live web sources…" : webMode === "off" ? "Generating answer…" : "Checking whether live sources are useful…");
+    setActivity(webMode === "on" ? "Looking for live sources…" : webMode === "off" ? "Preparing an answer without web search…" : "Checking whether live sources will help…");
     try {
       const response = await fetch("/api/ai/chat", {
         method: "POST",
         credentials: "same-origin",
-        headers: {"Content-Type":"application/json"},
+        headers: {"Content-Type":"application/json","Accept":"text/event-stream"},
         body: JSON.stringify({messages: messages.slice(-16).map(({role,content})=>({role,content})), webSearch: webMode==="auto"?undefined:webMode==="on"})
       });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.error || "AI request failed");
+      const data=await readAiEvents(response);
       if (typeof data.reply !== "string" || !data.reply.trim()) throw new Error("AI returned an empty reply");
       messages.push({role:"assistant",content:data.reply.trim(),sources:data.sources||[],searchError:data.searchError||null,searched:!!data.searched,provider:data.provider||null});
-      setActivity(data.searched ? (data.sources?.length ? "Found " + data.sources.length + " sources" + (data.provider ? " through " + data.provider : "") : "No live sources could be verified") : "Answer received · no live search used");
+      setActivity("");
       saveChat();
       renderChat();
     } catch (error) {
+      setActivity("");
       setError(error.message || "Could not contact the AI server.");
-      setActivity("Request failed · see the error below");
     } finally {
       busy = false;
       sendButton.disabled = false;
