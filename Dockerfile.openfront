@@ -32,7 +32,7 @@ RUN node worldpvp-source-patch.mjs
 RUN npm ci --ignore-scripts
 ARG GIT_COMMIT=standalone
 ENV GIT_COMMIT=${GIT_COMMIT}
-RUN npm run build-prod
+# Typecheck and bundle separately to avoid peak memory spikes on Railway.\nRUN ./node_modules/.bin/tsc --noEmit --pretty false\nRUN ./node_modules/.bin/vite build \\n    && ./node_modules/.bin/tsx scripts/buildAssetHashes.ts
 # The name bridge is inserted into the built HTML (not the game engine).
 COPY openfront-name-bridge.html /tmp/lightning-name-bridge.html
 RUN node -e 'const fs=require("node:fs"); const file="static/index.html"; const html=fs.readFileSync(file,"utf8"); if(!html.includes("</head>"))throw Error("OpenFront head missing"); fs.writeFileSync(file,html.replace("</head>",fs.readFileSync("/tmp/lightning-name-bridge.html","utf8")+"</head>"))'
