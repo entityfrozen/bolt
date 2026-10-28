@@ -523,7 +523,10 @@ app.post("/api/ai/chat", mustBeSignedIn, sameOrigin, async (req, res) => {
     modelSignal=new AbortController();
     const result=await completeAi({
       apiKey:key,
-      model:process.env.NVIDIA_MODEL||"openai/gpt-oss-20b",
+      // Prefer NVIDIA's currently hosted low-latency text-capable endpoint.
+      // The older configured model remains a secondary choice for compatibility.
+      model:process.env.NVIDIA_FAST_MODEL||"meta/llama-3.2-11b-vision-instruct",
+      backupModel:process.env.NVIDIA_MODEL||"openai/gpt-oss-20b",
       messages:providerMessages,
       stream:streamMode,
       signal:modelSignal.signal,
