@@ -820,6 +820,20 @@ function renderSettingsPanel(){
     setCloak({preset:"lightning",title:"",icon:""});
     renderSettingsPanel();
   });
+  const permissionLabel=$("#notificationStatus");
+  if(!("Notification" in window)){
+    permissionLabel.textContent="Desktop notifications aren't supported here. Unread badges still work.";
+    $("#notificationsEnable").disabled=true;
+  }else{
+    permissionLabel.textContent="Desktop notifications: "+Notification.permission+". Unread badges work without permission.";
+    $("#notificationsEnable").addEventListener("click",async()=>{
+      try{
+        const status=await Notification.requestPermission();
+        permissionLabel.textContent="Desktop notifications: "+status+".";
+        toast(status==="granted"?"Notifications enabled":"Notifications not enabled");
+      }catch{toast("Notifications aren't supported here")}
+    });
+  }
   $("#settingEngine").value=prefs.engine;
   $("#settingEngine").addEventListener("change",event=>{
     prefs.engine=event.target.value;
