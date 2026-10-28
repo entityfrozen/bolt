@@ -815,6 +815,20 @@ function renderSettingsPanel(){
   $("#cloakReset").addEventListener("click",()=>{
    setCloak({preset:"lightning",title:"",icon:""});renderSettingsPanel();
   });
+  const status=$("#notificationStatus"),button=$("#notificationsEnable");
+  if(!("Notification" in window)){
+   status.textContent="Desktop notifications aren't supported here. Tab badges still work.";
+   button.disabled=true;
+  }else{
+   status.textContent="Desktop notification permission: "+Notification.permission+".";
+   button.addEventListener("click",async()=>{
+    try{
+     const result=await Notification.requestPermission();
+     status.textContent="Desktop notification permission: "+result+".";
+     toast(result==="granted"?"Notifications enabled":"Notifications not enabled");
+    }catch{toast("Desktop notifications unavailable")}
+   });
+  }
   $("#settingEngine").value=prefs.engine;
   $("#settingEngine").addEventListener("change",event=>{
     prefs.engine=event.target.value;
