@@ -1,0 +1,51 @@
+/* WorldPvP start screen — game source skin, not a wrapper overlay. */
+:root { --wp-ink:#070d15; --wp-card:#111c28; --wp-edge:#2b4656; --wp-text:#f3f8f9; --wp-muted:#99abb7; --wp-cyan:#8ee8d8; --wp-orange:#fcb879 }
+html,body { background:#070d15!important }
+desktop-nav-bar nav { background:#09131cf5!important; border-bottom:1px solid #34526377; gap:20px!important }
+desktop-nav-bar .worldpvp-nav-brand {font:850 22px/1 system-ui;letter-spacing:-.08em;color:#f2f8f7}
+desktop-nav-bar .worldpvp-nav-brand span{color:var(--wp-cyan)}
+.worldpvp-home {display:block;width:min(1400px,100%);margin:0 auto;padding:clamp(15px,2.5vw,32px) clamp(16px,3vw,44px) 55px;color:var(--wp-text);font:14px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.worldpvp-home *{box-sizing:border-box}
+.worldpvp-mobile-top{display:none}
+.worldpvp-banner{position:relative;isolation:isolate;overflow:hidden;min-height:340px;border:1px solid #376075;border-radius:23px;background:radial-gradient(ellipse at 78% 42%,#215363 0%,#102b39 44%,#080f1a 100%);box-shadow:0 30px 85px #01060888,0 0 0 1px #ffffff08 inset;display:flex;align-items:center}
+.worldpvp-banner-content{position:relative;z-index:3;width:min(700px,70%);padding:42px clamp(26px,4.5vw,65px)}
+.worldpvp-banner-glow{position:absolute;inset:0;background:linear-gradient(90deg,#070f1cee 0%,#102132d9 43%,#06243520 100%);z-index:1;pointer-events:none}
+.worldpvp-banner-art{position:absolute;inset:-13% -9% -16% 40%;z-index:0;background-position:center;background-size:cover;opacity:.61;filter:saturate(.75) contrast(1.2);transform:rotate(-6deg) scale(1.1);mask-image:linear-gradient(90deg,transparent 0%,black 50%)}
+.worldpvp-banner-grid{position:absolute;inset:0;z-index:2;pointer-events:none;background-image:linear-gradient(#98deec08 1px,transparent 1px),linear-gradient(90deg,#98deec08 1px,transparent 1px);background-size:35px 35px}
+.worldpvp-eyebrow{display:flex;align-items:center;gap:10px;color:var(--wp-cyan);font:750 10px/1.3 ui-monospace,SFMono-Regular,monospace;letter-spacing:.17em}
+.worldpvp-eyebrow i,.worldpvp-public-header>span i{width:7px;height:7px;display:inline-block;flex:none;background:#80f8c6;border-radius:50%;box-shadow:0 0 14px #53ffa8a8}
+.worldpvp-banner h1{font-size:clamp(54px,8vw,112px);letter-spacing:-.105em;font-weight:950;line-height:.96;margin:25px 0 22px;white-space:nowrap;text-shadow:0 7px 28px #0009}
+.worldpvp-banner h1 span{color:var(--wp-cyan)}.worldpvp-banner h1 b{color:var(--wp-orange)}
+.worldpvp-banner-content p{max-width:490px;color:#c6d4de;font-size:clamp(12px,1.2vw,15px);line-height:1.7;margin:0}
+.worldpvp-banner-tags{display:flex;gap:10px;flex-wrap:wrap;margin-top:28px}
+.worldpvp-banner-tags>span{font:700 9px/1.35 ui-monospace,monospace;letter-spacing:.08em;color:#aad7d6;background:#b0eff510;border:1px solid #81d9d333;border-radius:6px;padding:8px 10px}
+.worldpvp-start-panel{display:grid;grid-template-columns:minmax(180px,1fr) minmax(0,3.6fr);gap:16px;margin:20px 0 32px}
+.worldpvp-player{display:flex;flex-direction:column;justify-content:center;gap:8px;border:1px solid #365668;border-radius:15px;padding:19px;background:linear-gradient(150deg,#172735,#101922);min-width:0}
+.worldpvp-player>span{color:#8fb5c3;font:750 10px ui-monospace,monospace;letter-spacing:.15em}
+.worldpvp-player username-input{display:flex;min-height:48px;width:100%;min-width:0;border:1px solid #45717a78;background:#020b12a3;border-radius:9px;padding:4px}
+.worldpvp-mode-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;min-width:0}
+.worldpvp-mode{position:relative;display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:8px;min-width:0;min-height:146px;cursor:pointer;padding:19px 18px;background:linear-gradient(145deg,#1a2c3a,#0e1823);border:1px solid #375260;border-radius:15px;color:#f2f7f9;transition:transform .15s,border-color .15s,background .15s}
+.worldpvp-mode:hover{transform:translateY(-3px);border-color:var(--wp-cyan);background:linear-gradient(140deg,#1c3643,#102331)}
+.worldpvp-mode:focus-visible{outline:2px solid #a6ffdf;outline-offset:2px}
+.worldpvp-mode>b{font:750 9px/1.3 ui-monospace,monospace;letter-spacing:.12em;color:var(--wp-cyan)}
+.worldpvp-mode strong{font-size:17px;letter-spacing:-.035em;font-weight:750}
+.worldpvp-mode small{font-size:11px;color:#afbfca;line-height:1.5;max-width:92%}
+.worldpvp-mode>span{position:absolute;right:16px;top:17px;color:var(--wp-cyan);font-size:16px}
+.worldpvp-mode-primary{background:linear-gradient(140deg,#15534d,#102c37);border-color:#2f9d89;box-shadow:inset 0 1px 0 #96ffe71e}
+.worldpvp-mode-primary:hover{background:linear-gradient(145deg,#1f6557,#113b41)}
+.worldpvp-public-header{display:flex;align-items:end;justify-content:space-between;gap:12px;margin:20px 0 10px;padding:0 4px}
+.worldpvp-public-header small{font:750 10px ui-monospace,monospace;letter-spacing:.16em;color:var(--wp-cyan)}
+.worldpvp-public-header h2{margin:4px 0 0;font-size:26px;letter-spacing:-.055em;font-weight:800}
+.worldpvp-public-header>span{display:flex;align-items:center;gap:8px;color:#b9d2d9;font:750 10px ui-monospace,monospace;letter-spacing:.09em}
+.worldpvp-home game-mode-selector{display:block;min-width:0}
+.worldpvp-home game-mode-selector>div{max-width:100%;width:100%!important;padding-left:0!important;padding-right:0!important}
+.worldpvp-home game-mode-selector .grid.grid-cols-3{display:none!important}
+.worldpvp-home game-mode-selector .flex.gap-4.h-14{display:none!important}
+.worldpvp-home game-mode-selector [class*="bg-cyber-yellow"]{background:#166054!important}
+.worldpvp-source-credit{margin:23px 4px 0;color:#899ba7;font-size:10px;line-height:1.7}
+.worldpvp-source-credit a{color:#a1dedc;text-decoration:underline;text-underline-offset:2px}
+body:has(.worldpvp-home) homepage-promos,body:has(.worldpvp-home) streaming-now,body:has(.worldpvp-home) steam-wishlist{display:none!important}
+@media(max-width:1050px){.worldpvp-start-panel{grid-template-columns:1fr}.worldpvp-player{padding:13px 17px}.worldpvp-banner-content{width:80%}.worldpvp-mode{min-height:126px}.worldpvp-banner h1{font-size:clamp(52px,9vw,100px)}}
+@media(max-width:900px){.worldpvp-mobile-top{position:sticky;top:0;z-index:48;display:flex;align-items:center;gap:12px;min-height:56px;margin:-15px -16px 16px;padding:7px 15px;background:#08131cef;border-bottom:1px solid #335c6a;backdrop-filter:blur(16px)}.worldpvp-mobile-top>strong{font-size:20px;letter-spacing:-.07em;white-space:nowrap}.worldpvp-mobile-top>strong span{color:var(--wp-cyan)}.worldpvp-mobile-top>div{display:flex;align-items:center;gap:3px;margin-left:auto}.worldpvp-mobile-menu{padding:5px 10px;border:1px solid #517281;border-radius:8px;background:#132b37;color:#e1f3f4;cursor:pointer;font-size:17px}}
+@media(max-width:700px){.worldpvp-home{padding:15px 13px 38px}.worldpvp-mobile-top{margin:-15px -13px 15px}.worldpvp-banner{min-height:290px;border-radius:15px}.worldpvp-banner-content{padding:28px 23px;width:100%}.worldpvp-banner h1{font-size:clamp(49px,11vw,78px)}.worldpvp-banner-content p{font-size:12px;max-width:460px}.worldpvp-banner-art{inset:0 -65% 0 8%;opacity:.3}.worldpvp-banner-glow{background:linear-gradient(90deg,#07131ae8,#08172566)}.worldpvp-banner-tags{gap:5px;margin-top:16px}.worldpvp-banner-tags>span{font-size:8px;padding:6px}.worldpvp-mode-actions{grid-template-columns:1fr;gap:8px}.worldpvp-mode{min-height:92px;padding:14px 16px;gap:3px}.worldpvp-mode strong{font-size:16px}.worldpvp-mode small{font-size:11px}.worldpvp-public-header h2{font-size:22px}.worldpvp-public-header>span{display:none}}
+@media(prefers-reduced-motion:reduce){.worldpvp-mode{transition:none}.worldpvp-mode:hover{transform:none}}
