@@ -1206,6 +1206,8 @@ async function start(){
     renderNewtabLists();
   }catch{return}
   restoreTabs();
+  void pollDirectMessages();
+  setInterval(()=>void pollDirectMessages(),8000);
   import("/assets/hub.js?v=37").then(hub=>{
     hub.startHubNotifications();
     if(new URL(location.href).searchParams.get("view")!=="browser")hub.openHub("overview");
