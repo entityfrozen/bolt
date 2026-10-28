@@ -100,21 +100,54 @@ class Hub{
   else if(this.view==="rps")this.rpsScreen();
   else if(this.view==="world")this.worldScreen();
  }
+
  chat(){
   this.header("# "+this.channel,"Live community · "+this.channel);
-  this.$("#hubContent").innerHTML='<div class="hub-main"><div class="hub-chat-stream" id="hubMessages"></div><div class="hub-composer"><form id="hubChatForm" class="hub-compose-form"><input id="hubChatInput" maxlength="1000" autocomplete="off" placeholder="'+E(this.channel==="suggestions"?"Your idea for Lightning…":"Message #"+this.channel)+'"><button class="hub-btn primary">Send ↗</button></form><div class="hub-footer">Your messages are visible to everyone in this channel.</div></div></div><aside class="hub-members"><span class="hub-label">ONLINE</span><div id="hubMembers"></div></aside>';
-  this.$("#hubChatForm").addEventListener("submit",e=>{
-   e.preventDefault();const input=this.$("#hubChatInput"),msg=input.value.trim();
-   if(msg&&this.send({type:"chat",channel:this.channel,message:msg}))input.value="";
-  });
-  this.messages();this.members();
+  this.$("#hubContent").innerHTML='<div class="hub-main"><div class="hub-chat-stream" id="hubMessages"></div><div class="hub-composer"><form id="hubChatForm" class="hub-compose-form"><input id="hubChatInput" maxlength="1000" autocomplete="off" placeholder="'+E(this.channel==="suggestions"?"Your idea for Lightning…":"Message #"+this.channel)+'"><button class="hub-btn primary">Send ↗</button></form><div class="hub-emoji-suggestions" id="hubEmojiSuggestions" hidden></div><div class="hub-footer">Use @username to mention someone · :heart: for ❤️ · hover to react or delete your message.</div></div></div><aside class="hub-members"><span class="hub-label">ONLINE</span><div id="hubMembers"></div></aside>';
+  this.composer("hubChatForm","hubChatInput",message=>({type:"chat",channel:this.channel,message}));
+  this.messages();this.members();this.markRead();
+ }
+ messageHtml(message,scope){
+  const attributes=scope.peer?'data-peer="'+E(scope.peer)+'"':'data-channel="'+E(scope.channel)+'"';
+  const isMine=message.userId===this.id;
+  const reactions=Object.entries(message.reactions||{}).filter(([,users])=>Array.isArray(users)&&users.length)
+   .map(([emoji,users])=>'<button class="hub-reaction '+(users.includes(this.id)?"mine":"")+'" type="button" data-act="react" data-id="'+E(message.id)+'" '+attributes+' data-emoji="'+E(emoji)+'">'+E(emoji)+' <b>'+users.length+'</b></button>').join("");
+  const picker=this.reactionPicker===message.id?'<span class="hub-reaction-picker">'+EMOJI_PICKER.map(emoji=>'<button type="button" data-act="react" data-id="'+E(message.id)+'" '+attributes+' data-emoji="'+E(emoji)+'">'+E(emoji)+'</button>').join("")+'</span>':"";
+  const text=E(message.message).replace(/@([a-z0-9._-]{3,32})/gi,'<mark class="hub-mention">@$1</mark>');
+  return '<div class="hub-chat-line" data-msg="'+E(message.id)+'"><span class="hub-chat-avatar">'+E(message.by?.slice(0,1).toUpperCase()||"?")+'</span><div class="hub-message-main"><div class="hub-chat-top"><strong>'+E(message.by)+'</strong><time>'+new Date(message.at).toLocaleString()+'</time></div><p>'+text+'</p><div class="hub-message-bottom">'+reactions+'<button class="hub-quick-react" data-act="reactMenu" data-id="'+E(message.id)+'" type="button" title="Add a reaction">☺ ＋</button>'+(isMine?'<button class="hub-msg-delete" data-act="deleteMsg" data-id="'+E(message.id)+'" '+attributes+' type="button">Delete</button>':"")+picker+'</div></div></div>';
  }
  messages(){
   const el=this.$("#hubMessages");if(!el)return;
   const intro=this.channel==="suggestions"?"Post the features you want Lightning to build next.":"This is the start of the "+this.channel+" channel.";
+  const nearBottom=el.scrollHeight-el.scrollTop-el.clientHeight<100;
   el.innerHTML='<div class="hub-chat-welcome"><strong>Welcome to #'+E(this.channel)+'</strong><p>'+E(intro)+'</p></div>'+
-   (this.history[this.channel]||[]).slice(-120).map(m=>'<div class="hub-chat-line"><span class="hub-chat-avatar">'+E(m.by?.slice(0,1).toUpperCase()||"?")+'</span><div><div class="hub-chat-top"><strong>'+E(m.by)+'</strong><time>'+new Date(m.at).toLocaleString()+'</time></div><p>'+E(m.message)+'</p></div></div>').join("");
-  el.scrollTop=el.scrollHeight;
+   (this.history[this.channel]||[]).slice(-120).map(m=>this.messageHtml(m,{channel:this.channel})).join("");
+  if(nearBottom)el.scrollTop=el.scrollHeight;
+ }
+ composer(formId,inputId,payload){
+  const form=this.$("#"+formId),input=this.$("#"+inputId),list=this.$("#hubEmojiSuggestions");
+  const autoEmoji=()=>{try{return JSON.parse(localStorage.getItem("bolt.prefs")||"{}").autoEmoji!==false}catch{return true}};
+  form.addEventListener("submit",event=>{
+   event.preventDefault();const message=(autoEmoji()?toEmoji(input.value):input.value).trim();
+   if(message&&this.send(payload(message))){input.value="";list.hidden=true}
+  });
+  input.addEventListener("input",()=>{
+   if(autoEmoji()&&/:([a-z0-9_]+):/i.test(input.value)){
+    const at=input.selectionStart,converted=toEmoji(input.value);input.value=converted;
+    input.setSelectionRange(Math.min(at,converted.length),Math.min(at,converted.length));
+   }
+   const token=autoEmoji()?input.value.slice(0,input.selectionStart).match(/:([a-z0-9_]{2,})$/i):null;
+   const options=token?Object.entries(SOCIAL_EMOJI).filter(([name])=>name.startsWith(token[1].toLowerCase())).slice(0,6):[];
+   list.hidden=!options.length;
+   list.innerHTML=options.map(([name,emoji])=>'<button type="button" data-shortcode="'+E(name)+'">'+E(emoji)+' <span>:'+E(name)+':</span></button>').join("");
+   list.querySelectorAll("[data-shortcode]").forEach(button=>button.addEventListener("mousedown",e=>{
+    e.preventDefault();
+    const at=input.selectionStart,match=input.value.slice(0,at).match(/:([a-z0-9_]{2,})$/i);
+    if(!match)return;
+    input.value=input.value.slice(0,at-match[0].length)+SOCIAL_EMOJI[button.dataset.shortcode]+input.value.slice(at);
+    input.focus();list.hidden=true;
+   }));
+  });
  }
  members(){
   const el=this.$("#hubMembers");if(!el)return;
