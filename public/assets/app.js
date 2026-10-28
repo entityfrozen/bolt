@@ -1176,7 +1176,7 @@ async function pollDirectMessages(){
    const peer=thread.user?.id,last=thread.last;
    if(!peer||!last?.id)continue;
    const prior=lastDmIds.get(peer);
-   if(dmPollStarted&&prior&&prior!==last.id&&last.from!==me?.id){
+   if(dmPollStarted&&prior!==last.id&&last.from!==me?.id){
     const sender=thread.user.displayName||thread.user.username||"Member";
     if(document.hidden&&window.Notification?.permission==="granted"){
      try{
@@ -1193,6 +1193,8 @@ async function pollDirectMessages(){
  }catch(error){console.warn("DM notifications:",error.message)}
  finally{dmPollBusy=false}
 }
+document.addEventListener("lightning:dm-refresh",()=>void pollDirectMessages());
+
 async function start(){
   applyPrefs();
   bindUi();
