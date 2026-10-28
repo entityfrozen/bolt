@@ -38,6 +38,17 @@ export function registerAccountSpace({app,dataDir,mustBeSignedIn,sameOrigin,list
  const summary=(user)=>({id:user.id,username:user.username,displayName:getDisplayName(user.id,user.username),
   accent:data.profiles[user.id]?.accent||"#a9bdd1"});
  const threadKey=(a,b)=>[a,b].sort().join(":");
+ // Existing conversations predate read receipts. Start them at their latest
+ // message rather than treating months of old messages as new notifications.
+ for(const thread of Object.values(data.dm)){
+  if(!thread||!Array.isArray(thread.people)||!Array.isArray(thread.messages))continue;
+  if(!thread.readAt){
+   const last=thread.messages.at(-1)?.at||0;
+   thread.readAt=Object.fromEntries(thread.people.map(id=>[id,last]));
+  }
+ }
+ const unreadIn=(thread,userId)=>thread.messages.filter(message=>
+  message.from!==userId&&message.at>Number(thread.readAt?.[userId]||0)).length;
  const historyTypes=["browser","ai"];
  const visitRecord=record=>{
   if(!record||typeof record!=="object")return null;
