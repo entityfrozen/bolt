@@ -34,7 +34,7 @@ const manifest=JSON.parse(read(manifestPath));
 manifest.name="WorldPvP — Global Conquest";
 manifest.short_name="WorldPvP";
 manifest.description="Real-time strategy and multiplayer world conquest.";
-write(manifestPath,JSON.stringify(manifest,null,2)+"\\n");
+write(manifestPath,JSON.stringify(manifest,null,2)+"\n");
 
 // Original game mode architecture is untouched; only replace its landing view.
 // All Host/Join button handlers still open the real upstream lobby modals.
