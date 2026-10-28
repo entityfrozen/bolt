@@ -111,3 +111,49 @@ export function createSocial({dataDir, sendAll, sendUser, clientOf, findUserById
       updateUnread(to);
       return true;
     }
+
+    if (data.type === "socialRead") {
+      const channel = clean(data.channel, 25), peer = clean(data.peer, 100);
+      const isChannel = CHANNELS.includes(channel);
+      if (!isChannel && (!peer || peer === user.id)) return true;
+      const messages = isChannel ? history[channel] : (dms[roomFor(user.id, peer)] || []);
+      const key = isChannel ? "c:" + channel : "d:" + peer;
+      (reads[user.id] ??= {})[key] = Math.max(readAt(user.id, key), messages.at(-1)?.at || Date.now());
+      save();
+      updateUnread(user.id);
+      return true;
+    }
+    if (data.type !== "socialDelete" && data.type !== "socialReact") return false;
+    const scope = scopeFor(user, data);
+    if (!scope) return true;
+    const messageId = clean(data.id, 40);
+    const index = scope.messages.findIndex(message => message.id === messageId);
+    if (index < 0) return true;
+    const entry = scope.messages[index];
+    if (data.type === "socialDelete") {
+      if (entry.userId !== user.id && user.role !== "admin") {
+        sendUser(user.id, {type:"error", message:"You can only delete your own messages."});
+        return true;
+      }
+      scope.messages.splice(index, 1);
+      save();
+      publish(user, scope, {type:"socialDeleted", id:messageId, channel:scope.channel || null, peer:scope.peer || null});
+      if (scope.peer) { updateUnread(user.id); updateUnread(scope.peer); }
+      else for (const [, member] of clientOf()) updateUnread(member.id);
+      return true;
+    }
+    const emoji = String(data.emoji || "");
+    if (!EMOJI.includes(emoji)) return true;
+    entry.reactions ??= {};
+    const voters = Array.isArray(entry.reactions[emoji]) ? entry.reactions[emoji] : [];
+    entry.reactions[emoji] = voters.includes(user.id)
+      ? voters.filter(voter => voter !== user.id)
+      : [...voters, user.id];
+    if (!entry.reactions[emoji].length) delete entry.reactions[emoji];
+    save();
+    publish(user, scope, {type:"socialReaction", id:messageId, channel:scope.channel || null, peer:scope.peer || null, reactions:entry.reactions});
+    return true;
+  }
+
+  return {history, privateHistory, getUnread, handle};
+}
