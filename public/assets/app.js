@@ -62,45 +62,11 @@ let prefs={
   engine:"google",
   restore:true,
   compact:false,
-  autoEmoji:true,
-  cloak:{preset:"lightning",title:"",icon:""},
   accent:"champagne",
   ...store.get("bolt.prefs",{})
 };
 
 if(!accents[prefs.accent])prefs.accent="champagne";
-
-
-const cloakPresets={
-  lightning:{title:"Lightning",icon:"/favicon.svg"},
-  chatgpt:{title:"ChatGPT",icon:"https://chatgpt.com/favicon.ico"},
-  google:{title:"Google",icon:"https://www.google.com/favicon.ico"},
-  docs:{title:"Google Docs",icon:"https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico"},
-  youtube:{title:"YouTube",icon:"https://www.youtube.com/favicon.ico"},
-  custom:{title:"Custom tab",icon:"/favicon.svg"}
-};
-let unreadCount=0;
-
-function safeTabIcon(value){
-  const icon=String(value||"");
-  if(icon.startsWith("/")&&!icon.startsWith("//"))return icon;
-  try{const url=new URL(icon);if(["https:","http:"].includes(url.protocol))return url.href}catch{}
-  return "/favicon.svg";
-}
-function updateTabIdentity(){
-  const choice=prefs.cloak?.preset||"lightning";
-  const preset=cloakPresets[choice]||cloakPresets.lightning;
-  const title=choice==="custom"?String(prefs.cloak?.title||"Lightning").slice(0,80):preset.title;
-  const icon=choice==="custom"?safeTabIcon(prefs.cloak?.icon):preset.icon;
-  document.title=(unreadCount?"("+unreadCount+") ":"")+title;
-  let link=document.querySelector('link[rel="icon"]');
-  if(!link){link=document.createElement("link");link.rel="icon";document.head.append(link)}
-  if(link.href!==icon)link.href=icon;
-}
-window.addEventListener?.("lightning:unread",event=>{
-  unreadCount=Math.max(0,Number(event.detail?.count)||0);
-  updateTabIdentity();
-});
 
 let config=null;
 let me=null;
@@ -131,7 +97,6 @@ function savePrefs(){
 
 function applyPrefs(){
   document.body.classList.toggle("compact",!!prefs.compact);
-  updateTabIdentity();
   const [color,rgb]=accents[prefs.accent]||accents.champagne;
   document.documentElement.style.setProperty("--accent",color);
   document.documentElement.style.setProperty("--accent-rgb",rgb);
@@ -773,67 +738,13 @@ function renderSettingsPanel(){
     <section class="panel-section">
       <h3>Interface</h3>
       ${settingSwitch("compact","Compact chrome","Tighter tabs, rail and toolbar",prefs.compact)}
-      ${settingSwitch("autoEmoji","Automatic emoji","Convert :heart: and :smile: into emoji in chat",prefs.autoEmoji)}
       <div class="field"><span>Accent</span><div class="button-row" id="accentRow"><button class="button" data-accent="champagne">Champagne</button><button class="button" data-accent="gold">Gold</button><button class="button" data-accent="bronze">Bronze</button></div></div>
-    </section>
-    <section class="panel-section">
-      <h3>Tab cloaking</h3>
-      <p class="panel-copy">Change the browser tab name and icon. Copying works with tabs opened inside Lightning, not unrelated browser tabs.</p>
-      <div class="field"><span>Tab identity</span><select class="select" id="cloakPreset">
-        <option value="lightning">Lightning</option><option value="chatgpt">ChatGPT</option><option value="google">Google</option><option value="docs">Google Docs</option><option value="youtube">YouTube</option><option value="custom">Custom</option>
-      </select></div>
-      <div class="field"><span>Custom title</span><input class="input" id="cloakTitle" maxlength="80" placeholder="Homework planner"></div>
-      <div class="field"><span>Custom favicon URL</span><input class="input" id="cloakIcon" placeholder="https://example.com/favicon.ico"></div>
-      <div class="field"><span>Copy another Lightning tab</span><select class="select" id="cloakCopyTab"><option value="">Choose a tab…</option>${tabs.map(tab=>'<option value="'+escapeHtml(tab.id)+'">'+escapeHtml(tab.title||tab.url)+'</option>').join("")}</select></div>
-      <div class="button-row"><button class="button" id="cloakCopy" type="button">Copy tab identity</button><button class="button" id="cloakReset" type="button">Reset to Lightning</button></div>
-    </section>
-    <section class="panel-section">
-      <h3>Message notifications</h3>
-      <p class="panel-copy" id="notificationStatus">Unread DM and mention badges work automatically. Desktop pop-ups require permission.</p>
-      <div class="button-row"><button class="button" id="notificationsEnable" type="button">Enable desktop notifications</button></div>
     </section>
     <section class="panel-section">
       <h3>Session</h3>
       <p class="panel-copy">Signed in as <strong>${escapeHtml(me.username)}</strong>${me.temporary?" · temporary access":""}.</p>
       <div class="button-row"><button class="button" id="openDirect" type="button">Open direct</button><button class="button danger" id="logoutSettings" type="button">Sign out</button></div>
     </section>`;
-  prefs.cloak=prefs.cloak||{preset:"lightning",title:"",icon:""};
-  $("#cloakPreset").value=prefs.cloak.preset||"lightning";
-  $("#cloakTitle").value=prefs.cloak.title||"";
-  $("#cloakIcon").value=prefs.cloak.icon||"";
-  function setCloak(patch){
-    prefs.cloak={...prefs.cloak,...patch};
-    savePrefs();
-    updateTabIdentity();
-  }
-  $("#cloakPreset").addEventListener("change",e=>setCloak({preset:e.target.value}));
-  $("#cloakTitle").addEventListener("input",e=>setCloak({preset:"custom",title:e.target.value}));
-  $("#cloakIcon").addEventListener("change",e=>setCloak({preset:"custom",icon:e.target.value}));
-  $("#cloakCopy").addEventListener("click",()=>{
-    const selected=tabs.find(tab=>tab.id===$("#cloakCopyTab").value);
-    if(!selected)return toast("Choose an open Lightning tab first");
-    setCloak({preset:"custom",title:selected.title||"New tab",icon:selected.favicon||"/favicon.svg"});
-    renderSettingsPanel();
-    toast("Copied that tab's name and icon");
-  });
-  $("#cloakReset").addEventListener("click",()=>{
-    setCloak({preset:"lightning",title:"",icon:""});
-    renderSettingsPanel();
-  });
-  const permissionLabel=$("#notificationStatus");
-  if(!("Notification" in window)){
-    permissionLabel.textContent="Desktop notifications aren't supported here. Unread badges still work.";
-    $("#notificationsEnable").disabled=true;
-  }else{
-    permissionLabel.textContent="Desktop notifications: "+Notification.permission+". Unread badges work without permission.";
-    $("#notificationsEnable").addEventListener("click",async()=>{
-      try{
-        const status=await Notification.requestPermission();
-        permissionLabel.textContent="Desktop notifications: "+status+".";
-        toast(status==="granted"?"Notifications enabled":"Notifications not enabled");
-      }catch{toast("Notifications aren't supported here")}
-    });
-  }
   $("#settingEngine").value=prefs.engine;
   $("#settingEngine").addEventListener("change",event=>{
     prefs.engine=event.target.value;
@@ -1138,7 +1049,7 @@ async function logout(){
 
 function openLightningHub(view){
   closePanel();
-  import("/assets/hub.js?v=8").then(hub=>hub.openHub(view)).catch(()=>toast("Could not open the Lightning hub."));
+  import("/assets/hub.js?v=7").then(hub=>hub.openHub(view)).catch(()=>toast("Could not open the Lightning hub."));
 }
 
 function bindUi(){
@@ -1201,7 +1112,6 @@ async function start(){
     await loadConfig();
   }catch{return}
   restoreTabs();
-  import("/assets/hub.js?v=8").then(hub=>hub.bootHubNotifications()).catch(()=>{});
   const goto=new URL(location.href).searchParams.get("goto");
   if(goto){
     history.replaceState(null,"",location.pathname);

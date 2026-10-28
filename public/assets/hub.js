@@ -1,9 +1,6 @@
 import {installArenaPolish} from "./arena-v3.js?v=3";
 
 const E=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const SOCIAL_EMOJI={"smile":"😄","laugh":"😂","joy":"😂","heart":"❤️","fire":"🔥","skull":"💀","cry":"😭","sob":"😭","thumbsup":"👍","eyes":"👀","party":"🎉","sparkles":"✨","wave":"👋","pray":"🙏","thinking":"🤔","cool":"😎","100":"💯"};
-const EMOJI_PICKER=["❤️","🔥","😂","😭","👍","💀","🎉","👀","✨"];
-const toEmoji=text=>String(text).replace(/:([a-z0-9_]+):/gi,(match,name)=>SOCIAL_EMOJI[name.toLowerCase()]||match).replace(/(^|\s):\)(?=\s|$)/g,"$1🙂").replace(/(^|\s)<3(?=\s|$)/g,"$1❤️");
 const PIECES={K:"♔",Q:"♕",R:"♖",B:"♗",N:"♘",P:"♙",k:"♚",q:"♛",r:"♜",b:"♝",n:"♞",p:"♟"};
 const UPDATES=[
 ["Lightning Social","Discord-inspired channels for community discussion, game coordination and feature suggestions. Messages and sign-ins use existing Lightning accounts."],
@@ -14,10 +11,10 @@ const UPDATES=[
 let INSTANCE=null;
 class Hub{
  constructor(root){
-  this.root=root;this.view="chat";this.channel="general";this.name="";this.id="";this.users=[];this.history={};this.direct={};this.peer=null;this.unread={total:0,channels:{},direct:{}};this.summary={users:0};this.socket=null;this.active=false;this.chess=null;this.rps=null;this.world=null;this.tile=null;this.selectedSquare=null;this.worldQueueing=false;this.worldActive=false;this.worldGeometry=null;this.camera={zoom:1,x:0,y:0};this.pointers=new Map();
+  this.root=root;this.view="chat";this.channel="general";this.name="";this.id="";this.users=[];this.history={};this.summary={users:0};this.socket=null;this.active=false;this.chess=null;this.rps=null;this.world=null;this.tile=null;this.selectedSquare=null;this.worldQueueing=false;this.worldActive=false;this.worldGeometry=null;this.camera={zoom:1,x:0,y:0};this.pointers=new Map();
   root.innerHTML='<div class="hub-shell"><aside class="hub-rail"><div class="hub-logo"><span class="hub-label">LIGHTNING NETWORK</span><strong>Social hub.</strong><small>Your space. Your people.</small></div><nav class="hub-nav"><div class="hub-nav-title">CHANNELS</div>'+
    ["general","games","suggestions","support"].map(c=>'<button class="hub-link" data-view="chat" data-channel="'+c+'"><i>#</i><span>'+c+'</span></button>').join("")+
-   '<div class="hub-nav-title hub-dm-heading">DIRECT MESSAGES <button type="button" data-act="newDm" title="New message">＋</button></div><div id="hubDirectList"></div><button class="hub-link" data-view="inbox"><i>✉</i><span>All messages</span></button><div class="hub-nav-title">EXPLORE</div><button class="hub-link" data-view="games"><i>♞</i><span>Multiplayer games</span></button><button class="hub-link" data-view="updates"><i>↗</i><span>Update log</span></button></nav><div class="hub-user"><div class="hub-avatar" id="hubAvatar">L</div><div><strong id="hubUsername">Lightning user</strong><span id="hubConnection">Connecting…</span></div></div></aside>'+
+   '<div class="hub-nav-title">EXPLORE</div><button class="hub-link" data-view="games"><i>♞</i><span>Multiplayer games</span></button><button class="hub-link" data-view="updates"><i>↗</i><span>Update log</span></button></nav><div class="hub-user"><div class="hub-avatar" id="hubAvatar">L</div><div><strong id="hubUsername">Lightning user</strong><span id="hubConnection">Connecting…</span></div></div></aside>'+
    '<main class="hub-main"><header class="hub-head"><div><h2 id="hubTitle"># general</h2><p id="hubSubtitle">The Lightning network</p></div><span class="hub-spacer"></span><span class="hub-pill" id="hubOnline">0 online</span><button class="hub-x" data-act="close" aria-label="Close hub">×</button></header><div class="hub-content" id="hubContent"></div></main>'+
    '<div id="hubWorld" class="hub-world" hidden></div><div id="hubToast" class="hub-toast" hidden></div></div>';
   root.addEventListener("click",e=>{
@@ -45,19 +42,18 @@ class Hub{
   const ws=new WebSocket(target);this.socket=ws;
   ws.addEventListener("open",()=>{this.$("#hubConnection").textContent="Connected";if(this.worldActive||this.worldQueueing)this.send({type:"worldQueue"});});
   ws.addEventListener("message",e=>{try{this.onMessage(JSON.parse(e.data))}catch(err){console.warn("Hub:",err)}});
-  ws.addEventListener("close",()=>{if(this.socket!==ws)return;this.socket=null;this.$("#hubConnection").textContent="Offline";setTimeout(()=>this.connect(),2300)});
+  ws.addEventListener("close",()=>{if(this.socket!==ws)return;this.$("#hubConnection").textContent="Offline";if(this.active)setTimeout(()=>this.connect(),2300)});
  }
  onMessage(m){
   if(m.type==="hello"){
-   this.id=m.id;this.name=m.name;this.history=m.history||{};this.direct=m.dms||{};this.unread=m.unread||{total:0,channels:{},direct:{}};this.users=m.online||[];this.summary=m.summary||{};
-   this.$("#hubUsername").textContent=this.name;this.$("#hubAvatar").textContent=this.name[0]?.toUpperCase()||"L";this.presence();this.renderDirectList();this.unreadChanged();
-   if(this.active&&(this.view==="chat"||this.view==="dm"||this.view==="inbox"))this.render();
+   this.id=m.id;this.name=m.name;this.history=m.history||{};this.users=m.online||[];this.summary=m.summary||{};
+   this.$("#hubUsername").textContent=this.name;this.$("#hubAvatar").textContent=this.name[0]?.toUpperCase()||"L";this.presence();
+   if(this.view==="chat")this.chat();
   }else if(m.type==="presence"){
-   this.summary=m;if(m.online)this.users=m.online;this.presence();if(this.view==="chat")this.members();this.renderDirectList();
+   this.summary=m;if(m.online)this.users=m.online;this.presence();if(this.view==="chat")this.members();
   }else if(m.type==="chat"){
-   if(m.entry){(this.history[m.entry.channel]??=[]).push(m.entry);if(m.entry.channel===this.channel&&this.view==="chat"){this.messages();this.markRead()} }
-  }else if(this.socialEvent(m))return;
-  else if(m.type==="queued")this.flash("Queued for "+m.game+". Waiting for an opponent.");
+   if(m.entry){(this.history[m.entry.channel]??=[]).push(m.entry);if(m.entry.channel===this.channel&&this.view==="chat")this.messages()}
+  }else if(m.type==="queued")this.flash("Queued for "+m.game+". Waiting for an opponent.");
   else if(m.type==="chessStart"){this.chess={...m,turn:m.turn||"w",over:!!m.over};this.selectedSquare=null;this.view="chess";this.render()}
   else if(m.type==="chessState"){if(this.chess?.id===m.id){Object.assign(this.chess,m);this.selectedSquare=null;if(this.view==="chess")this.chessScreen();if(m.over)this.flash(m.result||"Game over")}}
   else if(m.type==="rpsStart"){this.rps={...m,waiting:false,result:null};this.view="rps";this.render()}
@@ -79,9 +75,9 @@ class Hub{
   this.active=true;this.root.hidden=false;this.connect();
   this.show(view==="suggestions"?"chat":view,view==="suggestions"?"suggestions":null);
  }
- close(){this.active=false;this.root.hidden=true}
+ close(){this.active=false;this.root.hidden=true;if(this.socket){this.socket.close();this.socket=null}}
  show(page,channel){
-  this.view=page;if(channel)this.channel=channel;this.render();this.renderDirectList();
+  this.view=page;if(channel)this.channel=channel;this.render();
  }
  header(title,subtitle){
   this.$("#hubTitle").textContent=title;this.$("#hubSubtitle").textContent=subtitle;
@@ -92,171 +88,31 @@ class Hub{
  }
  render(){
   if(this.view==="chat")this.chat();
-  else if(this.view==="inbox")this.inbox();
-  else if(this.view==="dm")this.dm();
   else if(this.view==="games")this.games();
   else if(this.view==="updates")this.updates();
   else if(this.view==="chess")this.chessScreen();
   else if(this.view==="rps")this.rpsScreen();
   else if(this.view==="world")this.worldScreen();
  }
-
  chat(){
   this.header("# "+this.channel,"Live community · "+this.channel);
-  this.$("#hubContent").innerHTML='<div class="hub-main"><div class="hub-chat-stream" id="hubMessages"></div><div class="hub-composer"><form id="hubChatForm" class="hub-compose-form"><input id="hubChatInput" maxlength="1000" autocomplete="off" placeholder="'+E(this.channel==="suggestions"?"Your idea for Lightning…":"Message #"+this.channel)+'"><button class="hub-btn primary">Send ↗</button></form><div class="hub-emoji-suggestions" id="hubEmojiSuggestions" hidden></div><div class="hub-footer">Use @username to mention someone · :heart: for ❤️ · hover to react or delete your message.</div></div></div><aside class="hub-members"><span class="hub-label">ONLINE</span><div id="hubMembers"></div></aside>';
-  this.composer("hubChatForm","hubChatInput",message=>({type:"chat",channel:this.channel,message}));
-  this.messages();this.members();this.markRead();
- }
- messageHtml(message,scope){
-  const attributes=scope.peer?'data-peer="'+E(scope.peer)+'"':'data-channel="'+E(scope.channel)+'"';
-  const isMine=message.userId===this.id;
-  const reactions=Object.entries(message.reactions||{}).filter(([,users])=>Array.isArray(users)&&users.length)
-   .map(([emoji,users])=>'<button class="hub-reaction '+(users.includes(this.id)?"mine":"")+'" type="button" data-act="react" data-id="'+E(message.id)+'" '+attributes+' data-emoji="'+E(emoji)+'">'+E(emoji)+' <b>'+users.length+'</b></button>').join("");
-  const picker=this.reactionPicker===message.id?'<span class="hub-reaction-picker">'+EMOJI_PICKER.map(emoji=>'<button type="button" data-act="react" data-id="'+E(message.id)+'" '+attributes+' data-emoji="'+E(emoji)+'">'+E(emoji)+'</button>').join("")+'</span>':"";
-  const text=E(message.message).replace(/@([a-z0-9._-]{3,32})/gi,'<mark class="hub-mention">@$1</mark>');
-  return '<div class="hub-chat-line" data-msg="'+E(message.id)+'"><span class="hub-chat-avatar">'+E(message.by?.slice(0,1).toUpperCase()||"?")+'</span><div class="hub-message-main"><div class="hub-chat-top"><strong>'+E(message.by)+'</strong><time>'+new Date(message.at).toLocaleString()+'</time></div><p>'+text+'</p><div class="hub-message-bottom">'+reactions+'<button class="hub-quick-react" data-act="reactMenu" data-id="'+E(message.id)+'" type="button" title="Add a reaction">☺ ＋</button>'+(isMine?'<button class="hub-msg-delete" data-act="deleteMsg" data-id="'+E(message.id)+'" '+attributes+' type="button">Delete</button>':"")+picker+'</div></div></div>';
+  this.$("#hubContent").innerHTML='<div class="hub-main"><div class="hub-chat-stream" id="hubMessages"></div><div class="hub-composer"><form id="hubChatForm" class="hub-compose-form"><input id="hubChatInput" maxlength="1000" autocomplete="off" placeholder="'+E(this.channel==="suggestions"?"Your idea for Lightning…":"Message #"+this.channel)+'"><button class="hub-btn primary">Send ↗</button></form><div class="hub-footer">Your messages are visible to everyone in this channel.</div></div></div><aside class="hub-members"><span class="hub-label">ONLINE</span><div id="hubMembers"></div></aside>';
+  this.$("#hubChatForm").addEventListener("submit",e=>{
+   e.preventDefault();const input=this.$("#hubChatInput"),msg=input.value.trim();
+   if(msg&&this.send({type:"chat",channel:this.channel,message:msg}))input.value="";
+  });
+  this.messages();this.members();
  }
  messages(){
   const el=this.$("#hubMessages");if(!el)return;
   const intro=this.channel==="suggestions"?"Post the features you want Lightning to build next.":"This is the start of the "+this.channel+" channel.";
-  const nearBottom=el.scrollHeight-el.scrollTop-el.clientHeight<100;
   el.innerHTML='<div class="hub-chat-welcome"><strong>Welcome to #'+E(this.channel)+'</strong><p>'+E(intro)+'</p></div>'+
-   (this.history[this.channel]||[]).slice(-120).map(m=>this.messageHtml(m,{channel:this.channel})).join("");
-  if(nearBottom)el.scrollTop=el.scrollHeight;
- }
- composer(formId,inputId,payload){
-  const form=this.$("#"+formId),input=this.$("#"+inputId),list=this.$("#hubEmojiSuggestions");
-  const autoEmoji=()=>{try{return JSON.parse(localStorage.getItem("bolt.prefs")||"{}").autoEmoji!==false}catch{return true}};
-  form.addEventListener("submit",event=>{
-   event.preventDefault();const message=(autoEmoji()?toEmoji(input.value):input.value).trim();
-   if(message&&this.send(payload(message))){input.value="";list.hidden=true}
-  });
-  input.addEventListener("input",()=>{
-   if(autoEmoji()&&/:([a-z0-9_]+):/i.test(input.value)){
-    const at=input.selectionStart,converted=toEmoji(input.value);input.value=converted;
-    input.setSelectionRange(Math.min(at,converted.length),Math.min(at,converted.length));
-   }
-   const token=autoEmoji()?input.value.slice(0,input.selectionStart).match(/:([a-z0-9_]{2,})$/i):null;
-   const options=token?Object.entries(SOCIAL_EMOJI).filter(([name])=>name.startsWith(token[1].toLowerCase())).slice(0,6):[];
-   list.hidden=!options.length;
-   list.innerHTML=options.map(([name,emoji])=>'<button type="button" data-shortcode="'+E(name)+'">'+E(emoji)+' <span>:'+E(name)+':</span></button>').join("");
-   list.querySelectorAll("[data-shortcode]").forEach(button=>button.addEventListener("mousedown",e=>{
-    e.preventDefault();
-    const at=input.selectionStart,match=input.value.slice(0,at).match(/:([a-z0-9_]{2,})$/i);
-    if(!match)return;
-    input.value=input.value.slice(0,at-match[0].length)+SOCIAL_EMOJI[button.dataset.shortcode]+input.value.slice(at);
-    input.focus();list.hidden=true;
-   }));
-  });
+   (this.history[this.channel]||[]).slice(-120).map(m=>'<div class="hub-chat-line"><span class="hub-chat-avatar">'+E(m.by?.slice(0,1).toUpperCase()||"?")+'</span><div><div class="hub-chat-top"><strong>'+E(m.by)+'</strong><time>'+new Date(m.at).toLocaleString()+'</time></div><p>'+E(m.message)+'</p></div></div>').join("");
+  el.scrollTop=el.scrollHeight;
  }
  members(){
   const el=this.$("#hubMembers");if(!el)return;
-  el.innerHTML=this.users.map(u=>'<div class="hub-member"><span class="hub-statusdot"></span>'+E(u.name)+'<button class="hub-member-copy" type="button" title="Send direct message" data-act="dmOpen" data-peer="'+E(u.id)+'">✉</button><button class="hub-member-copy" type="button" title="Copy player ID" data-act="copyUser" data-id="'+E(u.id)+'">⧉</button></div>').join("")||'<p class="hub-footer">Connecting…</p>';
- }
-
- room(peer){return [this.id,peer].sort().join("|")}
- peerName(peer){
-  const member=this.users.find(u=>u.id===peer);
-  if(member)return member.name;
-  const messages=this.direct[this.room(peer)]||[];
-  return [...messages].reverse().find(m=>m.userId===peer)?.by||peer;
- }
- dmPeers(){
-  return Object.entries(this.direct).filter(([room])=>room.split("|").includes(this.id)).map(([room,messages])=>{
-   const peer=room.split("|").find(id=>id!==this.id);
-   return {peer,messages,last:messages.at(-1)?.at||0};
-  }).filter(item=>item.peer).sort((a,b)=>b.last-a.last);
- }
- renderDirectList(){
-  const el=this.$("#hubDirectList");if(!el||!this.id)return;
-  el.innerHTML=this.dmPeers().map(item=>{
-   const count=this.unread.direct?.[item.peer]||0;
-   return '<button class="hub-link hub-dm-link '+(this.view==="dm"&&this.peer===item.peer?"active":"")+'" type="button" data-act="dmOpen" data-peer="'+E(item.peer)+'"><i>◉</i><span>'+E(this.peerName(item.peer))+'</span>'+(count?'<b class="hub-unread">'+count+'</b>':"")+'</button>';
-  }).join("");
- }
- unreadChanged(){
-  window.dispatchEvent(new CustomEvent("lightning:unread",{detail:{count:this.unread.total||0}}));
-  this.renderDirectList();
-  for(const button of this.$("[data-channel]")){
-   const count=this.unread.channels?.[button.dataset.channel]||0;
-   let badge=button.querySelector(".hub-unread");
-   if(!count){badge?.remove();continue}
-   if(!badge){badge=document.createElement("b");badge.className="hub-unread";button.append(badge)}
-   badge.textContent=count;
-  }
- }
- notify(title,body,peer){
-  if(!document.hidden&&this.active)return;
-  if(!("Notification" in window)||Notification.permission!=="granted")return;
-  try{
-   const notification=new Notification(title,{body:body.slice(0,180),icon:"/favicon.svg",tag:"lightning-"+(peer||"mention")});
-   notification.onclick=()=>{window.focus();this.open("chat");if(peer)this.openDm(peer);notification.close()};
-  }catch{}
- }
- socialEvent(m){
-  if(m.type==="unread"){this.unread=m;this.unreadChanged();return true}
-  if(m.type==="mention"){
-   if(m.entry&&!(this.active&&this.view==="chat"&&this.channel===m.entry.channel&&!document.hidden))this.notify("Mention from "+m.entry.by,m.entry.message);
-   return true;
-  }
-  if(m.type==="dm"){
-   const entry=m.entry;if(!entry)return true;
-   const peer=entry.userId===this.id?entry.to:entry.userId;
-   const room=this.room(peer);
-   (this.direct[room]??=[]).push(entry);
-   this.direct[room]=this.direct[room].slice(-120);
-   if(this.active&&this.view==="dm"&&this.peer===peer){this.dmMessages();this.markRead()}
-   else if(entry.userId!==this.id)this.notify("Message from "+entry.by,entry.message,peer);
-   this.renderDirectList();return true;
-  }
-  if(m.type==="socialDeleted"||m.type==="socialReaction"){
-   const apply=messages=>{
-    const index=messages.findIndex(entry=>entry.id===m.id);if(index<0)return false;
-    if(m.type==="socialDeleted")messages.splice(index,1);
-    else messages[index].reactions=m.reactions||{};
-    return true;
-   };
-   let changed=false;
-   for(const channel of Object.keys(this.history))changed=apply(this.history[channel])||changed;
-   for(const room of Object.keys(this.direct))changed=apply(this.direct[room])||changed;
-   if(changed&&this.view==="chat")this.messages();
-   if(changed&&this.view==="dm")this.dmMessages();
-   if(changed)this.renderDirectList();
-   return true;
-  }
-  return false;
- }
- markRead(){
-  if(!this.active||document.hidden||!this.id)return;
-  if(this.view==="chat")this.send({type:"socialRead",channel:this.channel});
-  if(this.view==="dm"&&this.peer)this.send({type:"socialRead",peer:this.peer});
- }
- openDm(peer){
-  if(!peer||peer===this.id)return this.flash("Choose another Lightning member.");
-  this.peer=peer;this.show("dm");
- }
-
- inbox(){
-  this.header("Direct messages","Private conversations · only you and your recipient can read these");
-  const peers=this.dmPeers();
-  this.$("#hubContent").innerHTML='<section class="hub-inbox"><div class="hub-inbox-hero"><span class="hub-label">PRIVATE MESSAGES</span><h2>Your conversations.</h2><p>Start a DM with an online member, or paste the account ID of someone on Lightning.</p><form id="hubStartDm" class="hub-compose-form"><input id="hubNewDmId" placeholder="Lightning account ID" maxlength="100" autocomplete="off"><button class="hub-btn primary">Open DM ↗</button></form></div><div class="hub-inbox-list">'+(peers.map(item=>'<button class="hub-inbox-item" type="button" data-act="dmOpen" data-peer="'+E(item.peer)+'"><span class="hub-chat-avatar">'+E(this.peerName(item.peer).slice(0,1).toUpperCase())+'</span><span><strong>'+E(this.peerName(item.peer))+'</strong><small>'+E(item.messages.at(-1)?.message||"Start talking")+'</small></span>'+(this.unread.direct?.[item.peer]?'<b class="hub-unread">'+this.unread.direct[item.peer]+'</b>':"")+'</button>').join("")||'<p class="hub-footer">No conversations yet. Say hi to someone!</p>')+'</div></section>';
-  this.$("#hubStartDm").addEventListener("submit",e=>{
-   e.preventDefault();this.openDm(this.$("#hubNewDmId").value.trim());
-  });
- }
- dm(){
-  if(!this.peer)return this.inbox();
-  this.header("✉ "+this.peerName(this.peer),"Private messages · visible only to the participants");
-  this.$("#hubContent").innerHTML='<div class="hub-main"><div class="hub-chat-stream" id="hubDmMessages"></div><div class="hub-composer"><form id="hubDmForm" class="hub-compose-form"><input id="hubDmInput" maxlength="1000" autocomplete="off" placeholder="Message '+E(this.peerName(this.peer))+' privately…"><button class="hub-btn primary">Send ↗</button></form><div class="hub-emoji-suggestions" id="hubEmojiSuggestions" hidden></div><div class="hub-footer">Only the two of you can see this conversation · :smile: becomes 😄</div></div></div>';
-  this.composer("hubDmForm","hubDmInput",message=>({type:"dm",to:this.peer,message}));
-  this.dmMessages();this.markRead();
- }
- dmMessages(){
-  const el=this.$("#hubDmMessages");if(!el||!this.peer)return;
-  const nearBottom=el.scrollHeight-el.scrollTop-el.clientHeight<100;
-  el.innerHTML='<div class="hub-chat-welcome"><strong>Just you and '+E(this.peerName(this.peer))+'</strong><p>This is your private conversation.</p></div>'+
-   (this.direct[this.room(this.peer)]||[]).slice(-120).map(m=>this.messageHtml(m,{peer:this.peer})).join("");
-  if(nearBottom)el.scrollTop=el.scrollHeight;
+  el.innerHTML=this.users.map(u=>'<div class="hub-member"><span class="hub-statusdot"></span>'+E(u.name)+'<button class="hub-member-copy" type="button" title="Copy player ID" data-act="copyUser" data-id="'+E(u.id)+'">⧉</button></div>').join("")||'<p class="hub-footer">Connecting…</p>';
  }
  games(){
   this.header("Games","Live multiplayer arcade");
@@ -496,22 +352,6 @@ class Hub{
  }
  act(action,button){
   if(action==="close")return this.close();
-  if(action==="newDm"){this.show("inbox");this.$("#hubNewDmId")?.focus();return}
-  if(action==="dmOpen")return this.openDm(button.dataset.peer);
-  if(action==="reactMenu"){
-   this.reactionPicker=this.reactionPicker===button.dataset.id?null:button.dataset.id;
-   if(this.view==="dm")this.dmMessages();else if(this.view==="chat")this.messages();
-   return;
-  }
-  if(action==="react"||action==="deleteMsg"){
-   const scope=button.dataset.peer?{peer:button.dataset.peer}:{channel:button.dataset.channel};
-   if(action==="deleteMsg"){
-    if(!confirm("Delete this message for everyone?"))return;
-    return this.send({type:"socialDelete",id:button.dataset.id,...scope});
-   }
-   this.reactionPicker=null;
-   return this.send({type:"socialReact",id:button.dataset.id,emoji:button.dataset.emoji,...scope});
-  }
   if(action==="copyUser"){
     if(navigator.clipboard?.writeText)navigator.clipboard.writeText(button.dataset.id).then(()=>this.flash("Player ID copied")).catch(()=>this.flash("Copy isn't available"));
     else this.flash("Your browser doesn't allow copying here.");
@@ -558,15 +398,9 @@ installArenaPolish(Hub);
 export function openHub(view="chat"){
  const root=document.getElementById("hubMount");if(!root)return;
  if(!document.getElementById("lightningHubCss")){
-  const css=document.createElement("link");css.id="lightningHubCss";css.rel="stylesheet";css.href="/assets/hub.css?v=4";document.head.append(css);
+  const css=document.createElement("link");css.id="lightningHubCss";css.rel="stylesheet";css.href="/assets/hub.css?v=3";document.head.append(css);
    const arena=document.createElement("link");arena.id="lightningArenaCss";arena.rel="stylesheet";arena.href="/assets/arena-v3.css?v=2";document.head.append(arena);
  }
  if(!INSTANCE)INSTANCE=new Hub(root);
  INSTANCE.open(view);
-}
-export function bootHubNotifications(){
- const root=document.getElementById("hubMount");
- if(!root)return;
- if(!INSTANCE)INSTANCE=new Hub(root);
- INSTANCE.connect();
 }
