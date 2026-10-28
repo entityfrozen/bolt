@@ -1,7 +1,8 @@
 import {readAiCompletionStream} from "./ai-stream.js";
 
 const ENDPOINT="https://integrate.api.nvidia.com/v1/chat/completions";
-const DEFAULT_BACKUP="mistralai/mistral-nemotron";
+// NVIDIA removed mistral-nemotron on 2026-09-28. This endpoint remains hosted.\nconst DEFAULT_BACKUP="meta/llama-3.2-11b-vision-instruct";
+const modelCooldowns=new Map();
 
 export function activeRoleplay(messages){
   let scene=null;
@@ -19,13 +20,19 @@ export function activeRoleplay(messages){
 export async function completeAi({
   apiKey,model="openai/gpt-oss-20b",backupModel=DEFAULT_BACKUP,
   messages,stream=true,signal,fetcher=fetch,onStatus=()=>{},
-  onDelta=()=>{},onReasoning=()=>{},budgets=[16000,19000]
+  onDelta=()=>{},onReasoning=()=>{},budgets=[14000,30000]
 }){
-  const models=[model,backupModel].filter((name,index,array)=>name&&array.indexOf(name)===index);
-  let lastError=null;
+  const configured=[model,backupModel].filter((name,index,array)=>name&&array.indexOf(name)===index);
+  // Once a model times out, start subsequent chats with the working alternative.
+  // A failed model is tried again later, rather than permanently disabled.
+  const now=Date.now();
+  for(const [name,until] of modelCooldowns)if(until<=now)modelCooldowns.delete(name);
+  const models=configured.slice().sort((a,b)=>Number(modelCooldowns.has(a))-Number(modelCooldowns.has(b)));
+  let lastError=null,failures=[];
   for(const [index,name] of models.entries()){
     if(signal?.aborted)throw signal.reason||new Error("Request cancelled");
-    if(index)onStatus("Primary model was slow. Trying a backup…");
+    if(index)onStatus("Trying another available AI model…");
+    else if(name!==model)onStatus("Using the faster AI model…");
     const controller=new AbortController();
     const onAbort=()=>controller.abort(signal?.reason);
     signal?.addEventListener("abort",onAbort,{once:true});
@@ -72,8 +79,13 @@ export async function completeAi({
     }catch(error){
       if(signal?.aborted)throw signal.reason||error;
       lastError=error;
-      console.warn("Lightning AI model attempt failed:",name, error?.status||error?.message||"unknown");
-      if(emitted||error?.status===401||error?.status===403)break;
+      const status=Number(error?.status)||0;
+      const timeoutFailure=controller.signal.aborted;
+      const problem=status?"HTTP "+status:timeoutFailure?"timed out":String(error?.message||"failed").slice(0,80);
+      failures.push(name+": "+problem);
+      console.warn("Lightning AI model attempt failed:",name,problem);
+      if(timeoutFailure||status>=500||status===429||status===404||status===410)modelCooldowns.set(name,Date.now()+5*60*1000);
+      if(emitted||status===401||status===403)break;
     }finally{
       clearTimeout(timeout);
       signal?.removeEventListener("abort",onAbort);
@@ -82,7 +94,7 @@ export async function completeAi({
   }
   const message=lastError?.status===401?"NVIDIA rejected Lightning's server API key. The admin needs to check NVIDIA_API_KEY.":
     lastError?.status===403?"NVIDIA denied model access for this API key.":
-    "Both AI model attempts failed or took too long. Try again shortly.";
+    "NVIDIA could not generate an answer ("+failures.join("; ")+"). Try again shortly, or check the NVIDIA model and quota in Railway.";
   const error=new Error(message);
   error.cause=lastError;
   throw error;
