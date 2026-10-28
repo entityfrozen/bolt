@@ -87,3 +87,16 @@ body.bolt-ai-open .bolt-devdock{right:0}
 #boltAiPreferencesForm p{color:#a7a5b5;font-size:10px;line-height:1.5;margin:0}
 #boltAiPrefsSave{align-self:flex-start;background:#b4a0d4!important;border-color:#c1addb!important;color:#18141f!important;padding:8px 12px!important}
 @media(max-width:550px){.bolt-ai-workspace-top{gap:5px;padding:6px}.bolt-ai-workspace-top button{padding:7px 6px;font-size:10px}.bolt-ai-workspace-drawer,.bolt-ai-personality{max-height:40vh}}
+
+
+/* Real request activity only: search sites and streamed answer text disappear on completion. */
+.bolt-ai-activity{display:flex;flex-direction:column;gap:8px;margin:0 12px 9px;padding:11px 12px;border:1px solid rgba(185,169,212,.26);border-radius:12px;background:linear-gradient(135deg,rgba(128,105,158,.16),rgba(32,32,47,.42));max-height:min(40vh,270px);overflow-y:auto;flex:none}
+.bolt-ai-activity[hidden]{display:none!important}
+.bolt-ai-activity>b{font:700 9px var(--mono,monospace);letter-spacing:.15em;color:#b8a3d0}
+.bolt-ai-activity>em{font:italic 12px/1.6 var(--font,system-ui);color:#d5cadf;white-space:pre-wrap;overflow-wrap:anywhere}
+.bolt-ai-activity-sites{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.bolt-ai-activity-sites[hidden],.bolt-ai-activity-draft[hidden]{display:none!important}
+.bolt-ai-activity-sites>small{display:block;width:100%;font:italic 11px var(--font,system-ui);color:#a9a5b8}
+.bolt-ai-activity-sites>a{max-width:100%;text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:#af98c324;border:1px solid #a98ac36b;border-radius:99px;color:#ead9ff;padding:4px 8px;font:italic 11px var(--font,system-ui)}
+.bolt-ai-activity-sites>a:hover{background:#af98c34b;border-color:#d4aef2}
+.bolt-ai-activity>.bolt-ai-activity-draft{display:block;padding:8px 9px;border-left:2px solid #ac99c5;color:#bfb4cc;font:italic 11px/1.6 var(--font,system-ui);max-height:105px;overflow:auto}
