@@ -11,7 +11,7 @@
       '<section class="bolt-ai-workspace-drawer" id="boltAiChatsDrawer" hidden><div class="bolt-ai-drawer-head"><strong>YOUR CHATS</strong><button type="button" id="boltAiCreateChat">＋ New chat</button></div><div class="bolt-ai-thread-list" id="boltAiThreadList"></div></section>' +
       '<section class="bolt-ai-personality" id="boltAiPersonality" hidden><div class="bolt-ai-drawer-head"><strong>MAKE IT YOURS</strong><button type="button" id="boltAiPersonalityClose" aria-label="Close AI customization">×</button></div><form id="boltAiPreferencesForm"><label>Assistant name<input id="boltAiPersonaName" maxlength="50" placeholder="Lightning AI"></label><label>Personality<select id="boltAiTone"><option value="balanced">Balanced</option><option value="casual">Friendly & casual</option><option value="professional">Professional</option><option value="direct">Straight to the point</option><option value="creative">Creative</option></select></label><label>Response detail<select id="boltAiLength"><option value="short">Short</option><option value="balanced">Balanced</option><option value="detailed">Detailed</option></select></label><label>Custom instructions<textarea id="boltAiInstructions" maxlength="1200" rows="4" placeholder="e.g. Explain coding in a practical way, use examples, and skip filler."></textarea></label><p>These settings apply to future AI responses and sync to your Lightning account.</p><button type="submit" id="boltAiPrefsSave">Save preferences</button></form></section>' +
       '<div class="bolt-ai-messages" id="boltAiMessages" aria-live="polite"></div>' +
-      '<div class="bolt-ai-activity" id="boltAiActivity" role="status" aria-live="polite" hidden><b>LIVE ACTIVITY</b><em id="boltAiActivityText">Preparing…</em><div class="bolt-ai-activity-sites" id="boltAiActivitySites" hidden></div><em class="bolt-ai-activity-draft" id="boltAiActivityDraft" hidden></em></div>' +
+      '<section class="bolt-ai-activity" id="boltAiActivity" aria-label="AI response progress" hidden><details id="boltAiThinkingDetails" open><summary class="bolt-ai-thinking-heading"><span class="bolt-ai-thinking-pulse" aria-hidden="true"></span><strong>Thinking</strong><span class="bolt-ai-thinking-chevron" aria-hidden="true">⌄</span></summary><div class="bolt-ai-thinking-body"><ol class="bolt-ai-thought-log" id="boltAiThoughtLog" aria-live="polite"></ol><div class="bolt-ai-activity-sites" id="boltAiActivitySites" hidden></div></div></details></section>' +
       '<span class="bolt-ai-grip" aria-hidden="true"></span>' +
       '<form class="bolt-ai-compose" id="boltAiForm"><div class="bolt-ai-shortcuts"><button type="button" id="boltUseSelection">Use selected text</button><button type="button" id="boltUsePage">Add page link</button><button type="button" id="boltAiWeb" aria-pressed="false" title="Search the web for this answer">Web: auto</button></div>' +
       '<textarea class="bolt-ai-textarea" id="boltAiInput" maxlength="9000" placeholder="Ask a question..."></textarea><div class="bolt-ai-error" id="boltAiError" role="status"></div><div class="bolt-ai-actions"><span class="bolt-ai-hint">↵ send &nbsp; · &nbsp; shift ↵ newline</span><button class="bolt-ai-send" id="boltAiSend" type="submit">Send ↗</button></div></form></aside>' +
@@ -308,41 +308,109 @@
     messageView.scrollTop = messageView.scrollHeight;
   }
   function setError(value) { errorView.textContent = value || ""; }
-  function setActivity(value) {
-    const activity=el("boltAiActivity");
-    activity.hidden=!value;
-    el("boltAiActivityText").textContent=value||"";
-    if(!value){
-      const sites=el("boltAiActivitySites"),draft=el("boltAiActivityDraft");
-      sites.replaceChildren();sites.hidden=true;draft.textContent="";draft.hidden=true;
+  // These are public, verifiable work summaries, not the model's private reasoning.
+  // Keep a short timeline like a Thinking panel rather than showing raw answer tokens.
+  let lastThoughtStage = "";
+  let thoughtTopic = "";
+  function describeActivity(message) {
+    const value = String(message || "");
+    if (/checking the request|checking whether live sources/i.test(value)) {
+      return ["Understanding the request", thoughtTopic
+        ? 'Focusing on: “' + thoughtTopic + '”'
+        : "Checking what information the answer needs."];
     }
+    if (/searching the web|requesting live web|looking for live sources/i.test(value)) {
+      return ["Searching for information", "Looking for current sources that might help answer the question."];
+    }
+    if (/reading \d+ search results|reviewing \d+ search snippets/i.test(value)) {
+      return ["Reviewing the results", "Looking over the returned page titles and excerpts for relevant details."];
+    }
+    if (/no verified live|no live sources/i.test(value)) {
+      return ["Checking available evidence", "The search did not return verified links to support a current answer."];
+    }
+    if (/connecting to the ai model|preparing the answer|preparing an answer/i.test(value)) {
+      return ["Preparing the response", "Sending the question and any available source excerpts to the AI model."];
+    }
+    if (/primary model was slow|trying another available ai model|trying a backup|using the faster ai model/i.test(value)) {
+      return ["Switching AI models", "The first model was slow or unavailable, so Lightning is trying another."];
+    }
+    if (/working through the question|generating the answer/i.test(value)) {
+      return ["Working through the details", "The model is processing the request and preparing its response."];
+    }
+    if (/writing the answer/i.test(value)) {
+      return ["Writing the reply", "The model has started sending the finished answer."];
+    }
+    return ["Working on the reply", value.slice(0,180) || "Preparing a response."];
   }
-  function showSearchedSites(data){
-    const list=el("boltAiActivitySites");
+  function setActivity(message) {
+    const activity = el("boltAiActivity");
+    if (!message) {
+      activity.hidden = true;
+      el("boltAiThoughtLog").replaceChildren();
+      const sites = el("boltAiActivitySites");
+      sites.replaceChildren();
+      sites.hidden = true;
+      lastThoughtStage = "";
+      thoughtTopic = "";
+      return;
+    }
+
+    if (activity.hidden) {
+      activity.hidden = false;
+      el("boltAiThinkingDetails").open = true;
+      el("boltAiThoughtLog").replaceChildren();
+      lastThoughtStage = "";
+    }
+    const [heading, detail] = describeActivity(message);
+    if (heading === lastThoughtStage) return;
+    lastThoughtStage = heading;
+
+    const entry = document.createElement("li");
+    entry.className = "bolt-ai-thought-entry";
+    const title = document.createElement("strong");
+    title.textContent = heading;
+    const description = document.createElement("em");
+    description.textContent = detail;
+    entry.append(title, description);
+
+    const log = el("boltAiThoughtLog");
+    log.append(entry);
+    while (log.children.length > 6) log.firstElementChild.remove();
+    entry.scrollIntoView?.({block:"nearest",behavior:"instant"});
+  }
+  function showSearchedSites(data) {
+    const list = el("boltAiActivitySites");
     list.replaceChildren();
-    const sources=Array.isArray(data?.sources)?data.sources:[];
-    if(!sources.length){list.hidden=true;return}
-    const label=document.createElement("small");
-    label.textContent="Found on "+(data.provider||"the web")+":";
-    list.append(label);
-    for(const source of sources.slice(0,6)){
-      try{
-        const url=new URL(source.url);
-        if(!["https:","http:"].includes(url.protocol))continue;
-        const link=document.createElement("a");
-        link.href=url.href;link.target="_blank";link.rel="noopener noreferrer";
-        link.textContent=url.hostname.replace(/^www\./,"");
-        link.title=source.title||url.href;
-        list.append(link);
-      }catch{}
+    const sources = Array.isArray(data?.sources) ? data.sources : [];
+    if (!sources.length) {
+      list.hidden = true;
+      return;
     }
-    list.hidden=!list.querySelector("a");
+    const label = document.createElement("small");
+    label.textContent = sources.length + " search result" + (sources.length === 1 ? "" : "s") +
+      (data.provider ? " via " + String(data.provider).slice(0,40) : "") + ":";
+    list.append(label);
+    for (const source of sources.slice(0,6)) {
+      try {
+        const url = new URL(source.url);
+        if (!["https:","http:"].includes(url.protocol)) continue;
+        const link = document.createElement("a");
+        link.href = url.href;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = (source.title || url.hostname).slice(0,120);
+        link.title = url.hostname.replace(/^www\./,"");
+        list.append(link);
+      } catch {}
+    }
+    list.hidden = !list.querySelector("a");
   }
-  function showGeneratedText(chunk){
-    const preview=el("boltAiActivityDraft");
-    preview.hidden=false;
-    preview.textContent=(preview.textContent+String(chunk)).slice(-750);
-    preview.scrollTop=preview.scrollHeight;
+  function showGeneratedText(chunk) {
+    // Completion chunks mark genuine answer progress. The full answer is
+    // rendered only after completion; this panel stays a short activity summary.
+    if (chunk && lastThoughtStage !== "Writing the reply") {
+      setActivity("Writing the answer…");
+    }
   }
   async function readAiEvents(response){
     if(!response.ok){
@@ -399,6 +467,8 @@
     sendButton.disabled = true;
     sendButton.textContent = "Thinking…";
     setError("");
+    thoughtTopic = value.replace(/\\s+/g," ").slice(0,100);
+    setActivity("Checking the request…");
     setActivity(webMode === "on" ? "Looking for live sources…" : webMode === "off" ? "Preparing an answer without web search…" : "Checking whether live sources will help…");
     try {
       const response = await fetch("/api/ai/chat", {
