@@ -5,7 +5,7 @@ import { whenModalLoaded } from "../LazyModals";
 import "./NavAccountMenu";
 import "./NavUtilityIcons";
 
-type LobbyModal = HTMLElement & { open?: () => void };
+type LobbyModal = HTMLElement & { open?: (args?: Record<string, unknown>) => void };
 
 @customElement("play-page")
 export class PlayPage extends LitElement {
@@ -13,22 +13,20 @@ export class PlayPage extends LitElement {
     return this;
   }
 
-  private openMode(kind: "host" | "join" | "solo") {
+  private openMode(kind: "host" | "join" | "solo", preset: "2v2" | "3v3" | "ffa" | "custom" = "custom") {
     const tag = {
       host: "host-lobby-modal",
       join: "join-lobby-modal",
       solo: "single-player-modal",
     }[kind];
+    const username = this.querySelector("username-input") as (HTMLElement & {canPlay?: () => boolean}) | null;
+    if (username?.canPlay?.() === false) return;
     whenModalLoaded(tag, () => {
       const modal = document.querySelector(tag) as LobbyModal | null;
       if (typeof modal?.open === "function") {
-        modal.open();
+        modal.open(kind === "host" ? {partyPreset:preset} : undefined);
       } else {
-        window.showPage?.({
-          host: "page-host-lobby",
-          join: "page-join-lobby",
-          solo: "page-single-player",
-        }[kind]);
+        console.error("WorldPvP failed to open", tag);
       }
     });
   }
@@ -71,6 +69,27 @@ export class PlayPage extends LitElement {
           <div class="worldpvp-banner-grid" aria-hidden="true"></div>
         </header>
 
+        <section class="worldpvp-party-presets" aria-label="Party match formats">
+          <div class="worldpvp-party-header">
+            <span>PARTY MATCHMAKING</span>
+            <strong>Choose your battlefield.</strong>
+            <p>Host private rooms. Choose the format, customize the map, and invite your squad.</p>
+          </div>
+          <div class="worldpvp-party-options">
+            <button type="button" class="worldpvp-party-option" @click=${() => this.openMode("host","2v2")}>
+              <span>TEAM BATTLE</span><strong>2v2</strong><small>4 players · Duos</small>
+            </button>
+            <button type="button" class="worldpvp-party-option" @click=${() => this.openMode("host","3v3")}>
+              <span>SQUAD BATTLE</span><strong>3v3</strong><small>6 players · Trios</small>
+            </button>
+            <button type="button" class="worldpvp-party-option" @click=${() => this.openMode("host","ffa")}>
+              <span>FREE FOR ALL</span><strong>FFA</strong><small>Every commander for themselves</small>
+            </button>
+            <button type="button" class="worldpvp-party-option worldpvp-party-custom" @click=${() => this.openMode("host","custom")}>
+              <span>CUSTOM ROOM</span><strong>Custom</strong><small>Build your own game rules</small>
+            </button>
+          </div>
+        </section>
         <div class="worldpvp-start-panel">
           <div class="worldpvp-player">
             <span>YOUR CALLSIGN</span>
