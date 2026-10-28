@@ -11,7 +11,7 @@
       '<section class="bolt-ai-workspace-drawer" id="boltAiChatsDrawer" hidden><div class="bolt-ai-drawer-head"><strong>YOUR CHATS</strong><button type="button" id="boltAiCreateChat">＋ New chat</button></div><div class="bolt-ai-thread-list" id="boltAiThreadList"></div></section>' +
       '<section class="bolt-ai-personality" id="boltAiPersonality" hidden><div class="bolt-ai-drawer-head"><strong>MAKE IT YOURS</strong><button type="button" id="boltAiPersonalityClose" aria-label="Close AI customization">×</button></div><form id="boltAiPreferencesForm"><label>Assistant name<input id="boltAiPersonaName" maxlength="50" placeholder="Lightning AI"></label><label>Personality<select id="boltAiTone"><option value="balanced">Balanced</option><option value="casual">Friendly & casual</option><option value="professional">Professional</option><option value="direct">Straight to the point</option><option value="creative">Creative</option></select></label><label>Response detail<select id="boltAiLength"><option value="short">Short</option><option value="balanced">Balanced</option><option value="detailed">Detailed</option></select></label><label>Custom instructions<textarea id="boltAiInstructions" maxlength="1200" rows="4" placeholder="e.g. Explain coding in a practical way, use examples, and skip filler."></textarea></label><p>These settings apply to future AI responses and sync to your Lightning account.</p><button type="submit" id="boltAiPrefsSave">Save preferences</button></form></section>' +
       '<div class="bolt-ai-messages" id="boltAiMessages" aria-live="polite"></div>' +
-      '<div class="bolt-ai-activity" id="boltAiActivity" role="status" hidden><b>ACTIVITY</b><span>Ready</span></div>' +
+      '<div class="bolt-ai-activity" id="boltAiActivity" role="status" aria-live="polite" hidden><b>LIVE ACTIVITY</b><em id="boltAiActivityText">Preparing…</em><div class="bolt-ai-activity-sites" id="boltAiActivitySites" hidden></div><em class="bolt-ai-activity-draft" id="boltAiActivityDraft" hidden></em></div>' +
       '<span class="bolt-ai-grip" aria-hidden="true"></span>' +
       '<form class="bolt-ai-compose" id="boltAiForm"><div class="bolt-ai-shortcuts"><button type="button" id="boltUseSelection">Use selected text</button><button type="button" id="boltUsePage">Add page link</button><button type="button" id="boltAiWeb" aria-pressed="false" title="Search the web for this answer">Web: auto</button></div>' +
       '<textarea class="bolt-ai-textarea" id="boltAiInput" maxlength="9000" placeholder="Ask a question..."></textarea><div class="bolt-ai-error" id="boltAiError" role="status"></div><div class="bolt-ai-actions"><span class="bolt-ai-hint">↵ send &nbsp; · &nbsp; shift ↵ newline</span><button class="bolt-ai-send" id="boltAiSend" type="submit">Send ↗</button></div></form></aside>' +
@@ -309,9 +309,81 @@
   }
   function setError(value) { errorView.textContent = value || ""; }
   function setActivity(value) {
-    const status = el("boltAiActivity");
-    status.hidden = !value;
-    status.querySelector("span").textContent = value || "";
+    const activity=el("boltAiActivity");
+    activity.hidden=!value;
+    el("boltAiActivityText").textContent=value||"";
+    if(!value){
+      const sites=el("boltAiActivitySites"),draft=el("boltAiActivityDraft");
+      sites.replaceChildren();sites.hidden=true;draft.textContent="";draft.hidden=true;
+    }
+  }
+  function showSearchedSites(data){
+    const list=el("boltAiActivitySites");
+    list.replaceChildren();
+    const sources=Array.isArray(data?.sources)?data.sources:[];
+    if(!sources.length){list.hidden=true;return}
+    const label=document.createElement("small");
+    label.textContent="Found on "+(data.provider||"the web")+":";
+    list.append(label);
+    for(const source of sources.slice(0,6)){
+      try{
+        const url=new URL(source.url);
+        if(!["https:","http:"].includes(url.protocol))continue;
+        const link=document.createElement("a");
+        link.href=url.href;link.target="_blank";link.rel="noopener noreferrer";
+        link.textContent=url.hostname.replace(/^www\./,"");
+        link.title=source.title||url.href;
+        list.append(link);
+      }catch{}
+    }
+    list.hidden=!list.querySelector("a");
+  }
+  function showGeneratedText(chunk){
+    const preview=el("boltAiActivityDraft");
+    preview.hidden=false;
+    preview.textContent=(preview.textContent+String(chunk)).slice(-750);
+    preview.scrollTop=preview.scrollHeight;
+  }
+  async function readAiEvents(response){
+    if(!response.ok){
+      const error=await response.json().catch(()=>({}));
+      throw new Error(error.error||"AI request failed ("+response.status+").");
+    }
+    if(!response.headers.get("Content-Type")?.includes("text/event-stream"))return response.json();
+    if(!response.body)throw new Error("The browser did not receive the AI response stream.");
+    const reader=response.body.getReader(),decoder=new TextDecoder();
+    let buffer="",finalAnswer=null;
+    function event(raw){
+      const lines=raw.split(/\r?\n/);
+      const type=lines.find(line=>line.startsWith("event:"))?.slice(6).trim()||"message";
+      const payload=lines.filter(line=>line.startsWith("data:")).map(line=>line.slice(5).trimStart()).join("\n");
+      if(!payload)return;
+      let data;
+      try{data=JSON.parse(payload)}catch{return}
+      if(type==="status")setActivity(String(data.message||"Working…"));
+      if(type==="sources")showSearchedSites(data);
+      if(type==="delta")showGeneratedText(data.text||"");
+      if(type==="answer")finalAnswer=data;
+      if(type==="error")throw new Error(data.message||"The AI request failed.");
+    }
+    try{
+      for(;;){
+        const {value,done}=await reader.read();
+        if(done)break;
+        buffer+=decoder.decode(value,{stream:true});
+        if(buffer.length>100000)throw new Error("The AI response stream grew too large.");
+        let n;
+        while((n=buffer.search(/\r?\n\r?\n/))!==-1){
+          const separator=buffer.match(/\r?\n\r?\n/)[0];
+          const eventText=buffer.slice(0,n);
+          buffer=buffer.slice(n+separator.length);
+          event(eventText);
+        }
+      }
+      if(buffer.trim())event(buffer);
+      if(!finalAnswer?.reply)throw new Error("The AI connection ended before the answer was finished.");
+      return finalAnswer;
+    }finally{try{await reader.cancel()}catch{}reader.releaseLock()}
   }
 
   async function sendMessage(evt) {
