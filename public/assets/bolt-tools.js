@@ -317,7 +317,7 @@
   async function sendMessage(evt) {
     evt.preventDefault();
     const value = input.value.trim();
-    if (!value || busy) return;
+    if (!value || busy || !workspaceReady || !activeChatId || switchingChat) return;
     messages.push({role:"user",content:value});
     messages = messages.slice(-24);
     saveChat();
@@ -354,7 +354,7 @@
   el("boltAiForm").addEventListener("submit", sendMessage);
   input.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); el("boltAiForm").requestSubmit(); }});
   el("boltAiClose").addEventListener("click", () => { openAI(false); bubble.focus({preventScroll: true}); });
-  el("boltAiClear").addEventListener("click", () => { messages=[];saveChat();setError("");setActivity("");renderChat();input.focus(); });
+  el("boltAiClear").addEventListener("click",()=>{void createChat();});
 
   function activePage() {
     const iframe = document.querySelector(".proxy-frame.active");
