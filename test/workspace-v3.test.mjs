@@ -264,3 +264,15 @@ test("proxied new windows stay inside Lightning's tab manager",()=>{
  assert.match(app,/plugins:\[cache,watcher,popupRoutingPlugin\(\),escaped\]/);
  assert.match(app,/anchor\.hasAttribute\("download"\)/);
 });
+
+test("Lightning workspace links and WorldPvP fullscreen never launch outside tabs",()=>{
+ const browserApp=fs.readFileSync(new URL("../public/assets/app.js",import.meta.url),"utf8");
+ const world=fs.readFileSync(new URL("../public/assets/openfront-port.js",import.meta.url),"utf8");
+ assert.match(browserApp,/document\.addEventListener\("click",event=>\{/);
+ assert.match(browserApp,/a\[href\]\[target="_blank"\]/);
+ assert.match(browserApp,/if\(openInsideLightning\(anchor\.href/);
+ assert.match(world,/data-act="worldFullscreen"/);
+ assert.match(world,/requestFullscreen\(\)/);
+ assert.doesNotMatch(world,/href="'\+GAME_URL\+'" target="_blank"/);
+ assert.match(browser,/\/assets\/app\.js\?v=54/);
+});
