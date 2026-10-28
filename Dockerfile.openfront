@@ -32,7 +32,9 @@ RUN node worldpvp-source-patch.mjs
 RUN npm ci --ignore-scripts
 ARG GIT_COMMIT=standalone
 ENV GIT_COMMIT=${GIT_COMMIT}
-# Typecheck and bundle separately to avoid peak memory spikes on Railway.\nRUN ./node_modules/.bin/tsc --noEmit --pretty false\nRUN ./node_modules/.bin/vite build \
+# Typecheck and bundle separately to avoid peak memory spikes on Railway.
+RUN ./node_modules/.bin/tsc --noEmit --pretty false
+RUN ./node_modules/.bin/vite build \
     && ./node_modules/.bin/tsx scripts/buildAssetHashes.ts
 # The name bridge is inserted into the built HTML (not the game engine).
 COPY openfront-name-bridge.html /tmp/lightning-name-bridge.html
