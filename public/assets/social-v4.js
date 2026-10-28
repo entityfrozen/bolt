@@ -26,6 +26,18 @@ export function installSocial(Hub){
        this.notifyMode={mentions:"all",all:"off",off:"mentions"}[this.notifyMode]||"mentions";
        put("lightning:notify-mode",this.notifyMode);this.badges();
      }
+     if(action==="pickMention"){
+       const input=this.$("#hubChatInput"),list=this.$("#socialMentionSuggestions");
+       const at=input?.selectionStart||0,match=input?.value.slice(0,at).match(/@([a-z0-9._-]{2,32})$/i);
+       if(match){
+         const value="@"+b.dataset.name+" ";
+         input.value=input.value.slice(0,at-match[0].length)+value+input.value.slice(at);
+         const cursor=at-match[0].length+value.length;
+         input.focus();input.setSelectionRange(cursor,cursor);
+       }
+       if(list)list.hidden=true;
+       return;
+     }
      if(action==="reply"){
        this.reply=this.history[this.channel]?.find(x=>x.id===b.dataset.id)||null;
        this.replyUi();this.$("#hubChatInput")?.focus();
@@ -129,6 +141,24 @@ export function installSocial(Hub){
      el.textContent=names.length===1?names[0]+" is typing…":names.length>1?names.slice(0,2).join(" and ")+" are typing…":"";}
    clearTimeout(this.typingTimeout);
    if(this.typing.size)this.typingTimeout=setTimeout(()=>this.typingUi(),900);
+ };
+ Hub.prototype.mentionUi=function(){
+   const input=this.$("#hubChatInput"),list=this.$("#socialMentionSuggestions");
+   if(!input||!list)return;
+   const match=input.value.slice(0,input.selectionStart).match(/@([a-z0-9._-]{2,32})$/i);
+   clearTimeout(this.mentionTimer);
+   if(!match){list.hidden=true;return}
+   const query=match[1],request=Symbol();this.mentionRequest=request;
+   this.mentionTimer=setTimeout(async()=>{
+     try{
+       const result=await fetch("/api/account/people?q="+encodeURIComponent(query),{credentials:"same-origin",cache:"no-store"});
+       if(!result.ok||this.mentionRequest!==request)return;
+       const people=(await result.json()).people||[];
+       if(this.mentionRequest!==request)return;
+       list.innerHTML=people.slice(0,7).map(user=>'<button type="button" data-social="pickMention" data-name="'+esc(user.username)+'"><strong>@'+esc(user.username)+'</strong><span>'+esc(user.displayName||user.username)+'</span></button>').join("");
+       list.hidden=!people.length;
+     }catch{list.hidden=true}
+   },180);
  };
  Hub.prototype.replyUi=function(){
    const box=this.$("#socialReply");if(!box)return;
