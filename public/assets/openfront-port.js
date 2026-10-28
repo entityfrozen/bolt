@@ -88,7 +88,7 @@ export function installWorldPort(Hub){
         '<span id="worldAccountName" class="openfront-port-account">Connecting player…</span>'+
         '<button type="button" class="openfront-port-action openfront-port-chat" data-split="toggle" aria-controls="lightningSideChat" aria-label="Toggle community chat">'+icon("message-circle")+' <span>Chat</span></button>'+
         '<button type="button" class="openfront-port-action" data-act="worldHow">'+icon("book-open")+' Guide</button>'+
-        '<a class="openfront-port-action" href="'+GAME_URL+'" target="_blank" rel="noopener noreferrer" title="Open game in a separate tab (without your Lightning session)">'+icon("arrow-up-right")+' Full screen</a>'+
+        '<button type="button" class="openfront-port-action" data-act="worldFullscreen" title="Expand WorldPvP without opening an external tab">'+icon("maximize")+' Full screen</button>'+
         '<button type="button" class="openfront-port-action" data-act="worldExit">'+icon("log-out")+' Exit</button>'+
       '</div><div class="wp-frame-wrap"><iframe class="openfront-port-frame" title="WorldPvP strategy match" allow="fullscreen; gamepad" referrerpolicy="strict-origin-when-cross-origin" src="'+GAME_URL+'"></iframe>'+
       '<div id="worldGuide" class="wp-guide" hidden><div class="wp-guide-panel" role="dialog" aria-label="How to play WorldPvP">'+
@@ -108,6 +108,14 @@ export function installWorldPort(Hub){
   Hub.prototype.act=function(action,button){
     if(action==="worldView"){return this.show("world");}
     if(action==="worldStart"){this.worldStarted=true;return this.worldScreen();}
+    if(action==="worldFullscreen"){
+      const frame=this.$(".openfront-port-frame");
+      if(!frame)return this.flash("Open WorldPvP first.");
+      if(typeof frame.requestFullscreen==="function"){
+        void frame.requestFullscreen().catch(()=>this.flash("Fullscreen was blocked by your browser."));
+      }else this.flash("Fullscreen isn't supported in this browser.");
+      return;
+    }
     if(action==="worldExit"){
       if(!confirm("Exit WorldPvP? Your match will close."))return;
       this.worldStarted=false;
