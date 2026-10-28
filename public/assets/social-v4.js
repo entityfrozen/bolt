@@ -1,6 +1,9 @@
 /* Lightning community chat: account-scoped read markers and realtime controls. */
 const CHANNELS=["general","games","suggestions","support"];
 const EMOJI=["👍","❤️","😂","🔥","😭","💀","🎉","👀","🙏","✨"];
+const SHORTCODES={smile:"😄",laugh:"😂",joy:"😂",heart:"❤️",fire:"🔥",cry:"😢",sob:"😭",skull:"💀",thumbsup:"👍",eyes:"👀",party:"🎉",sparkles:"✨",wave:"👋",pray:"🙏",thinking:"🤔",cool:"😎",100:"💯"};
+const emojiEnabled=()=>window.LightningPrefs?.autoEmoji!==false;
+const emojiify=text=>String(text).replace(/:([a-z0-9_]+):/gi,(match,name)=>SHORTCODES[name.toLowerCase()]||match);
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const get=(k,def)=>{try{return JSON.parse(localStorage.getItem(k))??def}catch{return def}};
 const put=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}};
