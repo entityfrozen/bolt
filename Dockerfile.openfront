@@ -26,6 +26,8 @@ RUN npm install --global --ignore-scripts npm@12.1.0
 FROM node-base AS build
 ENV HUSKY=0
 COPY --from=upstream-source /opt/openfront/ ./
+COPY worldpvp-cleanup.mjs ./
+RUN node worldpvp-cleanup.mjs
 RUN npm ci --ignore-scripts
 ARG GIT_COMMIT=standalone
 ENV GIT_COMMIT=${GIT_COMMIT}
@@ -58,13 +60,14 @@ COPY --from=upstream-source /opt/openfront/resources ./resources
 RUN rm -rf ./resources/maps
 COPY --from=upstream-source /opt/openfront/tsconfig.json /opt/openfront/tsconfig.base.json ./
 COPY --from=upstream-source /opt/openfront/client-api.json ./
-COPY --from=upstream-source /opt/openfront/src ./src
+COPY --from=build /usr/src/app/src ./src
 COPY --from=upstream-source /opt/openfront/packages ./packages
 COPY --from=upstream-source /openfront-revision ./static/commit.txt
 
 # Dev mode uses OpenFront's official standalone configuration and test CAPTCHA
 # key; it must not connect to production authentication or matchmaking.
 ENV GAME_ENV=dev \
+    WORLDPVP_TRUSTED_LOBBIES=0 \
     DOMAIN=lightning-openfront-production.up.railway.app \
     NUM_WORKERS=1 \
     LOBBY_COORDINATOR=off \
