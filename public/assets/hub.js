@@ -151,7 +151,7 @@ class Hub{
  }
  members(){
   const el=this.$("#hubMembers");if(!el)return;
-  el.innerHTML=this.users.map(u=>'<div class="hub-member"><span class="hub-statusdot"></span>'+E(u.name)+'<button class="hub-member-copy" type="button" title="Copy player ID" data-act="copyUser" data-id="'+E(u.id)+'">⧉</button></div>').join("")||'<p class="hub-footer">Connecting…</p>';
+  el.innerHTML=this.users.map(u=>'<div class="hub-member"><span class="hub-statusdot"></span>'+E(u.name)+'<button class="hub-member-copy" type="button" title="Send direct message" data-act="dmOpen" data-peer="'+E(u.id)+'">✉</button><button class="hub-member-copy" type="button" title="Copy player ID" data-act="copyUser" data-id="'+E(u.id)+'">⧉</button></div>').join("")||'<p class="hub-footer">Connecting…</p>';
  }
 
  room(peer){return [this.id,peer].sort().join("|")}
@@ -234,6 +234,29 @@ class Hub{
  openDm(peer){
   if(!peer||peer===this.id)return this.flash("Choose another Lightning member.");
   this.peer=peer;this.show("dm");
+ }
+
+ inbox(){
+  this.header("Direct messages","Private conversations · only you and your recipient can read these");
+  const peers=this.dmPeers();
+  this.$("#hubContent").innerHTML='<section class="hub-inbox"><div class="hub-inbox-hero"><span class="hub-label">PRIVATE MESSAGES</span><h2>Your conversations.</h2><p>Start a DM with an online member, or paste the account ID of someone on Lightning.</p><form id="hubStartDm" class="hub-compose-form"><input id="hubNewDmId" placeholder="Lightning account ID" maxlength="100" autocomplete="off"><button class="hub-btn primary">Open DM ↗</button></form></div><div class="hub-inbox-list">'+(peers.map(item=>'<button class="hub-inbox-item" type="button" data-act="dmOpen" data-peer="'+E(item.peer)+'"><span class="hub-chat-avatar">'+E(this.peerName(item.peer).slice(0,1).toUpperCase())+'</span><span><strong>'+E(this.peerName(item.peer))+'</strong><small>'+E(item.messages.at(-1)?.message||"Start talking")+'</small></span>'+(this.unread.direct?.[item.peer]?'<b class="hub-unread">'+this.unread.direct[item.peer]+'</b>':"")+'</button>').join("")||'<p class="hub-footer">No conversations yet. Say hi to someone!</p>')+'</div></section>';
+  this.$("#hubStartDm").addEventListener("submit",e=>{
+   e.preventDefault();this.openDm(this.$("#hubNewDmId").value.trim());
+  });
+ }
+ dm(){
+  if(!this.peer)return this.inbox();
+  this.header("✉ "+this.peerName(this.peer),"Private messages · visible only to the participants");
+  this.$("#hubContent").innerHTML='<div class="hub-main"><div class="hub-chat-stream" id="hubDmMessages"></div><div class="hub-composer"><form id="hubDmForm" class="hub-compose-form"><input id="hubDmInput" maxlength="1000" autocomplete="off" placeholder="Message '+E(this.peerName(this.peer))+' privately…"><button class="hub-btn primary">Send ↗</button></form><div class="hub-emoji-suggestions" id="hubEmojiSuggestions" hidden></div><div class="hub-footer">Only the two of you can see this conversation · :smile: becomes 😄</div></div></div>';
+  this.composer("hubDmForm","hubDmInput",message=>({type:"dm",to:this.peer,message}));
+  this.dmMessages();this.markRead();
+ }
+ dmMessages(){
+  const el=this.$("#hubDmMessages");if(!el||!this.peer)return;
+  const nearBottom=el.scrollHeight-el.scrollTop-el.clientHeight<100;
+  el.innerHTML='<div class="hub-chat-welcome"><strong>Just you and '+E(this.peerName(this.peer))+'</strong><p>This is your private conversation.</p></div>'+
+   (this.direct[this.room(this.peer)]||[]).slice(-120).map(m=>this.messageHtml(m,{peer:this.peer})).join("");
+  if(nearBottom)el.scrollTop=el.scrollHeight;
  }
  games(){
   this.header("Games","Live multiplayer arcade");
