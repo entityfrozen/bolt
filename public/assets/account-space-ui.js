@@ -33,6 +33,23 @@
    if(tab){activeTab=tab.dataset.asTab;selected=null;await draw();return;}
    const b=event.target.closest("[data-as]");if(!b)return;
    const action=b.dataset.as;
+   if(action==="deleteMessage"){
+    if(!selected||!confirm("Delete this private message for both people?"))return;
+    try{
+     await api("/api/account/dms/"+encodeURIComponent(selected)+"/"+encodeURIComponent(b.dataset.id),{method:"DELETE"});
+     await loadMessages();await loadThreads();renderChat();
+    }catch(error){notice(error.message)}
+    return;
+   }
+   if(action==="reactMessage"){
+    if(!selected)return;
+    try{
+     await api("/api/account/dms/"+encodeURIComponent(selected)+"/"+encodeURIComponent(b.dataset.id)+"/reactions",
+      {method:"POST",body:JSON.stringify({emoji:b.dataset.emoji})});
+     await loadMessages();renderChat();
+    }catch(error){notice(error.message)}
+    return;
+   }
    if(action==="close"){box.close();bust();return;}
    if(action==="dm"){selected=b.dataset.id;await loadMessages();await draw();return;}
    if(action==="back"){selected=null;await draw();return;}
