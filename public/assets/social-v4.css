@@ -55,3 +55,11 @@
 @media(max-width:840px){.social-members{display:none}.social-head-actions button{font-size:9px;padding:7px}.social-channel-head{padding:10px}}
 @media(max-width:520px){.social-channel-head{flex-wrap:wrap;gap:5px}.social-channel-head strong{font-size:14px}.social-head-actions{width:100%}.social-messages{padding:14px 8px}.social-msg{gap:8px;padding:8px}.social-avatar{width:29px;height:29px;font-size:11px}.social-compose-outer{padding:8px}.social-message-actions{opacity:1;pointer-events:auto;position:static;margin-left:auto;flex-wrap:wrap;max-width:74px}.social-message-actions button{min-width:22px}}
 @media(prefers-reduced-motion:reduce){.social-msg *{animation:none!important;transition:none!important}}
+
+
+.social-compose-outer{position:relative}
+.social-mention-menu{position:absolute;left:18px;right:18px;bottom:100%;max-height:230px;overflow-y:auto;z-index:12;padding:5px;border:1px solid #688394;border-radius:10px;background:#20313f;box-shadow:0 16px 30px #0008}
+.social-mention-menu[hidden]{display:none}
+.social-mention-menu button{width:100%;display:flex;align-items:center;justify-content:space-between;gap:9px;background:transparent;border:0;border-radius:7px;color:#e5cf9f;padding:9px 12px;cursor:pointer;text-align:left}
+.social-mention-menu button:hover,.social-mention-menu button:focus-visible{background:#3d5563}
+.social-mention-menu span{color:#98acb7;font-size:11px}
