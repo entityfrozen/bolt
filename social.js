@@ -58,3 +58,56 @@ export function createSocial({dataDir, sendAll, sendUser, clientOf, findUserById
     const user = clientOf(userId)[0]?.[1];
     if (user) sendUser(userId, getUnread(userId, user.name));
   }
+
+  function scopeFor(user, data) {
+    const channel = clean(data.channel, 25);
+    if (CHANNELS.includes(channel)) return {messages: history[channel], channel};
+    const peer = clean(data.peer, 100);
+    if (!peer || peer === user.id) return null;
+    const messages = dms[roomFor(user.id, peer)];
+    return Array.isArray(messages) ? {messages, peer} : null;
+  }
+  function publish(user, scope, event) {
+    if (scope.channel) sendAll(event);
+    else { sendUser(user.id, event); sendUser(scope.peer, event); }
+  }
+  function handle(user, data) {
+    if (data.type === "chat") {
+      const channel = clean(data.channel, 25), message = clean(data.message, 1000);
+      if (!CHANNELS.includes(channel) || !message) return true;
+      const entry = {id:uid(), by:user.name, userId:user.id, channel, message, at:timestamp(), reactions:{}};
+      history[channel].push(entry);
+      history[channel] = history[channel].slice(-120);
+      save();
+      sendAll({type:"chat", entry});
+      const mentioned = mentionedNames(message);
+      if (mentioned.length) {
+        const recipients = new Set();
+        for (const [, member] of clientOf()) {
+          if (member.id !== user.id && mentioned.includes(member.name.toLowerCase())) recipients.add(member.id);
+        }
+        for (const recipient of recipients) {
+          sendUser(recipient, {type:"mention", entry});
+          updateUnread(recipient);
+        }
+      }
+      return true;
+    }
+    if (data.type === "dm") {
+      const to = clean(data.to, 100), message = clean(data.message, 1000);
+      if (!to || to === user.id || !message) return true;
+      const recipient = clientOf(to)[0]?.[1] || findUserById(to);
+      if (!recipient || recipient.enabled === false || (recipient.expiresAt && recipient.expiresAt <= Date.now())) {
+        sendUser(user.id, {type:"error", message:"That Lightning account wasn't found."});
+        return true;
+      }
+      const room = roomFor(user.id, to);
+      const entry = {id:uid(), by:user.name, userId:user.id, to, message, at:timestamp(), reactions:{}};
+      (dms[room] ??= []).push(entry);
+      dms[room] = dms[room].slice(-120);
+      save();
+      sendUser(user.id, {type:"dm", entry});
+      sendUser(to, {type:"dm", entry});
+      updateUnread(to);
+      return true;
+    }
