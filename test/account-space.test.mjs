@@ -218,3 +218,46 @@ test("Private messages have scoped reactions, permanent deletion and unread rece
  const after=await request(origin,"/api/account/dms/"+aid,bob);
  assert.equal(after.data.messages.length,0,"Deleted messages should disappear for both participants");
 });
+
+
+test("AI workspaces isolate chats, support renaming, deletion and saved preferences",{timeout:50000},async t=>{
+ const origin=await runServer(t);
+ const admin=(await request(origin,"/api/login","","POST",{username:"account-admin",password:"safe-test-admin-password"})).cookie;
+ await request(origin,"/api/admin/users",admin,"POST",{username:"ai-workspace-a",password:"safe-workspace-test-123"});
+ await request(origin,"/api/admin/users",admin,"POST",{username:"ai-workspace-b",password:"safe-workspace-test-123"});
+ const alice=(await request(origin,"/api/login","","POST",{username:"ai-workspace-a",password:"safe-workspace-test-123"})).cookie;
+ const bob=(await request(origin,"/api/login","","POST",{username:"ai-workspace-b",password:"safe-workspace-test-123"})).cookie;
+ assert.equal((await request(origin,"/api/account/ai/workspace")).status,401);
+ const legacy=await request(origin,"/api/account/history/ai",alice,"PUT",{items:[{role:"user",content:"Previously saved conversation"}]});
+ assert.equal(legacy.status,200);
+ const imported=await request(origin,"/api/account/ai/workspace",alice);
+ assert.equal(imported.data.chats.length,1);
+ const oldId=imported.data.chats[0].id;
+ const oldChat=await request(origin,"/api/account/ai/chats/"+oldId,alice);
+ assert.equal(oldChat.data.chat.messages[0].content,"Previously saved conversation");
+ const newChat=await request(origin,"/api/account/ai/chats",alice,"POST",{title:"Coding notes"});
+ assert.equal(newChat.status,201);
+ const id=newChat.data.chat.id;
+ const saved=await request(origin,"/api/account/ai/chats/"+id+"/messages",alice,"PUT",{
+  messages:[{role:"user",content:"Teach me JavaScript"},{role:"assistant",content:"Let's start with functions."}]
+ });
+ assert.equal(saved.status,200);
+ const renamed=await request(origin,"/api/account/ai/chats/"+id,alice,"PATCH",{title:"JS study"});
+ assert.equal(renamed.status,200);
+ assert.equal(renamed.data.chat.title,"JS study");
+ const edited=await request(origin,"/api/account/ai/preferences",alice,"PATCH",{
+  name:"Sparky",tone:"direct",length:"detailed",instructions:"Use examples and short headings."
+ });
+ assert.equal(edited.status,200);
+ const state=await request(origin,"/api/account/ai/workspace",alice);
+ assert.equal(state.data.chats.length,2);
+ assert.equal(state.data.preferences.name,"Sparky");
+ assert.equal(state.data.preferences.tone,"direct");
+ const outsider=await request(origin,"/api/account/ai/chats/"+id,bob);
+ assert.equal(outsider.status,404);
+ assert.equal((await request(origin,"/api/account/ai/workspace",bob)).data.chats.length,0);
+ assert.equal((await request(origin,"/api/account/ai/preferences",alice,"PATCH",{instructions:"x".repeat(1201)})).status,400);
+ assert.equal((await request(origin,"/api/account/ai/chats/"+id,bob,"DELETE")).status,404);
+ assert.equal((await request(origin,"/api/account/ai/chats/"+id,alice,"DELETE")).status,200);
+ assert.equal((await request(origin,"/api/account/ai/workspace",alice)).data.chats.length,1);
+});
