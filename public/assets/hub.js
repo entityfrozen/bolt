@@ -496,6 +496,22 @@ class Hub{
  }
  act(action,button){
   if(action==="close")return this.close();
+  if(action==="newDm"){this.show("inbox");this.$("#hubNewDmId")?.focus();return}
+  if(action==="dmOpen")return this.openDm(button.dataset.peer);
+  if(action==="reactMenu"){
+   this.reactionPicker=this.reactionPicker===button.dataset.id?null:button.dataset.id;
+   if(this.view==="dm")this.dmMessages();else if(this.view==="chat")this.messages();
+   return;
+  }
+  if(action==="react"||action==="deleteMsg"){
+   const scope=button.dataset.peer?{peer:button.dataset.peer}:{channel:button.dataset.channel};
+   if(action==="deleteMsg"){
+    if(!confirm("Delete this message for everyone?"))return;
+    return this.send({type:"socialDelete",id:button.dataset.id,...scope});
+   }
+   this.reactionPicker=null;
+   return this.send({type:"socialReact",id:button.dataset.id,emoji:button.dataset.emoji,...scope});
+  }
   if(action==="copyUser"){
     if(navigator.clipboard?.writeText)navigator.clipboard.writeText(button.dataset.id).then(()=>this.flash("Player ID copied")).catch(()=>this.flash("Copy isn't available"));
     else this.flash("Your browser doesn't allow copying here.");
@@ -547,4 +563,10 @@ export function openHub(view="chat"){
  }
  if(!INSTANCE)INSTANCE=new Hub(root);
  INSTANCE.open(view);
+}
+export function bootHubNotifications(){
+ const root=document.getElementById("hubMount");
+ if(!root)return;
+ if(!INSTANCE)INSTANCE=new Hub(root);
+ INSTANCE.connect();
 }
