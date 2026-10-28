@@ -46,7 +46,7 @@ desktop-nav-bar .worldpvp-nav-brand span{color:var(--wp-cyan)}
 .worldpvp-source-credit a{color:#a1dedc;text-decoration:underline;text-underline-offset:2px}
 body:has(.worldpvp-home) homepage-promos,body:has(.worldpvp-home) streaming-now,body:has(.worldpvp-home) steam-wishlist{display:none!important}
 @media(max-width:1050px){.worldpvp-start-panel{grid-template-columns:1fr}.worldpvp-player{padding:13px 17px}.worldpvp-banner-content{width:80%}.worldpvp-mode{min-height:126px}.worldpvp-banner h1{font-size:clamp(52px,9vw,100px)}}
-@media(max-width:900px){.worldpvp-mobile-top{position:sticky;top:0;z-index:48;display:flex;align-items:center;gap:12px;min-height:56px;margin:-15px -16px 16px;padding:7px 15px;background:#08131cef;border-bottom:1px solid #335c6a;backdrop-filter:blur(16px)}.worldpvp-mobile-top>strong{font-size:20px;letter-spacing:-.07em;white-space:nowrap}.worldpvp-mobile-top>strong span{color:var(--wp-cyan)}.worldpvp-mobile-top>div{display:flex;align-items:center;gap:3px;margin-left:auto}.worldpvp-mobile-menu{padding:5px 10px;border:1px solid #517281;border-radius:8px;background:#132b37;color:#e1f3f4;cursor:pointer;font-size:17px}}
+@media(max-width:1023px){.worldpvp-mobile-top{position:sticky;top:0;z-index:48;display:flex;align-items:center;gap:12px;min-height:56px;margin:-15px -16px 16px;padding:7px 15px;background:#08131cef;border-bottom:1px solid #335c6a;backdrop-filter:blur(16px)}.worldpvp-mobile-top>strong{font-size:20px;letter-spacing:-.07em;white-space:nowrap}.worldpvp-mobile-top>strong span{color:var(--wp-cyan)}.worldpvp-mobile-top>div{display:flex;align-items:center;gap:3px;margin-left:auto}.worldpvp-mobile-menu{padding:5px 10px;border:1px solid #517281;border-radius:8px;background:#132b37;color:#e1f3f4;cursor:pointer;font-size:17px}}
 @media(max-width:700px){.worldpvp-home{padding:15px 13px 38px}.worldpvp-mobile-top{margin:-15px -13px 15px}.worldpvp-banner{min-height:290px;border-radius:15px}.worldpvp-banner-content{padding:28px 23px;width:100%}.worldpvp-banner h1{font-size:clamp(49px,11vw,78px)}.worldpvp-banner-content p{font-size:12px;max-width:460px}.worldpvp-banner-art{inset:0 -65% 0 8%;opacity:.3}.worldpvp-banner-glow{background:linear-gradient(90deg,#07131ae8,#08172566)}.worldpvp-banner-tags{gap:5px;margin-top:16px}.worldpvp-banner-tags>span{font-size:8px;padding:6px}.worldpvp-mode-actions{grid-template-columns:1fr;gap:8px}.worldpvp-mode{min-height:92px;padding:14px 16px;gap:3px}.worldpvp-mode strong{font-size:16px}.worldpvp-mode small{font-size:11px}.worldpvp-public-header h2{font-size:22px}.worldpvp-public-header>span{display:none}}
 @media(prefers-reduced-motion:reduce){.worldpvp-mode{transition:none}.worldpvp-mode:hover{transform:none}}
 
@@ -248,4 +248,10 @@ body.worldpvp-ui:not(.in-game) .worldpvp-source-credit{
     min-height:150px;grid-column:auto!important;grid-row:auto!important;
   }
   body.worldpvp-ui:not(.in-game) .page-content{padding:10px!important}
+}
+
+/* Without a featured FFA lobby, expand the remaining public lobbies
+   across the whole panel instead of leaving a blank left column. */
+body.worldpvp-ui:not(.in-game) .worldpvp-lobby-board:not(:has(.worldpvp-featured-lobby))>.worldpvp-upcoming-lobbies{
+  grid-column:1/-1!important;
 }
