@@ -87,6 +87,22 @@ function safeTabIcon(value){
  return "/favicon.svg";
 }
 
+function updateTabIdentity(){
+ const choice=prefs.cloak?.preset||"lightning",preset=cloakPresets[choice]||cloakPresets.lightning;
+ const title=choice==="custom"?String(prefs.cloak?.title||"Lightning").slice(0,80):preset.title;
+ const icon=choice==="custom"?safeTabIcon(prefs.cloak?.icon):preset.icon;
+ const total=dmUnread+communityUnread;
+ document.title=(total?"("+total+") ":"")+title;
+ let link=document.querySelector('link[rel="icon"]');
+ if(!link){link=document.createElement("link");link.rel="icon";document.head.append(link)}
+ if(link.href!==icon)link.href=icon;
+}
+document.addEventListener("lightning:community-unread",e=>{
+ communityUnread=Math.max(0,Number(e.detail?.count)||0);updateTabIdentity();
+});
+document.addEventListener("lightning:dm-unread",e=>{
+ dmUnread=Math.max(0,Number(e.detail?.count)||0);updateTabIdentity();
+});
 let config=null;
 let me=null;
 let controller=null;
@@ -116,6 +132,8 @@ function savePrefs(){
 
 function applyPrefs(){
   document.body.classList.toggle("compact",!!prefs.compact);
+  window.LightningPrefs=prefs;
+  updateTabIdentity();
   const [color,rgb]=accents[prefs.accent]||accents.champagne;
   document.documentElement.style.setProperty("--accent",color);
   document.documentElement.style.setProperty("--accent-rgb",rgb);
