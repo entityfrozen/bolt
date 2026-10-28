@@ -25,6 +25,7 @@ jobs:
       - name: Check app and live scripts
         run: |
           node --check server.js
+          node --check ai-stream.js
           node --check web-search-credentials.js
           node --check public/assets/web-search-settings.js
           node --check public/assets/split-chat.js
@@ -61,6 +62,8 @@ jobs:
         run: node --test test/copy.test.mjs
       - name: Test web search
         run: node --test test/web-search.test.mjs
+      - name: Test AI streaming parser
+        run: node --test test/ai-stream.test.mjs
       - name: Test Arcade interface
         run: node --test test/arcade.test.mjs
       - name: Test V2 community servers
