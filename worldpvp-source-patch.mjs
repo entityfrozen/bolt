@@ -28,6 +28,14 @@ html=html.replace('    <meta charset="UTF-8" />',
   '    <meta charset="UTF-8" />\n    <script>window.WORLDPVP_STANDALONE=true;</script>\n    <style id="worldpvp-native-home">\n'+read("worldpvp-home.css")+'\n    </style>');
 write(htmlPath,html);
 
+// WorldPvP is the installed app's name as well as its visible website name.
+const manifestPath="resources/manifest.json";
+const manifest=JSON.parse(read(manifestPath));
+manifest.name="WorldPvP — Global Conquest";
+manifest.short_name="WorldPvP";
+manifest.description="Real-time strategy and multiplayer world conquest.";
+write(manifestPath,JSON.stringify(manifest,null,2)+"\\n");
+
 // Original game mode architecture is untouched; only replace its landing view.
 // All Host/Join button handlers still open the real upstream lobby modals.
 write("src/client/components/PlayPage.ts",read("worldpvp-playpage.ts"));
