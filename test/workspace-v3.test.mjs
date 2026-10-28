@@ -146,7 +146,7 @@ test("Accounts, DMs, server history and appearance links are all integrated",()=
  assert.match(browser,/account-refine\.css/);
  assert.match(app,/LightningAccount\?\.history\.load\("browser"\)/);
  assert.match(app,/popoverDMs/);assert.match(app,/popoverProfile/);
- assert.match(ai,/LightningAccount\?\.history\.load\("ai"\)/);
+ assert.match(ai,/api\/account\/ai\/workspace/);\n assert.match(ai,/api\/account\/ai\/chats/);\n assert.match(ai,/api\/account\/ai\/preferences/);
  assert.doesNotMatch(ai,/localStorage\.getItem\("bolt\.ai\.messages"\)/);
  assert.match(account,/api\/account\/dms/);
  assert.match(account,/data-as-form="profile"/);
