@@ -809,6 +809,17 @@ function renderSettingsPanel(){
   $("#cloakPreset").addEventListener("change",e=>setCloak({preset:e.target.value}));
   $("#cloakTitle").addEventListener("input",e=>setCloak({preset:"custom",title:e.target.value}));
   $("#cloakIcon").addEventListener("change",e=>setCloak({preset:"custom",icon:e.target.value}));
+  $("#cloakCopy").addEventListener("click",()=>{
+    const selected=tabs.find(tab=>tab.id===$("#cloakCopyTab").value);
+    if(!selected)return toast("Choose an open Lightning tab first");
+    setCloak({preset:"custom",title:selected.title||"New tab",icon:selected.favicon||"/favicon.svg"});
+    renderSettingsPanel();
+    toast("Copied that tab's name and icon");
+  });
+  $("#cloakReset").addEventListener("click",()=>{
+    setCloak({preset:"lightning",title:"",icon:""});
+    renderSettingsPanel();
+  });
   $("#settingEngine").value=prefs.engine;
   $("#settingEngine").addEventListener("change",event=>{
     prefs.engine=event.target.value;
