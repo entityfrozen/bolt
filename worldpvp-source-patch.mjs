@@ -133,6 +133,16 @@ replace(gm,'export function multiplayerAllowedForBackend(backendOutage: boolean)
 replace(gm,'  private openRankedMenu = () => {',
   '  private openRankedMenu = () => {\n    if (isWorldPvPStandalone()) {\n      showToast("Ranked matchmaking is not enabled on this private server. Host or join a WorldPvP room instead.", "red");\n      return;\n    }');
 
+// OModal renders within shadow DOM, where global CSS cannot reach.
+// Apply the native WorldPvP design within the actual Host/Join/Solo dialogs.
+const modal="src/client/components/baseComponents/Modal.ts";
+replace(modal,
+  'import { LitElement, PropertyValues, html } from "lit";',
+  'import { LitElement, PropertyValues, html, css } from "lit";');
+replace(modal,
+  '  static styles = [documentStylesSheet()];',
+  "  static styles = [documentStylesSheet(), css`\n    :host { --color-malibu-blue:#50bea9; --color-aquarius:#79e9d5; --color-surface:#102333; }\n    section {color:#edf9f9!important; background:linear-gradient(145deg,#142637f6,#0b1824fc)!important;\n      border:1px solid #4d8994a6!important; border-radius:18px!important;box-shadow:0 18px 48px #0009!important}\n    [role=\"tablist\"] {border-bottom:1px solid #74bcb849!important}\n    [role=\"tablist\"] button[aria-selected=\"true\"] {color:#97f1dd!important}\n    [data-modal-scroll] {scrollbar-color:#397478 #102333}\n    button:hover:not(:disabled) {border-color:#8debd3}\n    input:focus-visible, select:focus-visible {outline-color:#83e9d5}\n    :host([inline]) aside {background:transparent!important}\n    :host(:not([inline])) aside {backdrop-filter:blur(8px);background:#040b13b8}\n  `];");
+
 // Ranked workers were polling remote api.<domain>/matchmaking/checkin every
 // five seconds. Remove only those loops in this standalone install.
 const worker="src/server/Worker.ts";
