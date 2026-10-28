@@ -15,14 +15,35 @@ body.app-page #boltTools .bolt-ai-copy:hover{
  border-color:var(--lg-accent,#a3cef8)!important;
  background:rgba(var(--lg-rgb,163,206,248),.25)!important;
 }
+/* Target the actual search classes created by bolt-tools.js.
+   Live --lg-accent / --lg-rgb variables follow the selected appearance. */
 body.app-page #boltTools .bolt-ai-search-fail,
-body.app-page #boltTools .bolt-ai-search-indicator,
-body.app-page #boltTools .bolt-ai-source a,
-body.app-page #boltTools .bolt-ai-suggestion:after{color:var(--lg-accent,#a3cef8)!important}
-body.app-page #boltTools .bolt-ai-search-indicator,
-body.app-page #boltTools .bolt-ai-source{
- background:rgba(var(--lg-rgb,163,206,248),.08)!important;
- border-color:rgba(var(--lg-rgb,163,206,248),.32)!important;
+body.app-page #boltTools .bolt-ai-web-status,
+body.app-page #boltTools .bolt-ai-sources strong,
+body.app-page #boltTools .bolt-ai-sources a,
+body.app-page #boltTools .bolt-ai-activity>b,
+body.app-page #boltTools .bolt-ai-activity-sites>a,
+body.app-page #boltTools .bolt-ai-rich a,
+body.app-page #boltTools #boltAiWeb[aria-pressed="true"],
+body.app-page #boltTools .bolt-ai-suggestion:after{
+  color:var(--lg-accent,#a3cef8)!important;
+}
+body.app-page #boltTools .bolt-ai-sources,
+body.app-page #boltTools .bolt-ai-activity,
+body.app-page #boltTools .bolt-ai-activity-sites>a{
+  background:rgba(var(--lg-rgb,163,206,248),.09)!important;
+  border-color:rgba(var(--lg-rgb,163,206,248),.36)!important;
+}
+body.app-page #boltTools .bolt-ai-web-status{
+  border-top-color:rgba(var(--lg-rgb,163,206,248),.36)!important;
+}
+body.app-page #boltTools #boltAiWeb[aria-pressed="true"]{
+  border-color:rgba(var(--lg-rgb,163,206,248),.55)!important;
+  background:rgba(var(--lg-rgb,163,206,248),.2)!important;
+}
+body.app-page #boltTools .bolt-ai-activity-sites>a:hover{
+  background:rgba(var(--lg-rgb,163,206,248),.22)!important;
+  border-color:var(--lg-accent,#a3cef8)!important;
 }
 body.app-page .bolt-brand .brand-symbol,
 body.app-page .tab.active,
