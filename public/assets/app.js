@@ -62,11 +62,45 @@ let prefs={
   engine:"google",
   restore:true,
   compact:false,
+  autoEmoji:true,
+  cloak:{preset:"lightning",title:"",icon:""},
   accent:"champagne",
   ...store.get("bolt.prefs",{})
 };
 
 if(!accents[prefs.accent])prefs.accent="champagne";
+
+
+const cloakPresets={
+  lightning:{title:"Lightning",icon:"/favicon.svg"},
+  chatgpt:{title:"ChatGPT",icon:"https://chatgpt.com/favicon.ico"},
+  google:{title:"Google",icon:"https://www.google.com/favicon.ico"},
+  docs:{title:"Google Docs",icon:"https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico"},
+  youtube:{title:"YouTube",icon:"https://www.youtube.com/favicon.ico"},
+  custom:{title:"Custom tab",icon:"/favicon.svg"}
+};
+let unreadCount=0;
+
+function safeTabIcon(value){
+  const icon=String(value||"");
+  if(icon.startsWith("/")&&!icon.startsWith("//"))return icon;
+  try{const url=new URL(icon);if(["https:","http:"].includes(url.protocol))return url.href}catch{}
+  return "/favicon.svg";
+}
+function updateTabIdentity(){
+  const choice=prefs.cloak?.preset||"lightning";
+  const preset=cloakPresets[choice]||cloakPresets.lightning;
+  const title=choice==="custom"?String(prefs.cloak?.title||"Lightning").slice(0,80):preset.title;
+  const icon=choice==="custom"?safeTabIcon(prefs.cloak?.icon):preset.icon;
+  document.title=(unreadCount?"("+unreadCount+") ":"")+title;
+  let link=document.querySelector('link[rel="icon"]');
+  if(!link){link=document.createElement("link");link.rel="icon";document.head.append(link)}
+  if(link.getAttribute("href")!==icon)link.setAttribute("href",icon);
+}
+window.addEventListener("lightning:unread",event=>{
+  unreadCount=Math.max(0,Number(event.detail?.count)||0);
+  updateTabIdentity();
+});
 
 let config=null;
 let me=null;
@@ -97,6 +131,7 @@ function savePrefs(){
 
 function applyPrefs(){
   document.body.classList.toggle("compact",!!prefs.compact);
+  updateTabIdentity();
   const [color,rgb]=accents[prefs.accent]||accents.champagne;
   document.documentElement.style.setProperty("--accent",color);
   document.documentElement.style.setProperty("--accent-rgb",rgb);
