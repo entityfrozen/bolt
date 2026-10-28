@@ -1,6 +1,9 @@
 import {installArenaPolish} from "./arena-v3.js?v=3";
 
 const E=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const SOCIAL_EMOJI={"smile":"😄","laugh":"😂","joy":"😂","heart":"❤️","fire":"🔥","skull":"💀","cry":"😭","sob":"😭","thumbsup":"👍","eyes":"👀","party":"🎉","sparkles":"✨","wave":"👋","pray":"🙏","thinking":"🤔","cool":"😎","100":"💯"};
+const EMOJI_PICKER=["❤️","🔥","😂","😭","👍","💀","🎉","👀","✨"];
+const toEmoji=text=>String(text).replace(/:([a-z0-9_]+):/gi,(match,name)=>SOCIAL_EMOJI[name.toLowerCase()]||match).replace(/(^|\s):\)(?=\s|$)/g,"$1🙂").replace(/(^|\s)<3(?=\s|$)/g,"$1❤️");
 const PIECES={K:"♔",Q:"♕",R:"♖",B:"♗",N:"♘",P:"♙",k:"♚",q:"♛",r:"♜",b:"♝",n:"♞",p:"♟"};
 const UPDATES=[
 ["Lightning Social","Discord-inspired channels for community discussion, game coordination and feature suggestions. Messages and sign-ins use existing Lightning accounts."],
@@ -11,10 +14,10 @@ const UPDATES=[
 let INSTANCE=null;
 class Hub{
  constructor(root){
-  this.root=root;this.view="chat";this.channel="general";this.name="";this.id="";this.users=[];this.history={};this.summary={users:0};this.socket=null;this.active=false;this.chess=null;this.rps=null;this.world=null;this.tile=null;this.selectedSquare=null;this.worldQueueing=false;this.worldActive=false;this.worldGeometry=null;this.camera={zoom:1,x:0,y:0};this.pointers=new Map();
+  this.root=root;this.view="chat";this.channel="general";this.name="";this.id="";this.users=[];this.history={};this.direct={};this.peer=null;this.unread={total:0,channels:{},direct:{}};this.summary={users:0};this.socket=null;this.active=false;this.chess=null;this.rps=null;this.world=null;this.tile=null;this.selectedSquare=null;this.worldQueueing=false;this.worldActive=false;this.worldGeometry=null;this.camera={zoom:1,x:0,y:0};this.pointers=new Map();
   root.innerHTML='<div class="hub-shell"><aside class="hub-rail"><div class="hub-logo"><span class="hub-label">LIGHTNING NETWORK</span><strong>Social hub.</strong><small>Your space. Your people.</small></div><nav class="hub-nav"><div class="hub-nav-title">CHANNELS</div>'+
    ["general","games","suggestions","support"].map(c=>'<button class="hub-link" data-view="chat" data-channel="'+c+'"><i>#</i><span>'+c+'</span></button>').join("")+
-   '<div class="hub-nav-title">EXPLORE</div><button class="hub-link" data-view="games"><i>♞</i><span>Multiplayer games</span></button><button class="hub-link" data-view="updates"><i>↗</i><span>Update log</span></button></nav><div class="hub-user"><div class="hub-avatar" id="hubAvatar">L</div><div><strong id="hubUsername">Lightning user</strong><span id="hubConnection">Connecting…</span></div></div></aside>'+
+   '<div class="hub-nav-title hub-dm-heading">DIRECT MESSAGES <button type="button" data-act="newDm" title="New message">＋</button></div><div id="hubDirectList"></div><button class="hub-link" data-view="inbox"><i>✉</i><span>All messages</span></button><div class="hub-nav-title">EXPLORE</div><button class="hub-link" data-view="games"><i>♞</i><span>Multiplayer games</span></button><button class="hub-link" data-view="updates"><i>↗</i><span>Update log</span></button></nav><div class="hub-user"><div class="hub-avatar" id="hubAvatar">L</div><div><strong id="hubUsername">Lightning user</strong><span id="hubConnection">Connecting…</span></div></div></aside>'+
    '<main class="hub-main"><header class="hub-head"><div><h2 id="hubTitle"># general</h2><p id="hubSubtitle">The Lightning network</p></div><span class="hub-spacer"></span><span class="hub-pill" id="hubOnline">0 online</span><button class="hub-x" data-act="close" aria-label="Close hub">×</button></header><div class="hub-content" id="hubContent"></div></main>'+
    '<div id="hubWorld" class="hub-world" hidden></div><div id="hubToast" class="hub-toast" hidden></div></div>';
   root.addEventListener("click",e=>{
@@ -42,18 +45,19 @@ class Hub{
   const ws=new WebSocket(target);this.socket=ws;
   ws.addEventListener("open",()=>{this.$("#hubConnection").textContent="Connected";if(this.worldActive||this.worldQueueing)this.send({type:"worldQueue"});});
   ws.addEventListener("message",e=>{try{this.onMessage(JSON.parse(e.data))}catch(err){console.warn("Hub:",err)}});
-  ws.addEventListener("close",()=>{if(this.socket!==ws)return;this.$("#hubConnection").textContent="Offline";if(this.active)setTimeout(()=>this.connect(),2300)});
+  ws.addEventListener("close",()=>{if(this.socket!==ws)return;this.socket=null;this.$("#hubConnection").textContent="Offline";setTimeout(()=>this.connect(),2300)});
  }
  onMessage(m){
   if(m.type==="hello"){
-   this.id=m.id;this.name=m.name;this.history=m.history||{};this.users=m.online||[];this.summary=m.summary||{};
-   this.$("#hubUsername").textContent=this.name;this.$("#hubAvatar").textContent=this.name[0]?.toUpperCase()||"L";this.presence();
-   if(this.view==="chat")this.chat();
+   this.id=m.id;this.name=m.name;this.history=m.history||{};this.direct=m.dms||{};this.unread=m.unread||{total:0,channels:{},direct:{}};this.users=m.online||[];this.summary=m.summary||{};
+   this.$("#hubUsername").textContent=this.name;this.$("#hubAvatar").textContent=this.name[0]?.toUpperCase()||"L";this.presence();this.renderDirectList();this.unreadChanged();
+   if(this.active&&(this.view==="chat"||this.view==="dm"||this.view==="inbox"))this.render();
   }else if(m.type==="presence"){
-   this.summary=m;if(m.online)this.users=m.online;this.presence();if(this.view==="chat")this.members();
+   this.summary=m;if(m.online)this.users=m.online;this.presence();if(this.view==="chat")this.members();this.renderDirectList();
   }else if(m.type==="chat"){
-   if(m.entry){(this.history[m.entry.channel]??=[]).push(m.entry);if(m.entry.channel===this.channel&&this.view==="chat")this.messages()}
-  }else if(m.type==="queued")this.flash("Queued for "+m.game+". Waiting for an opponent.");
+   if(m.entry){(this.history[m.entry.channel]??=[]).push(m.entry);if(m.entry.channel===this.channel&&this.view==="chat"){this.messages();this.markRead()} }
+  }else if(this.socialEvent(m))return;
+  else if(m.type==="queued")this.flash("Queued for "+m.game+". Waiting for an opponent.");
   else if(m.type==="chessStart"){this.chess={...m,turn:m.turn||"w",over:!!m.over};this.selectedSquare=null;this.view="chess";this.render()}
   else if(m.type==="chessState"){if(this.chess?.id===m.id){Object.assign(this.chess,m);this.selectedSquare=null;if(this.view==="chess")this.chessScreen();if(m.over)this.flash(m.result||"Game over")}}
   else if(m.type==="rpsStart"){this.rps={...m,waiting:false,result:null};this.view="rps";this.render()}
@@ -75,9 +79,9 @@ class Hub{
   this.active=true;this.root.hidden=false;this.connect();
   this.show(view==="suggestions"?"chat":view,view==="suggestions"?"suggestions":null);
  }
- close(){this.active=false;this.root.hidden=true;if(this.socket){this.socket.close();this.socket=null}}
+ close(){this.active=false;this.root.hidden=true}
  show(page,channel){
-  this.view=page;if(channel)this.channel=channel;this.render();
+  this.view=page;if(channel)this.channel=channel;this.render();this.renderDirectList();
  }
  header(title,subtitle){
   this.$("#hubTitle").textContent=title;this.$("#hubSubtitle").textContent=subtitle;
@@ -88,6 +92,8 @@ class Hub{
  }
  render(){
   if(this.view==="chat")this.chat();
+  else if(this.view==="inbox")this.inbox();
+  else if(this.view==="dm")this.dm();
   else if(this.view==="games")this.games();
   else if(this.view==="updates")this.updates();
   else if(this.view==="chess")this.chessScreen();
