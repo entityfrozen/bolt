@@ -63,11 +63,29 @@ let prefs={
   engine:"google",
   restore:true,
   compact:false,
+  autoEmoji:true,
+  cloak:{preset:"lightning",title:"",icon:""},
   accent:"champagne",
   ...store.get("bolt.prefs",{})
 };
 
 if(!accents[prefs.accent])prefs.accent="champagne";
+
+const cloakPresets={
+ lightning:{title:"Lightning",icon:"/favicon.svg"},
+ chatgpt:{title:"ChatGPT",icon:"https://chatgpt.com/favicon.ico"},
+ google:{title:"Google",icon:"https://www.google.com/favicon.ico"},
+ docs:{title:"Google Docs",icon:"https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico"},
+ youtube:{title:"YouTube",icon:"https://www.youtube.com/favicon.ico"},
+ custom:{title:"Custom tab",icon:"/favicon.svg"}
+};
+let dmUnread=0,communityUnread=0;
+function safeTabIcon(value){
+ const icon=String(value||"");
+ if(icon.startsWith("/")&&!icon.startsWith("//"))return icon;
+ try{const url=new URL(icon);if(["https:","http:"].includes(url.protocol))return url.href}catch{}
+ return "/favicon.svg";
+}
 
 let config=null;
 let me=null;
