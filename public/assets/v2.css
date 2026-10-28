@@ -206,3 +206,12 @@ body.bolt-ai-open .bolt-ai-panel{display:flex}
  #hubMount .v2-shell.v2-nav-open .v2-sidebar{transform:none;opacity:1;pointer-events:auto;box-shadow:15px 0 45px #0009}
  #hubMount .v2-topbar-name h2{font-size:13px}
 }
+
+
+/* Message actions in the current server/channel chat. */
+#hubMount .v2-reaction-actions{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:8px}
+#hubMount .v2-reaction-actions button{border:1px solid #7d91914d;border-radius:8px;background:#28394275;color:#e5dbd6;padding:3px 7px;min-height:23px;font:600 11px system-ui;cursor:pointer}
+#hubMount .v2-reaction-actions button:hover{background:#3a5357;border-color:#9cbab7}
+#hubMount .v2-reaction-actions .mine{background:#73989156;border-color:#93b2a8}
+#hubMount .v2-mention{color:#eecb88;background:#c3a36636;padding:1px 3px;border-radius:4px}
+@media(hover:none){#hubMount .v2-row .v2-delete{visibility:visible}}
