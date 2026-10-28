@@ -249,3 +249,18 @@ test("Private servers and deletion controls are exposed in management and discov
  assert.match(nav,/new URLSearchParams\(location\.search\)/);
  assert.match(css,/cm-danger-zone/);
 });
+
+test("proxied new windows stay inside Lightning's tab manager",()=>{
+ const app=fs.readFileSync(new URL("../public/assets/app.js",import.meta.url),"utf8");
+ assert.match(app,/function openInsideLightning\(/);
+ assert.match(app,/function popupRoutingPlugin\(/);
+ assert.match(app,/ManagedPlugin/);
+ assert.match(app,/context\.window/);
+ assert.match(app,/doc\.addEventListener\("click",handleLink,true\)/);
+ assert.match(app,/doc\.addEventListener\("auxclick",handleLink,true\)/);
+ assert.match(app,/win\.open=function\(url,target,features\)/);
+ assert.match(app,/if\(open\(url\)\)return null/);
+ assert.match(app,/newTab\(\{url:destination,title:/);
+ assert.match(app,/plugins:\[cache,watcher,popupRoutingPlugin\(\),escaped\]/);
+ assert.match(app,/anchor\.hasAttribute\("download"\)/);
+});
