@@ -3,6 +3,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 import {WebSocketServer, WebSocket} from "ws";
 import {Chess} from "chess.js";
+import {createSocial} from "./social.js";
 
 const CHANNELS=["general","games","suggestions","support"];
 const LIMIT=1100;
@@ -35,30 +36,17 @@ for(const seed of landIndices){
 }
 const makeMap=()=>Array.from({length:WORLD_W*WORLD_H},(_,i)=>isLand(i)?{owner:null,def:4+(i*17%5),kind:"",fort:0}:{owner:"sea"});
 const colors=["#f0bd67","#72b9c1","#f08381","#9c91d3","#89c574","#d9a0da","#d5c777","#87a5de","#c28d78","#9bc4a6"];
-const channelsFileName="lightning-social.json";
-export function attachLightningLive({server,sessionFromHeaders,dataDir}){
+export function attachLightningLive({server,sessionFromHeaders,dataDir,findUserById=()=>null}){
  // An isolated game engine per HTTP server: tests and previews must never
  // receive WebSocket state from other Lightning instances in the process.
  const clients=new Map(),queues={chess:[],rps:[]},chessGames=new Map(),rpsGames=new Map(),tournaments=new Map();
  const usersOnline=()=>[...new Set([...clients.values()].map(u=>u.id))];
  const world={cells:makeMap(),players:{},attacks:[],tick:0,winner:null,phase:"waiting",matchId:null,start:0};
  let worldQueue=[],worldQueueTimer=null;
- const file=path.join(dataDir,channelsFileName);
- let history={};
- try{history=JSON.parse(fs.readFileSync(file,"utf8"))}catch{}
- for(const c of CHANNELS)if(!Array.isArray(history[c]))history[c]=[];
- let saveQueued=false;
- const save=()=>{
-  if(saveQueued)return;saveQueued=true;
-  setTimeout(()=>{
-   saveQueued=false;
-   try{const tmp=file+".tmp";fs.writeFileSync(tmp,JSON.stringify(history));fs.renameSync(tmp,file)}
-   catch(err){console.warn("Social history save error:",err.message)}
-  },500);
- };
  const sendAll=(evt)=>{for(const ws of clients.keys())safeSend(ws,evt)};
- const clientOf=id=>[...clients.entries()].filter(([,u])=>u.id===id);
+ const clientOf=id=>[...clients.entries()].filter(([,u])=>id===undefined||u.id===id);
  const sendUser=(id,evt)=>{for(const [socket] of clientOf(id))safeSend(socket,evt)};
+ const social=createSocial({dataDir,sendAll,sendUser,clientOf,findUserById});
  const summary=()=>({users:usersOnline().length,queue:{chess:queues.chess.length,rps:queues.rps.length,world:worldQueue.length},tournaments:[...tournaments.values()].filter(t=>!t.done).map(t=>({id:t.id,players:t.ids.length,max:4,status:t.status})),games:{chess:chessGames.size,rps:rpsGames.size}});
  const presence=()=>sendAll({type:"presence",...summary(),online:usersOnline().map(id=>({id,name:clientOf(id)[0]?.[1]?.name||id}))});
  const validateSend=(ws,msg)=>{
@@ -420,9 +408,9 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir}){
   wss.handleUpgrade(req,socket,head,ws=>wss.emit("connection",ws,auth,req));
  });
  wss.on("connection",(ws,auth,req)=>{
-  const id=auth.identity.id,u={ws,id,name:nameOf(auth.identity),last:0,world:false};
+  const id=auth.identity.id,u={ws,id,name:nameOf(auth.identity),role:auth.identity.role,last:0,world:false};
   clients.set(ws,u);
-  safeSend(ws,{type:"hello",id,name:u.name,channels:CHANNELS,history,online:usersOnline().map(id=>({id,name:clientOf(id)[0]?.[1]?.name||id})),summary:summary()});
+  safeSend(ws,{type:"hello",id,name:u.name,channels:CHANNELS,history:social.history,dms:social.privateHistory(id),unread:social.getUnread(id,u.name),online:usersOnline().map(id=>({id,name:clientOf(id)[0]?.[1]?.name||id})),summary:summary()});
   presence();
   ws.on("message",raw=>{
    const current=sessionFromHeaders(req.headers);
@@ -432,13 +420,7 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir}){
    let data;try{data=JSON.parse(raw.toString())}catch{return}
    if(!data||typeof data!=="object")return;
    if(!validateSend(ws,data))return;
-   if(data.type==="chat"){
-    const channel=trimText(data.channel,25),message=trimText(data.message,1000);
-    if(!CHANNELS.includes(channel)||!message)return;
-    const entry={id:uid(),by:u.name,userId:u.id,channel,message,at:Date.now()};
-    history[channel].push(entry);history[channel]=history[channel].slice(-120);save();
-    sendAll({type:"chat",entry});return;
-   }
+   if(social.handle(u,data))return;
    if(data.type==="chessResign")return chessResign(u,data);
    if(data.type==="chessCancelQueue")return chessCancelQueue(u);
    if(data.type==="chessSync")return chessSync(u,data);
