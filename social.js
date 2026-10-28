@@ -59,6 +59,12 @@ export function createSocial({dataDir, sendAll, sendUser, clientOf, findUserById
     if (user) sendUser(userId, getUnread(userId, user.name));
   }
 
+  function existingAccount(userId) {
+    try {
+      const state = JSON.parse(fs.readFileSync(path.join(dataDir, "bolt.json"), "utf8"));
+      return state.users?.find(user => user.id === userId) || null;
+    } catch { return null; }
+  }
   function scopeFor(user, data) {
     const channel = clean(data.channel, 25);
     if (CHANNELS.includes(channel)) return {messages: history[channel], channel};
@@ -96,7 +102,7 @@ export function createSocial({dataDir, sendAll, sendUser, clientOf, findUserById
     if (data.type === "dm") {
       const to = clean(data.to, 100), message = clean(data.message, 1000);
       if (!to || to === user.id || !message) return true;
-      const recipient = clientOf(to)[0]?.[1] || findUserById(to);
+      const recipient = clientOf(to)[0]?.[1] || findUserById(to) || existingAccount(to);
       if (!recipient || recipient.enabled === false || (recipient.expiresAt && recipient.expiresAt <= Date.now())) {
         sendUser(user.id, {type:"error", message:"That Lightning account wasn't found."});
         return true;
