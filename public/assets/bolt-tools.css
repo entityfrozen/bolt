@@ -89,14 +89,70 @@ body.bolt-ai-open .bolt-devdock{right:0}
 @media(max-width:550px){.bolt-ai-workspace-top{gap:5px;padding:6px}.bolt-ai-workspace-top button{padding:7px 6px;font-size:10px}.bolt-ai-workspace-drawer,.bolt-ai-personality{max-height:40vh}}
 
 
-/* Real request activity only: search sites and streamed answer text disappear on completion. */
-.bolt-ai-activity{display:flex;flex-direction:column;gap:8px;margin:0 12px 9px;padding:11px 12px;border:1px solid rgba(var(--lg-rgb,163,206,248),.3);border-radius:12px;background:linear-gradient(135deg,rgba(var(--lg-rgb,163,206,248),.13),rgba(32,32,47,.42));max-height:min(40vh,270px);overflow-y:auto;flex:none}
+/* Temporary, collapsible public progress summary. Never show hidden model reasoning. */
+.bolt-ai-activity{
+  flex:none;margin:0 12px 10px;padding:11px 13px 12px;
+  max-height:min(44vh,320px);overflow:auto;
+  border:1px solid rgba(var(--lg-rgb,163,206,248),.3);
+  border-radius:12px;background:rgba(var(--lg-rgb,163,206,248),.09);
+  font-family:var(--font,system-ui);
+}
 .bolt-ai-activity[hidden]{display:none!important}
-.bolt-ai-activity>b{font:700 9px var(--mono,monospace);letter-spacing:.15em;color:var(--lg-accent,#a3cef8)}
-.bolt-ai-activity>em{font:italic 12px/1.6 var(--font,system-ui);color:#d5cadf;white-space:pre-wrap;overflow-wrap:anywhere}
-.bolt-ai-activity-sites{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
-.bolt-ai-activity-sites[hidden],.bolt-ai-activity-draft[hidden]{display:none!important}
-.bolt-ai-activity-sites>small{display:block;width:100%;font:italic 11px var(--font,system-ui);color:#a9a5b8}
-.bolt-ai-activity-sites>a{max-width:100%;text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:rgba(var(--lg-rgb,163,206,248),.12);border:1px solid rgba(var(--lg-rgb,163,206,248),.46);border-radius:99px;color:var(--lg-accent,#a3cef8);padding:4px 8px;font:italic 11px var(--font,system-ui)}
-.bolt-ai-activity-sites>a:hover{background:rgba(var(--lg-rgb,163,206,248),.23);border-color:var(--lg-accent,#a3cef8)}
-.bolt-ai-activity>.bolt-ai-activity-draft{display:block;padding:8px 9px;border-left:2px solid var(--lg-accent,#a3cef8);color:#bfb4cc;font:italic 11px/1.6 var(--font,system-ui);max-height:105px;overflow:auto}
+.bolt-ai-thinking-heading{
+  display:flex;align-items:center;gap:9px;cursor:pointer;
+  list-style:none;font-size:12px;color:var(--text,#f3f3f3);
+  user-select:none;
+}
+.bolt-ai-thinking-heading::-webkit-details-marker{display:none}
+.bolt-ai-thinking-heading:focus-visible{outline:2px solid var(--lg-accent,#a3cef8);outline-offset:3px;border-radius:5px}
+.bolt-ai-thinking-heading strong{font-weight:650;letter-spacing:-.01em}
+.bolt-ai-thinking-pulse{
+  width:10px;height:10px;flex:none;border-radius:50%;
+  background:var(--lg-accent,#a3cef8);
+  box-shadow:0 0 0 4px rgba(var(--lg-rgb,163,206,248),.12);
+  animation:bolt-thinking-pulse 1.65s ease-in-out infinite;
+}
+@keyframes bolt-thinking-pulse{
+  50%{opacity:.5;transform:scale(.8)}
+}
+.bolt-ai-thinking-chevron{margin-left:auto;font-size:18px;color:var(--muted,#aaa);transition:transform .15s}
+.bolt-ai-thinking[open] .bolt-ai-thinking-chevron,.bolt-ai-activity details[open] .bolt-ai-thinking-chevron{transform:rotate(180deg)}
+.bolt-ai-thinking-body{padding:12px 1px 1px 4px}
+.bolt-ai-thought-log{
+  list-style:none;margin:0 0 0 4px;padding:0 0 0 18px;
+  border-left:1px solid rgba(var(--lg-rgb,163,206,248),.29);
+  display:flex;flex-direction:column;gap:11px;
+}
+.bolt-ai-thought-entry{position:relative;display:flex;flex-direction:column;gap:3px;min-width:0}
+.bolt-ai-thought-entry::before{
+  content:"";position:absolute;left:-22px;top:5px;width:7px;height:7px;
+  border-radius:50%;background:rgba(var(--lg-rgb,163,206,248),.5);
+}
+.bolt-ai-thought-entry:last-child::before{background:var(--lg-accent,#a3cef8)}
+.bolt-ai-thought-entry strong{font:600 11px/1.35 var(--font,system-ui);color:var(--lg-accent,#a3cef8)}
+.bolt-ai-thought-entry em{
+  font:italic 11px/1.5 var(--font,system-ui);color:var(--muted,#b4aea1);
+  white-space:pre-wrap;overflow-wrap:anywhere;
+}
+.bolt-ai-activity-sites{
+  margin:11px 0 1px 22px;display:flex;flex-wrap:wrap;align-items:center;gap:6px;
+}
+.bolt-ai-activity-sites[hidden]{display:none!important}
+.bolt-ai-activity-sites>small{
+  display:block;width:100%;font:italic 10px/1.5 var(--font,system-ui);color:var(--muted,#aaa);
+}
+.bolt-ai-activity-sites>a{
+  max-width:100%;text-decoration:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  background:rgba(var(--lg-rgb,163,206,248),.09);
+  border:1px solid rgba(var(--lg-rgb,163,206,248),.36);
+  border-radius:7px;color:var(--lg-accent,#a3cef8);
+  padding:5px 8px;font:italic 10px/1.35 var(--font,system-ui);
+}
+.bolt-ai-activity-sites>a:hover{
+  background:rgba(var(--lg-rgb,163,206,248),.23);
+  border-color:var(--lg-accent,#a3cef8);
+}
+@media(prefers-reduced-motion:reduce){
+  .bolt-ai-thinking-pulse{animation:none}
+  .bolt-ai-thinking-chevron{transition:none}
+}
