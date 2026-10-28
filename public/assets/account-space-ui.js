@@ -133,10 +133,17 @@
  };
  function renderChat(){
   const target=$("#asChatMessages");if(!target||!profile)return;
-  target.innerHTML=messages.length?messages.map(m=>
-   '<div class="as-message '+(m.from===profile.id?"mine":"theirs")+'"><div>'+escape(m.text)+'</div>'+
-   '<time>'+new Date(m.at).toLocaleString([],{hour:"numeric",minute:"2-digit",month:"short",day:"numeric"})+'</time></div>').join(""):
-   '<p class="as-muted">No messages yet. Say hello privately.</p>';
+  target.innerHTML=messages.length?messages.map(m=>{
+   const reactions=Object.entries(m.reactions||{}).filter(([,ids])=>Array.isArray(ids)&&ids.length)
+    .map(([emoji,ids])=>'<button type="button" class="as-react-count '+(ids.includes(profile.id)?"selected":"")+'" data-as="reactMessage" data-id="'+escape(m.id)+'" data-emoji="'+escape(emoji)+'">'+escape(emoji)+' '+ids.length+'</button>').join("");
+   return '<div class="as-message '+(m.from===profile.id?"mine":"theirs")+'"><div>'+escape(m.text)+'</div>'+
+    '<div class="as-message-actions">'+reactions+
+    '<button type="button" data-as="reactMessage" data-id="'+escape(m.id)+'" data-emoji="❤️">❤️</button>'+
+    '<button type="button" data-as="reactMessage" data-id="'+escape(m.id)+'" data-emoji="😂">😂</button>'+
+    '<button type="button" data-as="reactMessage" data-id="'+escape(m.id)+'" data-emoji="🔥">🔥</button>'+
+    (m.from===profile.id?'<button type="button" data-as="deleteMessage" data-id="'+escape(m.id)+'">Delete</button>':"")+'</div>'+
+    '<time>'+new Date(m.at).toLocaleString([],{hour:"numeric",minute:"2-digit",month:"short",day:"numeric"})+'</time></div>';
+  }).join(""):'<p class="as-muted">No messages yet. Say hello privately.</p>';
   target.scrollTop=target.scrollHeight;
  }
  async function draw(){
