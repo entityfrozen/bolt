@@ -99,12 +99,12 @@
   box.addEventListener("close",bust);
   return box;
  }
- const person=user=>'<button type="button" class="as-person" data-as="dm" data-id="'+escape(user.id)+'">'+
+ const person=(user,unread=0)=>'<button type="button" class="as-person" data-as="dm" data-id="'+escape(user.id)+'">'+
   '<span class="as-avatar" style="--user-color:'+escape(user.accent)+'">'+escape((user.displayName||user.username||"?")[0].toUpperCase())+'</span>'+
-  '<span><strong>'+escape(user.displayName||user.username)+'</strong><small>@'+escape(user.username)+'</small></span><i>Message →</i></button>';
+  '<span><strong>'+escape(user.displayName||user.username)+'</strong><small>@'+escape(user.username)+'</small></span><i>Message →</i>'+(unread?'<b class="as-unread">'+(unread>99?"99+":unread)+'</b>':"")+'</button>';
  async function loadProfile(){const data=await api("/api/account/profile");profile=data.profile;window.LightningAccount.profile=profile;}
  async function loadThreads(){threads=(await api("/api/account/dms")).threads||[];}
- async function loadMessages(){if(!selected)return;const data=await api("/api/account/dms/"+encodeURIComponent(selected));messages=data.messages||[];}
+ async function loadMessages(){if(!selected)return;const data=await api("/api/account/dms/"+encodeURIComponent(selected));messages=data.messages||[];document.dispatchEvent(new CustomEvent("lightning:dm-refresh"));}
  const messagesArea=()=>{
   if(!selected)return '<div class="as-muted">Choose a member or search above to start a private conversation.</div>';
   const thread=threads.find(t=>t.user.id===selected),other=thread?.user;
@@ -153,7 +153,7 @@
     '<div id="asPeopleResults"></div>'+
     (selected?messagesArea():
      '<div class="as-thread-list"><div class="as-thread-title"><strong>Conversations</strong><button type="button" data-as="refresh">Refresh</button></div>'+
-      (threads.length?threads.map(t=>person(t.user)).join(""):'<div class="as-muted">No direct messages yet. Search for a member to start one.</div>')+'</div>');
+      (threads.length?threads.map(t=>person(t.user,t.unread)).join(""):'<div class="as-muted">No direct messages yet. Search for a member to start one.</div>')+'</div>');
    if(selected){
     if(!threads.some(t=>t.user.id===selected)){
      const selectedProfile=await api("/api/account/dms/"+encodeURIComponent(selected));
