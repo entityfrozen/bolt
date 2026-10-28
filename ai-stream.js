@@ -1,6 +1,6 @@
 // Parse OpenAI-compatible data-only SSE without exposing internal reasoning.
 // Only assistant final-answer deltas are forwarded to the UI.
-export async function readAiCompletionStream(response,onContent=()=>{}){
+export async function readAiCompletionStream(response,onContent=()=>{},onReasoning=()=>{}){
  if(!response.body)throw new Error("AI provider did not return a stream.");
  const decoder=new TextDecoder();
  const reader=response.body.getReader();
@@ -14,6 +14,7 @@ export async function readAiCompletionStream(response,onContent=()=>{}){
   try{message=JSON.parse(payload)}catch{throw new Error("The AI provider sent malformed stream data.");}
   if(message.error)throw new Error(String(message.error.message||"The AI provider failed while generating.").slice(0,220));
   const choice=message.choices?.[0];
+  if(choice?.delta?.reasoning_content)onReasoning();
   const chunk=choice?.delta?.content;
   if(typeof chunk==="string"&&chunk){
    const available=Math.max(0,18000-reply.length);
