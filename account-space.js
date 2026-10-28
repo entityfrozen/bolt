@@ -222,5 +222,15 @@ export function registerAccountSpace({app,dataDir,mustBeSignedIn,sameOrigin,list
   data.dm[key]=thread;
   persist();res.status(201).json({message:entry});
  });
+ app.delete("/api/account/dms/:target/:message",mustBeSignedIn,sameOrigin,(req,res)=>{
+  const id=req.auth.identity.id,target=clip(req.params.target,100),messageId=clip(req.params.message,40);
+  if(!account(target)||id===target)return fail(res,404,"Conversation not found");
+  const thread=data.dm[threadKey(id,target)];
+  const index=thread?.messages.findIndex(item=>item.id===messageId)??-1;
+  if(index<0)return fail(res,404,"Message not found");
+  if(thread.messages[index].from!==id)return fail(res,403,"You can only delete your own messages");
+  thread.messages.splice(index,1);
+  persist();res.json({ok:true,id:messageId});
+ });
  return {getDisplayName,profile};
 }
