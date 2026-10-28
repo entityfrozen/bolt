@@ -17,10 +17,11 @@ test("NVIDIA's split SSE chunks join into final text without exposing reasoning"
   'data: {"choices":[{"delta":{"reasoning_content":"do not reveal"}}]}\n\n',
   'data: [DONE]\n\n'
  ];
- const deltas=[];
- const reply=await readAiCompletionStream(streamResponse(source),part=>deltas.push(part));
+ const deltas=[];let reasoningEvents=0;
+ const reply=await readAiCompletionStream(streamResponse(source),part=>deltas.push(part),()=>{reasoningEvents++});
  assert.equal(reply,"Hello world");
  assert.deepEqual(deltas,["Hello ","world"]);
+ assert.equal(reasoningEvents,2);
 });
 
 test("Provider stream errors do not create fake answers",async()=>{
