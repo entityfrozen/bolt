@@ -146,11 +146,11 @@ export function installSocial(Hub){
      '<div id="socialTyping" class="social-typing" aria-live="polite"></div>'+
      '<div class="social-compose-outer"><div id="socialReply" class="social-reply" hidden><span></span><button data-social="cancel" type="button">×</button></div>'+
      '<form id="hubChatForm" class="social-form"><textarea id="hubChatInput" rows="1" maxlength="1000" aria-label="Message" placeholder="Message #'+esc(this.channel)+'"></textarea>'+
-     '<button type="submit">Send ↗</button></form><p>Enter to send · Shift+Enter for a new line · @username to mention</p></div></main>'+
+     '<button type="submit">Send ↗</button></form><div id="socialMentionSuggestions" class="social-mention-menu" hidden></div><p>Enter to send · Shift+Enter for a new line · @username to mention</p></div></main>'+
      '<aside class="hub-members social-members"><span class="hub-label">WHO\'S HERE</span><div id="hubMembers"></div></aside></div>';
    const form=this.$("#hubChatForm"),input=this.$("#hubChatInput");
    form.addEventListener("submit",e=>{
-     e.preventDefault();const message=input.value.trim();if(!message)return;
+     e.preventDefault();const message=(emojiEnabled()?emojiify(input.value):input.value).trim();if(!message)return;
      if(this.send({type:"chat",channel:this.channel,message,replyTo:this.reply?.id||null})){
        input.value="";input.style.height="auto";this.reply=null;this.replyUi();
      }
@@ -158,6 +158,11 @@ export function installSocial(Hub){
    input.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey&&!e.isComposing){e.preventDefault();form.requestSubmit()}});
    input.addEventListener("input",()=>{
      input.style.height="auto";input.style.height=Math.min(130,input.scrollHeight)+"px";
+     if(emojiEnabled()&&/:([a-z0-9_]+):/i.test(input.value)){
+       const caret=input.selectionStart,before=input.value;input.value=emojiify(before);
+       const changed=before.length-input.value.length;input.setSelectionRange(Math.max(0,caret-changed),Math.max(0,caret-changed));
+     }
+     this.mentionUi();
      if(Date.now()-(this.lastTyping||0)>2200){this.lastTyping=Date.now();this.send({type:"typing",channel:this.channel})}
    });
    this.messages();this.members();this.typingUi();this.replyUi();
