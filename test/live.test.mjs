@@ -319,6 +319,8 @@ test("chat supports replying, reactions, edits and secure deletion",async t=>{
   assert.ok(updated.entry.editedAt);
   await delay(180);
   alice.send(JSON.stringify({type:"chatDelete",channel:"general",id:first.entry.id}));
-  const deleted=await env.until(()=>env.messages.get(bob).find(m=>m.type==="chatUpdate"&&m.entry.deleted));
-  assert.equal(deleted.entry.message,"");
+  const deleted=await env.until(()=>env.messages.get(bob).find(m=>m.type==="chatDeleted"&&m.id===first.entry.id));
+  assert.equal(deleted.channel,"general");
+  const reload=await env.connect("carol");
+  assert.equal(env.messages.get(reload).find(m=>m.type==="hello").history.general.some(m=>m.id===first.entry.id),false);
 });
