@@ -186,3 +186,35 @@ test("Admins publish shared apps for everyone; ordinary members can only read th
  assert.equal((await request(origin,"/api/apps/"+id,admin,"DELETE")).status,200);
  assert.deepEqual((await request(origin,"/api/apps",member)).data.apps,[]);
 });
+
+
+test("Private messages have scoped reactions, permanent deletion and unread receipts",{timeout:50000},async t=>{
+ const origin=await runServer(t);
+ const admin=(await request(origin,"/api/login","","POST",{username:"account-admin",password:"safe-test-admin-password"})).cookie;
+ const aliceUser=await request(origin,"/api/admin/users",admin,"POST",{username:"dm-reaction-a",password:"safe-test-user-password"});
+ const bobUser=await request(origin,"/api/admin/users",admin,"POST",{username:"dm-reaction-b",password:"safe-test-user-password"});
+ const carolUser=await request(origin,"/api/admin/users",admin,"POST",{username:"dm-reaction-c",password:"safe-test-user-password"});
+ const alice=(await request(origin,"/api/login","","POST",{username:"dm-reaction-a",password:"safe-test-user-password"})).cookie;
+ const bob=(await request(origin,"/api/login","","POST",{username:"dm-reaction-b",password:"safe-test-user-password"})).cookie;
+ const carol=(await request(origin,"/api/login","","POST",{username:"dm-reaction-c",password:"safe-test-user-password"})).cookie;
+ const aid=aliceUser.data.user.id,bid=bobUser.data.user.id,cid=carolUser.data.user.id;
+ const sent=await request(origin,"/api/account/dms/"+bid,alice,"POST",{text:"Reaction test"});
+ assert.equal(sent.status,201);
+ const mid=sent.data.message.id;
+ const unread=await request(origin,"/api/account/dms",bob);
+ assert.equal(unread.data.totalUnread,1);
+ assert.equal(unread.data.threads[0].unread,1);
+ assert.equal((await request(origin,"/api/account/dms",carol)).data.totalUnread,0);
+ const stranger=await request(origin,"/api/account/dms/"+cid+"/"+mid+"/reactions",carol,"POST",{emoji:"❤️"});
+ assert.equal(stranger.status,404);
+ const reaction=await request(origin,"/api/account/dms/"+aid+"/"+mid+"/reactions",bob,"POST",{emoji:"❤️"});
+ assert.equal(reaction.status,200);
+ assert.ok(reaction.data.reactions["❤️"].includes(bid));
+ assert.equal((await request(origin,"/api/account/dms/"+aid+"/"+mid,bob,"DELETE")).status,403);
+ const opened=await request(origin,"/api/account/dms/"+aid,bob);
+ assert.equal(opened.data.messages[0].reactions["❤️"].length,1);
+ assert.equal((await request(origin,"/api/account/dms",bob)).data.totalUnread,0);
+ assert.equal((await request(origin,"/api/account/dms/"+bid+"/"+mid,alice,"DELETE")).status,200);
+ const after=await request(origin,"/api/account/dms/"+aid,bob);
+ assert.equal(after.data.messages.length,0,"Deleted messages should disappear for both participants");
+});
