@@ -232,5 +232,19 @@ export function registerAccountSpace({app,dataDir,mustBeSignedIn,sameOrigin,list
   thread.messages.splice(index,1);
   persist();res.json({ok:true,id:messageId});
  });
+ app.post("/api/account/dms/:target/:message/reactions",mustBeSignedIn,sameOrigin,(req,res)=>{
+  const id=req.auth.identity.id,target=clip(req.params.target,100),messageId=clip(req.params.message,40);
+  if(!account(target)||id===target)return fail(res,404,"Conversation not found");
+  const thread=data.dm[threadKey(id,target)];
+  const entry=thread?.messages.find(message=>message.id===messageId);
+  if(!entry)return fail(res,404,"Message not found");
+  const emoji=String(req.body?.emoji||"");
+  if(!["❤️","🔥","😂","😭","👍","💀","🎉","👀","✨"].includes(emoji))return fail(res,400,"Choose a supported reaction");
+  entry.reactions??={};
+  const voters=Array.isArray(entry.reactions[emoji])?entry.reactions[emoji]:[];
+  entry.reactions[emoji]=voters.includes(id)?voters.filter(voter=>voter!==id):[...voters,id];
+  if(!entry.reactions[emoji].length)delete entry.reactions[emoji];
+  persist();res.json({ok:true,reactions:entry.reactions});
+ });
  return {getDisplayName,profile};
 }
