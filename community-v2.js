@@ -62,7 +62,11 @@ export function createCommunityStore({dataDir,sendToUser,sendAll}){
   if(!Array.isArray(s.roles)){s.roles=[{id:"member",name:"Member",color:"#C5BCA9"}];migrated=true;}
   if(!Array.isArray(s.members))s.members=[];
   if(s.permanent!==true&&s.id===MAIN_SERVER_ID){s.permanent=true;migrated=true;}
-  for(const c of s.channels)if(!Array.isArray(s.messages[c.id])){s.messages[c.id]=[];migrated=true;}
+  for(const c of s.channels){
+   if(!Array.isArray(s.messages[c.id])){s.messages[c.id]=[];migrated=true;}
+   const visible=s.messages[c.id].filter(m=>m&&!m.deleted);
+   if(visible.length!==s.messages[c.id].length){s.messages[c.id]=visible;migrated=true;}
+  }
  }
  for(const c of channels){
   const existing=main.channels.find(item=>item.id===c.id);
@@ -82,7 +86,7 @@ export function createCommunityStore({dataDir,sendToUser,sendAll}){
      main.messages[c]=old[c].slice(-LIMITS.messages).map(m=>({
       id:clean(m.id,40)||id(),channel:c,message:clean(m.message,1500),
       by:clean(m.by,32)||"Member",userId:clean(m.userId,100),
-      at:Number(m.at)||Date.now(),deleted:!!m.deleted
+      at:Number(m.at)||Date.now(),reactions:m.reactions||{}
      }));
     }
    }
@@ -277,7 +281,7 @@ export function createCommunityStore({dataDir,sendToUser,sendAll}){
    const c=s.channels.find(c=>c.id===channel);
    if(!c||!channelAccess(u,s,c)||!message)return err(u,"Choose a channel and enter a message.");
    if(c.readOnly&&!authorized(u,s))return err(u,"This is a staff-only posting channel.");
-   const entry={id:id(),channel,message,by:u.name,userId:u.id,at:Date.now()};
+   const entry={id:id(),channel,message,by:u.name,userId:u.id,at:Date.now(),reactions:{}};
    (s.messages[channel]??=[]).push(entry);s.messages[channel]=s.messages[channel].slice(-LIMITS.messages);
    save();s.members.forEach(memberId=>{const p=s.profiles[memberId]||{};if(!c.staffOnly||p.admin||memberId===s.owner)sendToUser(memberId,{type:"v2Message",serverId:s.id,entry});});return;
   }
@@ -287,8 +291,23 @@ export function createCommunityStore({dataDir,sendToUser,sendAll}){
    const entry=(s.messages[channel]||[]).find(m=>m.id===clean(data.messageId,40));
    if(!entry)return err(u,"Message not found.");
    if(entry.userId!==u.id&&!authorized(u,s))return err(u,"You cannot remove this message.");
-   entry.message="";entry.deleted=true;save();
-   s.members.forEach(memberId=>{const p=s.profiles[memberId]||{};if(!c.staffOnly||p.admin||memberId===s.owner)sendToUser(memberId,{type:"v2MessageUpdate",serverId:s.id,entry});});return;
+   s.messages[channel]=s.messages[channel].filter(m=>m.id!==entry.id);save();
+   s.members.forEach(memberId=>{const p=s.profiles[memberId]||{};if(!c.staffOnly||p.admin||memberId===s.owner)sendToUser(memberId,{type:"v2MessageDeleted",serverId:s.id,channel,id:entry.id});});return;
+  }
+  if(type==="v2React"){
+   const channel=clean(data.channel,40),c=s.channels.find(item=>item.id===channel);
+   if(!c||!channelAccess(u,s,c))return err(u,"Channel not found.");
+   const entry=(s.messages[channel]||[]).find(m=>m.id===clean(data.messageId,40));
+   if(!entry)return err(u,"Message not found.");
+   const emoji=String(data.emoji||"");
+   if(!["👍","❤️","😂","🔥","😭","💀","🎉","👀","🙏","✨"].includes(emoji))return err(u,"Choose a supported reaction.");
+   entry.reactions??={};
+   const voters=Array.isArray(entry.reactions[emoji])?entry.reactions[emoji]:[];
+   entry.reactions[emoji]=voters.includes(u.id)?voters.filter(id=>id!==u.id):[...voters.slice(-119),u.id];
+   if(!entry.reactions[emoji].length)delete entry.reactions[emoji];
+   save();
+   s.members.forEach(memberId=>{const p=s.profiles[memberId]||{};if(!c.staffOnly||p.admin||memberId===s.owner)sendToUser(memberId,{type:"v2MessageUpdate",serverId:s.id,entry});});
+   return;
   }
  }
  return {snapshot,handle,directory,mainId:MAIN_SERVER_ID};
