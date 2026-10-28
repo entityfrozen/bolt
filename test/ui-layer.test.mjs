@@ -4,6 +4,9 @@ import fs from "node:fs";
 
 const css = fs.readFileSync(new URL("../public/assets/bolt-v6.css", import.meta.url), "utf8");
 const html = fs.readFileSync(new URL("../views/app.html", import.meta.url), "utf8");
+const toolsCss = fs.readFileSync(new URL("../public/assets/bolt-tools.css", import.meta.url), "utf8");
+const themeCss = fs.readFileSync(new URL("../public/assets/theme-cleanup.css", import.meta.url), "utf8");
+const toolsJs = fs.readFileSync(new URL("../public/assets/bolt-tools.js", import.meta.url), "utf8");
 
 test("empty browsing layer does not block homepage clicks", () => {
   assert.match(css, /\.frame-stack\s*\{\s*pointer-events:\s*none\s*\}/);
@@ -19,4 +22,28 @@ test("new tab search and suggestion controls remain interactable", () => {
 test("closed multiplayer overlay cannot absorb clicks", () => {
   assert.match(html, /id="hubMount" hidden/);
   assert.match(css, /#hubMount\[hidden\][^\n]*display:\s*none\s*!important/);
+});
+
+test("live search sources use appearance colors instead of hardcoded gold", () => {
+  assert.match(toolsJs, /refs\\.className\\s*=\\s*"bolt-ai-sources"/);
+  assert.ok(css.includes(".bolt-ai-sources strong {color:var(--lg-accent"));
+  assert.ok(css.includes("color: var(--lg-accent"));
+  assert.ok(themeCss.includes("#boltTools .bolt-ai-sources a"));
+  assert.ok(themeCss.includes("#boltTools .bolt-ai-web-status"));
+  assert.ok(toolsCss.includes("--lg-rgb"));
+  assert.ok(toolsCss.includes("color:var(--lg-accent"));
+  assert.ok(html.includes("/assets/theme-cleanup.css?v=2"));
+});
+
+test("thinking panel shows high-level progress and hides after reply", () => {
+  assert.ok(toolsJs.includes('id="boltAiThinkingDetails" open'));
+  assert.ok(toolsJs.includes('id="boltAiThoughtLog" aria-live="polite"'));
+  assert.ok(toolsJs.includes('function describeActivity(message)'));
+  assert.ok(toolsJs.includes('entry.append(title, description)'));
+  assert.ok(toolsJs.includes('if(type==="sources")showSearchedSites(data)'));
+  assert.ok(toolsJs.includes('if(type==="delta")showGeneratedText(data.text||"")'));
+  assert.ok(toolsJs.includes('setActivity("");'));
+  assert.ok(!toolsJs.includes('id="boltAiActivityDraft"'));
+  assert.ok(toolsCss.includes(".bolt-ai-thought-entry em"));
+  assert.ok(toolsCss.includes("@media(prefers-reduced-motion:reduce)"));
 });
