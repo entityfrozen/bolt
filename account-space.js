@@ -182,14 +182,20 @@ export function registerAccountSpace({app,dataDir,mustBeSignedIn,sameOrigin,list
     const other=thread.people.find(u=>u!==id),member=account(other);
     if(!member)return null;
     const last=thread.messages.at(-1);
-    return {user:summary(member),last:{text:last.text,at:last.at,from:last.from},updatedAt:last.at};
+    return {user:summary(member),last:{id:last.id,text:last.text,at:last.at,from:last.from},updatedAt:last.at,unread:unreadIn(thread,id)};
    }).filter(Boolean).sort((a,b)=>b.updatedAt-a.updatedAt).slice(0,100);
-  res.json({threads});
+  res.json({threads,totalUnread:threads.reduce((sum,t)=>sum+t.unread,0)});
  });
  app.get("/api/account/dms/:target",mustBeSignedIn,(req,res)=>{
   const id=req.auth.identity.id,target=clip(req.params.target,100),other=account(target);
   if(!other||target===id)return fail(res,404,"Member not found");
   const conversation=data.dm[threadKey(id,target)];
+  if(conversation){
+   const latest=conversation.messages.at(-1)?.at||0;
+   if(latest>Number(conversation.readAt?.[id]||0)){
+    (conversation.readAt??={})[id]=latest;persist();
+   }
+  }
   res.setHeader("Cache-Control","no-store");
   res.json({user:summary(other),messages:(conversation?.messages||[]).slice(-120)});
  });
@@ -205,8 +211,9 @@ export function registerAccountSpace({app,dataDir,mustBeSignedIn,sameOrigin,list
   if(++status.count>35){rate.set(id,status);return fail(res,429,"You are sending messages too quickly.");}
   rate.set(id,status);
   const key=threadKey(id,target);
-  const thread=data.dm[key]||{people:[id,target],messages:[]};
+  const thread=data.dm[key]||{people:[id,target],messages:[],readAt:{[id]:now,[target]:0}};
   const entry={id:crypto.randomBytes(10).toString("hex"),from:id,to:target,text:message,at:now};
+  (thread.readAt??={})[id]=now;
   thread.messages.push(entry);
   thread.messages=thread.messages.slice(-300);
   data.dm[key]=thread;
