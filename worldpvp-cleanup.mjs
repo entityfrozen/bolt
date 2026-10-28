@@ -56,4 +56,15 @@ update("src/server/MapPlaylist.ts",(source)=>{
   return replaceOnce(source,old,
     '    const trusted = process.env.WORLDPVP_TRUSTED_LOBBIES === "1" && this.scheduled % TRUSTED_PUBLIC_EVERY === 0;',file);
 });
-console.log("WorldPvP original interface preserved, ad loading disabled and public games open to guests.");
+// Scheduled public FFA, team and special lobbies share this countdown.
+// Dev's upstream default is five seconds; keep the server authoritative and
+// the browser's fallback label consistent at ten seconds for every map.
+for (const file of ["src/server/ServerEnv.ts", "src/client/ClientEnv.ts"]) {
+  update(file, source => replaceOnce(
+    source,
+    "GameEnv.Dev ? 5 * 1000 : 2 * 60 * 1000",
+    "GameEnv.Dev ? 10 * 1000 : 2 * 60 * 1000",
+    file,
+  ));
+}
+console.log("WorldPvP original GUI kept; public map queues now use 10 seconds.");
