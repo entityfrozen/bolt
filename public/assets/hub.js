@@ -1,6 +1,6 @@
 import {installArenaPolish} from "./arena-v3.js?v=12";
 import {installWorldPort} from "./openfront-port.js?v=6";
-import {installSocial} from "./social-v4.js?v=5";
+import {installSocial} from "./social-v4.js?v=6";
 import {installChatPolish} from "./chat-polish.js?v=3";
 import {installArcade} from "./arcade.js?v=3";
 import {installChessVisuals} from "./chess-visuals.js?v=1";
@@ -409,7 +409,7 @@ function ensureHubStyles(){
   const css=document.createElement("link");css.id="lightningHubCss";css.rel="stylesheet";css.href="/assets/hub.css?v=3";document.head.append(css);
    const arena=document.createElement("link");arena.id="lightningArenaCss";arena.rel="stylesheet";arena.href="/assets/arena-v3.css?v=3";document.head.append(arena);
    const port=document.createElement("link");port.id="lightningOpenFrontCss";port.rel="stylesheet";port.href="/assets/openfront-port.css?v=2";document.head.append(port);
-  const social=document.createElement("link");social.id="lightningSocialCss";social.rel="stylesheet";social.href="/assets/social-v4.css?v=2";document.head.append(social);
+  const social=document.createElement("link");social.id="lightningSocialCss";social.rel="stylesheet";social.href="/assets/social-v4.css?v=3";document.head.append(social);
   const polish=document.createElement("link");polish.id="lightningChatPolishCss";polish.rel="stylesheet";polish.href="/assets/chat-polish.css?v=1";document.head.append(polish);
   const arcade=document.createElement("link");arcade.id="lightningArcadeCss";arcade.rel="stylesheet";arcade.href="/assets/arcade.css?v=1";document.head.append(arcade);
   const finish=document.createElement("link");finish.id="lightningFinishCss";finish.rel="stylesheet";finish.href="/assets/lightning-finish.css?v=1";document.head.append(finish);
