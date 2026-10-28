@@ -219,7 +219,7 @@ test("Community roles and administrator message moderation are visible",()=>{
  assert.match(community,/data-cm-form="role"/);
  assert.match(community,/Create role/);
  assert.match(community,/Existing roles/);
- assert.match(channels,/s\.canManage/);
+ assert.match(channels,/server\.canManage/);
 });
 
 test("YouTube and external app links use Lightning browser tabs",()=>{
