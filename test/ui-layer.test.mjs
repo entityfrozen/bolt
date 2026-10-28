@@ -25,7 +25,7 @@ test("closed multiplayer overlay cannot absorb clicks", () => {
 });
 
 test("live search sources use appearance colors instead of hardcoded gold", () => {
-  assert.match(toolsJs, /refs\\.className\\s*=\\s*"bolt-ai-sources"/);
+  assert.ok(toolsJs.includes('refs.className = "bolt-ai-sources"'));
   assert.ok(css.includes(".bolt-ai-sources strong {color:var(--lg-accent"));
   assert.ok(css.includes("color: var(--lg-accent"));
   assert.ok(themeCss.includes("#boltTools .bolt-ai-sources a"));
