@@ -41,6 +41,44 @@ write(manifestPath,JSON.stringify(manifest,null,2)+"\n");
 write("src/client/components/PlayPage.ts",read("worldpvp-playpage.ts"));
 write("src/client/WorldPvPStandalone.ts",read("worldpvp-standalone.ts"));
 
+// The upstream homepage is limited to 20cm (~756px) on desktop.
+// That cap made the redesigned game occupy only a strip of the screen.
+// Give the real MainLayout full viewport width for all non-game pages.
+const mainLayout="src/client/components/MainLayout.ts";
+replace(mainLayout,
+  'w-full lg:max-w-[20cm] 2xl:max-w-[24cm] desktop:lg:max-w-[min(100%,clamp(80rem,50%,90rem))] mx-auto',
+  'worldpvp-layout-inner w-full max-w-none mx-auto');
+replace(mainLayout,
+  'class="relative [.in-game_&]:hidden flex flex-col flex-1',
+  'class="worldpvp-main-shell relative [.in-game_&]:hidden flex flex-col flex-1');
+
+// The live-lobby feed is part of our page, but the upstream action strips
+// are duplicates of the new Host, Join, and Solo cards. Keep its websocket,
+// lobby cards and event handling, only remove the duplicate visible actions.
+replace(gm_placeholder="src/client/GameModeSelector.ts",
+  'class="flex flex-col gap-4 sm:compact:gap-3 sm:compact:has-[>ios-add-to-home-screen-banner:empty]:-mt-3 w-full',
+  'class="worldpvp-lobby-board flex flex-col gap-4 sm:compact:gap-3 sm:compact:has-[>ios-add-to-home-screen-banner:empty]:-mt-3 w-full');
+replace(gm_placeholder,
+  'class="flex gap-4 sm:compact:gap-3 h-14 sm:col-span-2 sm:row-start-3 ${',
+  'class="worldpvp-hidden-legacy flex gap-4 sm:compact:gap-3 h-14 sm:col-span-2 sm:row-start-3 ${');
+replace(gm_placeholder,
+  'class="grid grid-cols-3 gap-4 sm:compact:gap-3 h-14 sm:col-span-2 sm:row-start-4"',
+  'class="worldpvp-hidden-legacy grid grid-cols-3 gap-4 sm:compact:gap-3 h-14 sm:col-span-2 sm:row-start-4"');
+replace(gm_placeholder,
+  'class="min-w-0 sm:col-start-1 sm:row-start-2"',
+  'class="worldpvp-featured-lobby min-w-0 sm:col-start-1 sm:row-start-2"');
+replace(gm_placeholder,
+  'class="flex flex-col gap-4 sm:compact:gap-3 min-w-0 sm:grid sm:grid-rows-[auto_1fr_1fr] sm:row-start-2',
+  'class="worldpvp-upcoming-lobbies flex flex-col gap-4 sm:compact:gap-3 min-w-0 sm:grid sm:grid-rows-[auto_1fr_1fr] sm:row-start-2');
+
+// The mobile drawer still showed the old OpenFront emblem even after the
+// desktop navbar was rebranded.
+const mobileNav="src/client/components/MobileNavBar.ts";
+replace(mobileNav,
+  '            <img\\n              src=${assetUrl("images/OpenFrontLogo.svg")}\\n              alt="OpenFront"\\n              class="w-auto h-auto max-w-[220px] max-h-[4.5rem]"\\n            />',
+  '            <strong class="worldpvp-nav-brand">WORLD<span>PVP</span></strong>');
+replace(mobileNav,'import { assetUrl } from "@openfront/shared/AssetUrls";\\n','');
+
 // Replace the desktop logo in the actual Lit UI component.
 const navbar="src/client/components/DesktopNavBar.ts";
 replace(navbar,
