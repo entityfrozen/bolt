@@ -798,6 +798,23 @@ function renderSettingsPanel(){
       <p class="panel-copy">Signed in as <strong>${escapeHtml(me.username)}</strong>${me.temporary?" · temporary access":""}.</p>
       <div class="button-row"><button class="button" id="openDirect" type="button">Open direct</button><button class="button danger" id="logoutSettings" type="button">Sign out</button></div>
     </section>`;
+  prefs.cloak=prefs.cloak||{preset:"lightning",title:"",icon:""};
+  $("#cloakPreset").value=prefs.cloak.preset||"lightning";
+  $("#cloakTitle").value=prefs.cloak.title||"";
+  $("#cloakIcon").value=prefs.cloak.icon||"";
+  const setCloak=patch=>{prefs.cloak={...prefs.cloak,...patch};savePrefs();updateTabIdentity()};
+  $("#cloakPreset").addEventListener("change",e=>setCloak({preset:e.target.value}));
+  $("#cloakTitle").addEventListener("input",e=>setCloak({preset:"custom",title:e.target.value}));
+  $("#cloakIcon").addEventListener("change",e=>setCloak({preset:"custom",icon:e.target.value}));
+  $("#cloakCopy").addEventListener("click",()=>{
+   const tab=tabs.find(t=>t.id===$("#cloakCopyTab").value);
+   if(!tab)return toast("Choose an open Lightning tab first.");
+   setCloak({preset:"custom",title:tab.title||"New tab",icon:tab.favicon||"/favicon.svg"});
+   renderSettingsPanel();toast("Copied the tab's name and icon");
+  });
+  $("#cloakReset").addEventListener("click",()=>{
+   setCloak({preset:"lightning",title:"",icon:""});renderSettingsPanel();
+  });
   $("#settingEngine").value=prefs.engine;
   $("#settingEngine").addEventListener("change",event=>{
     prefs.engine=event.target.value;
