@@ -137,7 +137,7 @@ test("Admins can create roles and delete other members' messages",t=>{
  assert.equal(h.store.snapshot(admin).servers.find(s=>s.permanent).messages.general.at(-1).deleted,undefined);
  h.store.handle(admin,{type:"v2DeleteMessage",serverId:"lightning-main",channel:"general",messageId:message.id});
  assert.equal(h.store.snapshot(h.bob).servers.find(s=>s.permanent).messages.general.some(m=>m.id===message.id),false);
- assert.ok(h.sent.some(m=>m.type==="v2MessageDeleted"&&m.id==="bob"));
+ assert.ok(h.sent.some(m=>m.type==="v2MessageDeleted"&&m.id===message.id));
 });
 
 test("Invite-only servers are hidden, restricted, and joinable by an unguessable link",t=>{
