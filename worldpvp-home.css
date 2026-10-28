@@ -255,3 +255,63 @@ body.worldpvp-ui:not(.in-game) .worldpvp-source-credit{
 body.worldpvp-ui:not(.in-game) .worldpvp-lobby-board:not(:has(.worldpvp-featured-lobby))>.worldpvp-upcoming-lobbies{
   grid-column:1/-1!important;
 }
+
+
+/* Functional WorldPvP party presets and creator-controlled team assignments */
+.worldpvp-party-presets{
+  border:1px solid #4c9b97a1;border-radius:19px;margin:20px 0 4px;
+  padding:clamp(16px,2.3vw,26px);
+  background:linear-gradient(122deg,#0e3037ec,#111d2aec 64%,#0a222fe9);
+  box-shadow:inset 0 1px #b7ffe512,0 16px 30px #0004;
+}
+.worldpvp-party-header>span,.worldpvp-party-config-head>span{
+  display:block;font:780 10px/1.35 ui-monospace,monospace;letter-spacing:.16em;color:#85ebd4;
+}
+.worldpvp-party-header>strong,.worldpvp-party-config-head>strong{
+  display:block;font-size:clamp(19px,2.2vw,29px);line-height:1.1;letter-spacing:-.05em;margin-top:6px;
+}
+.worldpvp-party-header>p,.worldpvp-party-config-head>p{
+  margin:7px 0 16px;font-size:12px;line-height:1.6;color:#adc4cc;
+}
+.worldpvp-party-options,.worldpvp-party-config-grid{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:11px;
+}
+.worldpvp-party-option,.worldpvp-party-preset{
+  background:#152c36;border:1px solid #3a6771;border-radius:12px;
+  text-align:left;min-width:0;padding:15px 16px;color:#effffa;
+  display:flex;flex-direction:column;align-items:flex-start;gap:5px;
+  cursor:pointer;transition:background .15s,border-color .15s,transform .15s;
+}
+.worldpvp-party-option:hover,.worldpvp-party-preset:hover{
+  background:#1c4549;border-color:#86e6d2;transform:translateY(-2px);
+}
+.worldpvp-party-option:focus-visible,.worldpvp-party-preset:focus-visible{
+  outline:2px solid #b6ffe3;outline-offset:3px;
+}
+.worldpvp-party-option>span{font:720 9px ui-monospace,monospace;color:#80e7d0;letter-spacing:.13em}
+.worldpvp-party-option>strong,.worldpvp-party-preset>strong{font-size:25px;line-height:1.15;letter-spacing:-.04em}
+.worldpvp-party-option>small,.worldpvp-party-preset>small{font-size:11px;line-height:1.4;color:#b7cbd1}
+.worldpvp-party-custom{border-color:#53a792;background:linear-gradient(125deg,#16443c,#102b38)}
+.worldpvp-party-config{
+  border:1px solid #477d7d;border-radius:14px;padding:20px;
+  background:linear-gradient(125deg,#112f36,#11202e);color:#f0fbfa;
+}
+.worldpvp-party-config .worldpvp-party-preset>strong{font-size:18px}
+.worldpvp-party-preset.selected{background:#196456;border-color:#93ffdd;box-shadow:0 0 0 1px #93ffdd4a inset}
+.worldpvp-party-assignments{margin-top:18px;padding-top:15px;border-top:1px solid #7ab2ab55}
+.worldpvp-party-assignments-title{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:12px}
+.worldpvp-party-assignments-title>strong{font-size:13px;color:#d8fff1}
+.worldpvp-party-assignments-title>span{font-size:10px;color:#9bbebf}
+.worldpvp-party-assignment{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:6px 0;padding:10px 13px;border:1px solid #416872;border-radius:9px;background:#071c25;color:#e6faf7;font-size:12px}
+.worldpvp-party-assignment>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.worldpvp-party-assignment>select{min-width:125px;padding:8px;border:1px solid #4c9691;border-radius:7px;background:#12333b;color:#e5fffa;cursor:pointer}
+@media(max-width:800px){
+  .worldpvp-party-options,.worldpvp-party-config-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .worldpvp-party-option{min-height:90px;padding:13px}
+  .worldpvp-party-option>strong{font-size:22px}
+}
+@media(max-width:380px){.worldpvp-party-assignments-title{align-items:flex-start;flex-direction:column;gap:2px}}
+@media(prefers-reduced-motion:reduce){
+  .worldpvp-party-option,.worldpvp-party-preset{transition:none}
+  .worldpvp-party-option:hover,.worldpvp-party-preset:hover{transform:none}
+}
