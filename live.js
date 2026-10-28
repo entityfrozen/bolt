@@ -47,7 +47,10 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir,getDispla
  const file=path.join(dataDir,channelsFileName);
  let history={};
  try{history=JSON.parse(fs.readFileSync(file,"utf8"))}catch{}
- for(const c of CHANNELS)if(!Array.isArray(history[c]))history[c]=[];
+ for(const c of CHANNELS){
+  if(!Array.isArray(history[c]))history[c]=[];
+  history[c]=history[c].filter(entry=>entry&&!entry.deleted);
+ }
  let saveQueued=false;
  const save=()=>{
   if(saveQueued)return;saveQueued=true;
@@ -467,10 +470,11 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir,getDispla
     }else if(data.type==="chatDelete"){
       if(entry.userId!==u.id&&u.role!=="admin")
         return safeSend(ws,{type:"error",message:"You cannot delete that message."});
-      entry.message="";entry.deleted=true;entry.reactions={};
+      history[channel].splice(history[channel].indexOf(entry),1);
+      save();sendAll({type:"chatDeleted",channel,id:messageId});return;
     }else{
       const emoji=trimText(data.emoji,8);
-      if(!["👍","❤️","😂","🔥"].includes(emoji))return;
+      if(!["👍","❤️","😂","🔥","😭","💀","🎉","👀","🙏","✨"].includes(emoji))return;
       entry.reactions ||= {};
       const users=Array.isArray(entry.reactions[emoji])?entry.reactions[emoji]:[];
       entry.reactions[emoji]=users.includes(u.id)?users.filter(id=>id!==u.id):[...users.slice(-119),u.id];
