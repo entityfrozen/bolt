@@ -8,6 +8,7 @@ import { bootstrap } from "@mercuryworkshop/proxy-bootstrap";
 import { attachLightningLive } from "./live.js";
 import { registerAccountSpace } from "./account-space.js";
 import { needsWebSearch, searchWeb } from "./web-search.js";
+import {readAiCompletionStream} from "./ai-stream.js";
 import { installSearchCredentials } from "./web-search-credentials.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -446,6 +447,36 @@ app.post("/api/ai/chat", mustBeSignedIn, sameOrigin, async (req, res) => {
   }));
   if (messages.some(item => !item.content) || messages[messages.length - 1].role !== "user") {
     return res.status(400).json({ error: "Invalid chat history." });
+  }
+  const streamMode=String(req.headers.accept||"").includes("text/event-stream");
+  let disconnected=false,heartbeat=null,modelSignal=null;
+  const sendAiEvent=(type,data)=>{
+    if(!streamMode||disconnected||res.writableEnded)return;
+    res.write("event: "+type+"\ndata: "+JSON.stringify(data)+"\n\n");
+  };
+  const aiError=(message,status=502)=>{
+    if(streamMode){sendAiEvent("error",{message});res.end();}
+    else res.status(status).json({error:message});
+  };
+  const aiAnswer=data=>{
+    if(streamMode){sendAiEvent("answer",data);res.end();}
+    else res.json(data);
+  };
+  if(streamMode){
+    res.status(200);
+    res.setHeader("Content-Type","text/event-stream; charset=utf-8");
+    res.setHeader("Cache-Control","no-store, no-transform");
+    res.setHeader("Connection","keep-alive");
+    res.setHeader("X-Accel-Buffering","no");
+    res.flushHeaders();
+    // Keep the connection alive during search and while waiting for the provider.
+    heartbeat=setInterval(()=>{if(!disconnected&&!res.writableEnded)res.write(": heartbeat\n\n");},12000);
+    heartbeat.unref?.();
+    res.once("close",()=>{
+      disconnected=true;clearInterval(heartbeat);
+      if(modelSignal&&!modelSignal.signal.aborted)modelSignal.abort();
+    });
+    sendAiEvent("status",{message:"Checking the request…"});
   }
   // Search runs on our server. The language model never gets to choose a URL to fetch.
   const latestQuestion = messages.at(-1).content;
