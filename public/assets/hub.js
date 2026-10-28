@@ -120,6 +120,88 @@ class Hub{
   const el=this.$("#hubMembers");if(!el)return;
   el.innerHTML=this.users.map(u=>'<div class="hub-member"><span class="hub-statusdot"></span>'+E(u.name)+'<button class="hub-member-copy" type="button" title="Copy player ID" data-act="copyUser" data-id="'+E(u.id)+'">⧉</button></div>').join("")||'<p class="hub-footer">Connecting…</p>';
  }
+
+ room(peer){return [this.id,peer].sort().join("|")}
+ peerName(peer){
+  const member=this.users.find(u=>u.id===peer);
+  if(member)return member.name;
+  const messages=this.direct[this.room(peer)]||[];
+  return [...messages].reverse().find(m=>m.userId===peer)?.by||peer;
+ }
+ dmPeers(){
+  return Object.entries(this.direct).filter(([room])=>room.split("|").includes(this.id)).map(([room,messages])=>{
+   const peer=room.split("|").find(id=>id!==this.id);
+   return {peer,messages,last:messages.at(-1)?.at||0};
+  }).filter(item=>item.peer).sort((a,b)=>b.last-a.last);
+ }
+ renderDirectList(){
+  const el=this.$("#hubDirectList");if(!el||!this.id)return;
+  el.innerHTML=this.dmPeers().map(item=>{
+   const count=this.unread.direct?.[item.peer]||0;
+   return '<button class="hub-link hub-dm-link '+(this.view==="dm"&&this.peer===item.peer?"active":"")+'" type="button" data-act="dmOpen" data-peer="'+E(item.peer)+'"><i>◉</i><span>'+E(this.peerName(item.peer))+'</span>'+(count?'<b class="hub-unread">'+count+'</b>':"")+'</button>';
+  }).join("");
+ }
+ unreadChanged(){
+  window.dispatchEvent(new CustomEvent("lightning:unread",{detail:{count:this.unread.total||0}}));
+  this.renderDirectList();
+  for(const button of this.$("[data-channel]")){
+   const count=this.unread.channels?.[button.dataset.channel]||0;
+   let badge=button.querySelector(".hub-unread");
+   if(!count){badge?.remove();continue}
+   if(!badge){badge=document.createElement("b");badge.className="hub-unread";button.append(badge)}
+   badge.textContent=count;
+  }
+ }
+ notify(title,body,peer){
+  if(!document.hidden&&this.active)return;
+  if(!("Notification" in window)||Notification.permission!=="granted")return;
+  try{
+   const notification=new Notification(title,{body:body.slice(0,180),icon:"/favicon.svg",tag:"lightning-"+(peer||"mention")});
+   notification.onclick=()=>{window.focus();this.open("chat");if(peer)this.openDm(peer);notification.close()};
+  }catch{}
+ }
+ socialEvent(m){
+  if(m.type==="unread"){this.unread=m;this.unreadChanged();return true}
+  if(m.type==="mention"){
+   if(m.entry&&!(this.active&&this.view==="chat"&&this.channel===m.entry.channel&&!document.hidden))this.notify("Mention from "+m.entry.by,m.entry.message);
+   return true;
+  }
+  if(m.type==="dm"){
+   const entry=m.entry;if(!entry)return true;
+   const peer=entry.userId===this.id?entry.to:entry.userId;
+   const room=this.room(peer);
+   (this.direct[room]??=[]).push(entry);
+   this.direct[room]=this.direct[room].slice(-120);
+   if(this.active&&this.view==="dm"&&this.peer===peer){this.dmMessages();this.markRead()}
+   else if(entry.userId!==this.id)this.notify("Message from "+entry.by,entry.message,peer);
+   this.renderDirectList();return true;
+  }
+  if(m.type==="socialDeleted"||m.type==="socialReaction"){
+   const apply=messages=>{
+    const index=messages.findIndex(entry=>entry.id===m.id);if(index<0)return false;
+    if(m.type==="socialDeleted")messages.splice(index,1);
+    else messages[index].reactions=m.reactions||{};
+    return true;
+   };
+   let changed=false;
+   for(const channel of Object.keys(this.history))changed=apply(this.history[channel])||changed;
+   for(const room of Object.keys(this.direct))changed=apply(this.direct[room])||changed;
+   if(changed&&this.view==="chat")this.messages();
+   if(changed&&this.view==="dm")this.dmMessages();
+   if(changed)this.renderDirectList();
+   return true;
+  }
+  return false;
+ }
+ markRead(){
+  if(!this.active||document.hidden||!this.id)return;
+  if(this.view==="chat")this.send({type:"socialRead",channel:this.channel});
+  if(this.view==="dm"&&this.peer)this.send({type:"socialRead",peer:this.peer});
+ }
+ openDm(peer){
+  if(!peer||peer===this.id)return this.flash("Choose another Lightning member.");
+  this.peer=peer;this.show("dm");
+ }
  games(){
   this.header("Games","Live multiplayer arcade");
   this.$("#hubContent").innerHTML='<section class="hub-games"><div class="hub-games-head"><span class="hub-label">PLAY WITH LIGHTNING</span><h2>Pick your arena.</h2><p>Queue for a live match or challenge another member. No downloads required.</p></div><div class="hub-game-grid">'+[
