@@ -55,12 +55,14 @@ test("Message deletion is author- or owner-only and leaving revokes access",t=>{
   const messageId=h.store.snapshot("alice").servers.find(s=>!s.permanent).messages.general[0].id;
   h.store.handle(h.bob,{type:"v2DeleteMessage",serverId,channel:"general",messageId});
   assert.equal(h.store.snapshot("alice").servers.find(s=>!s.permanent).messages.general[0].deleted,undefined);
+  h.store.handle(h.bob,{type:"v2React",serverId,channel:"general",messageId,emoji:"❤️"});
+  assert.ok(h.store.snapshot("alice").servers.find(s=>!s.permanent).messages.general[0].reactions["❤️"].includes("bob"));
   h.store.handle(h.alice,{type:"v2DeleteMessage",serverId,channel:"general",messageId});
-  assert.equal(h.store.snapshot("bob").servers.find(s=>!s.permanent).messages.general[0].deleted,true);
+  assert.equal(h.store.snapshot("bob").servers.find(s=>!s.permanent).messages.general.length,0);
   h.store.handle(h.bob,{type:"v2Leave",serverId});
   assert.equal(h.store.snapshot("bob").servers.length,1);
   h.store.handle(h.bob,{type:"v2Message",serverId,channel:"general",message:"should be blocked"});
-  assert.equal(h.store.snapshot("alice").servers.find(s=>!s.permanent).messages.general.length,1);
+  assert.equal(h.store.snapshot("alice").servers.find(s=>!s.permanent).messages.general.length,0);
 });
 
 test("Main Lightning server is automatic and cannot be left",t=>{
@@ -134,8 +136,8 @@ test("Admins can create roles and delete other members' messages",t=>{
  h.store.handle(h.alice,{type:"v2DeleteMessage",serverId:"lightning-main",channel:"general",messageId:message.id});
  assert.equal(h.store.snapshot(admin).servers.find(s=>s.permanent).messages.general.at(-1).deleted,undefined);
  h.store.handle(admin,{type:"v2DeleteMessage",serverId:"lightning-main",channel:"general",messageId:message.id});
- assert.equal(h.store.snapshot(h.bob).servers.find(s=>s.permanent).messages.general.at(-1).deleted,true);
- assert.ok(h.sent.some(m=>m.type==="v2MessageUpdate"&&m.id==="bob"));
+ assert.equal(h.store.snapshot(h.bob).servers.find(s=>s.permanent).messages.general.some(m=>m.id===message.id),false);
+ assert.ok(h.sent.some(m=>m.type==="v2MessageDeleted"&&m.id==="bob"));
 });
 
 test("Invite-only servers are hidden, restricted, and joinable by an unguessable link",t=>{
