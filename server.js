@@ -488,7 +488,7 @@ app.post("/api/ai/chat", mustBeSignedIn, sameOrigin, async (req, res) => {
   if(disconnected)return;
   if(searchRequested){
     sendAiEvent("sources",{provider:web.provider,sources:web.sources.map(source=>({title:source.title,url:source.url})).slice(0,6)});
-    sendAiEvent("status",{message:web.sources.length?"Reading "+web.sources.length+" search results…":"No verified live search results found."});
+    sendAiEvent("status",{message:web.sources.length?"Reviewing "+web.sources.length+" search snippets…":"No verified live search results found."});
   }
   if (searchRequested && !web.sources.length) {
     return aiAnswer({
