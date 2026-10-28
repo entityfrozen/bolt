@@ -95,9 +95,9 @@ function updateTabIdentity(){
   document.title=(unreadCount?"("+unreadCount+") ":"")+title;
   let link=document.querySelector('link[rel="icon"]');
   if(!link){link=document.createElement("link");link.rel="icon";document.head.append(link)}
-  if(link.getAttribute("href")!==icon)link.setAttribute("href",icon);
+  if(link.href!==icon)link.href=icon;
 }
-window.addEventListener("lightning:unread",event=>{
+window.addEventListener?.("lightning:unread",event=>{
   unreadCount=Math.max(0,Number(event.detail?.count)||0);
   updateTabIdentity();
 });
