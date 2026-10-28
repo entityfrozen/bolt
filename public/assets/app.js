@@ -773,7 +773,24 @@ function renderSettingsPanel(){
     <section class="panel-section">
       <h3>Interface</h3>
       ${settingSwitch("compact","Compact chrome","Tighter tabs, rail and toolbar",prefs.compact)}
+      ${settingSwitch("autoEmoji","Automatic emoji","Convert :heart: and :smile: into emoji in chat",prefs.autoEmoji)}
       <div class="field"><span>Accent</span><div class="button-row" id="accentRow"><button class="button" data-accent="champagne">Champagne</button><button class="button" data-accent="gold">Gold</button><button class="button" data-accent="bronze">Bronze</button></div></div>
+    </section>
+    <section class="panel-section">
+      <h3>Tab cloaking</h3>
+      <p class="panel-copy">Change the browser tab name and icon. Copying works with tabs opened inside Lightning, not unrelated browser tabs.</p>
+      <div class="field"><span>Tab identity</span><select class="select" id="cloakPreset">
+        <option value="lightning">Lightning</option><option value="chatgpt">ChatGPT</option><option value="google">Google</option><option value="docs">Google Docs</option><option value="youtube">YouTube</option><option value="custom">Custom</option>
+      </select></div>
+      <div class="field"><span>Custom title</span><input class="input" id="cloakTitle" maxlength="80" placeholder="Homework planner"></div>
+      <div class="field"><span>Custom favicon URL</span><input class="input" id="cloakIcon" placeholder="https://example.com/favicon.ico"></div>
+      <div class="field"><span>Copy another Lightning tab</span><select class="select" id="cloakCopyTab"><option value="">Choose a tab…</option>${tabs.map(tab=>'<option value="'+escapeHtml(tab.id)+'">'+escapeHtml(tab.title||tab.url)+'</option>').join("")}</select></div>
+      <div class="button-row"><button class="button" id="cloakCopy" type="button">Copy tab identity</button><button class="button" id="cloakReset" type="button">Reset to Lightning</button></div>
+    </section>
+    <section class="panel-section">
+      <h3>Message notifications</h3>
+      <p class="panel-copy" id="notificationStatus">Unread DM and mention badges work automatically. Desktop pop-ups require permission.</p>
+      <div class="button-row"><button class="button" id="notificationsEnable" type="button">Enable desktop notifications</button></div>
     </section>
     <section class="panel-section">
       <h3>Session</h3>
