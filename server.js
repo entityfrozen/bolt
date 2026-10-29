@@ -9,6 +9,7 @@ import { attachLightningLive } from "./live.js";
 import { registerAccountSpace } from "./account-space.js";
 import { needsWebSearch, searchWeb } from "./web-search.js";
 import {completeAi,activeRoleplay} from "./ai-provider.js";
+import {normalizeAiImage,visionMessages} from "./ai-images.js";
 import { installSearchCredentials } from "./web-search-credentials.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -443,11 +444,15 @@ app.post("/api/ai/chat", mustBeSignedIn, sameOrigin, async (req, res) => {
   if (!provided.length || provided.length > 16) return res.status(400).json({ error: "Enter a message first." });
   const messages = provided.map(item => ({
     role: item?.role === "assistant" ? "assistant" : "user",
-    content: typeof item?.content === "string" ? item.content.slice(0, 9000).trim() : ""
+    content: typeof item?.content === "string" ? item.content.slice(0, 9000).trim() : "",
+    ...(item?.image !== undefined ? {image: normalizeAiImage(item.image)} : {})
   }));
-  if (messages.some(item => !item.content) || messages[messages.length - 1].role !== "user") {
-    return res.status(400).json({ error: "Invalid chat history." });
+  if (messages.some(item => !item.content || (item.image === null)) || messages[messages.length - 1].role !== "user") {
+    return res.status(400).json({ error: "Invalid chat history or image. Paste a smaller JPEG/PNG image." });
   }
+  const hasImage=messages.some(item=>!!item.image);
+  if(messages.filter(item=>!!item.image).length>1)
+    return res.status(400).json({error:"Send one image at a time."});
   const streamMode=String(req.headers.accept||"").includes("text/event-stream");
   let disconnected=false,heartbeat=null,modelSignal=null;
   const sendAiEvent=(type,data)=>{
@@ -480,7 +485,7 @@ app.post("/api/ai/chat", mustBeSignedIn, sameOrigin, async (req, res) => {
   }
   // Search runs on our server. The language model never gets to choose a URL to fetch.
   const latestQuestion = messages.at(-1).content;
-  const searchRequested = req.body?.webSearch === true || (req.body?.webSearch !== false && needsWebSearch(latestQuestion));
+  const searchRequested = !hasImage && (req.body?.webSearch === true || (req.body?.webSearch !== false && needsWebSearch(latestQuestion)));
   sendAiEvent("status",{message:searchRequested?"Searching the web for current sources…":"Preparing the answer…"});
   const web = searchRequested
     ? await aiSearch.search(req.auth.identity.id,latestQuestion)
@@ -516,17 +521,19 @@ app.post("/api/ai/chat", mustBeSignedIn, sameOrigin, async (req, res) => {
       personalization+sceneGuide+"\n"+
       (searchRequested?"\nSearch results fetched for this question. Cite source numbers in square brackets.\n\n"+evidence:"")
     },
-    ...messages
+    ...visionMessages(messages)
   ];
-  sendAiEvent("status",{message:"Connecting to the AI model…"});
+  sendAiEvent("status",{message:hasImage?"Examining your image…":"Connecting to the AI model…"});
   try{
     modelSignal=new AbortController();
     const result=await completeAi({
       apiKey:key,
       // Prefer NVIDIA's currently hosted low-latency text-capable endpoint.
       // The older configured model remains a secondary choice for compatibility.
-      model:process.env.NVIDIA_FAST_MODEL||"meta/llama-3.2-11b-vision-instruct",
-      backupModel:process.env.NVIDIA_MODEL||"openai/gpt-oss-20b",
+      model:hasImage
+        ?(process.env.NVIDIA_VISION_MODEL||"meta/llama-3.2-11b-vision-instruct")
+        :(process.env.NVIDIA_FAST_MODEL||"meta/llama-3.2-11b-vision-instruct"),
+      backupModel:hasImage?"meta/llama-3.2-90b-vision-instruct":(process.env.NVIDIA_MODEL||"openai/gpt-oss-20b"),
       messages:providerMessages,
       stream:streamMode,
       signal:modelSignal.signal,
