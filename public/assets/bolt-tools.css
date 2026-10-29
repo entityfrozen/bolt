@@ -156,3 +156,33 @@ body.bolt-ai-open .bolt-devdock{right:0}
   .bolt-ai-thinking-pulse{animation:none}
   .bolt-ai-thinking-chevron{transition:none}
 }
+
+
+/* Lightweight screenshot attachments in the AI composer and message history. */
+.bolt-ai-shortcuts{flex-wrap:wrap}
+#boltAiAttachImage{
+  border-color:rgba(var(--lg-rgb,163,206,248),.35);
+  color:var(--lg-accent,#a3cef8);
+}
+#boltAiAttachImage:disabled{opacity:.5;cursor:wait}
+.bolt-ai-image-preview{
+  display:flex;align-items:center;gap:10px;min-width:0;
+  padding:8px;border:1px solid rgba(var(--lg-rgb,163,206,248),.36);
+  border-radius:10px;background:rgba(var(--lg-rgb,163,206,248),.09);
+}
+.bolt-ai-image-preview[hidden]{display:none!important}
+.bolt-ai-image-preview img{
+  width:72px;height:58px;object-fit:contain;
+  border-radius:6px;background:#0b1119;border:1px solid #ffffff22;
+}
+.bolt-ai-image-preview span{flex:1;min-width:0;color:var(--lg-accent,#a3cef8);font-size:11px}
+.bolt-ai-image-preview button{
+  flex:none;padding:6px 8px;cursor:pointer;color:#e7edf0;
+  border:1px solid #ffffff3a;background:#191d25;border-radius:6px;font-size:10px;
+}
+.bolt-ai-image-preview button:hover{border-color:var(--lg-accent,#a3cef8)}
+.bolt-ai-message-image{
+  display:block;max-width:min(290px,100%);max-height:260px;
+  object-fit:contain;margin-top:9px;border-radius:9px;border:1px solid #ffffff30;
+  background:#0c121a;
+}
