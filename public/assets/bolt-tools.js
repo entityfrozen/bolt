@@ -13,8 +13,8 @@
       '<div class="bolt-ai-messages" id="boltAiMessages" aria-live="polite"></div>' +
       '<section class="bolt-ai-activity" id="boltAiActivity" aria-label="AI response progress" hidden><details id="boltAiThinkingDetails" open><summary class="bolt-ai-thinking-heading"><span class="bolt-ai-thinking-pulse" aria-hidden="true"></span><strong>Thinking</strong><span class="bolt-ai-thinking-chevron" aria-hidden="true">⌄</span></summary><div class="bolt-ai-thinking-body"><ol class="bolt-ai-thought-log" id="boltAiThoughtLog" aria-live="polite"></ol><div class="bolt-ai-activity-sites" id="boltAiActivitySites" hidden></div></div></details></section>' +
       '<span class="bolt-ai-grip" aria-hidden="true"></span>' +
-      '<form class="bolt-ai-compose" id="boltAiForm"><div class="bolt-ai-shortcuts"><button type="button" id="boltUseSelection">Use selected text</button><button type="button" id="boltUsePage">Add page link</button><button type="button" id="boltAiWeb" aria-pressed="false" title="Search the web for this answer">Web: auto</button></div>' +
-      '<textarea class="bolt-ai-textarea" id="boltAiInput" maxlength="9000" placeholder="Ask a question..."></textarea><div class="bolt-ai-error" id="boltAiError" role="status"></div><div class="bolt-ai-actions"><span class="bolt-ai-hint">↵ send &nbsp; · &nbsp; shift ↵ newline</span><button class="bolt-ai-send" id="boltAiSend" type="submit">Send ↗</button></div></form></aside>' +
+      '<form class="bolt-ai-compose" id="boltAiForm"><div class="bolt-ai-shortcuts"><button type="button" id="boltUseSelection">Use selected text</button><button type="button" id="boltUsePage">Add page link</button><button type="button" id="boltAiWeb" aria-pressed="false" title="Search the web for this answer">Web: auto</button><button type="button" id="boltAiAttachImage" title="Paste an image with Ctrl+V, or choose an image">＋ Image</button><input type="file" id="boltAiImageFile" accept="image/png,image/jpeg,image/webp,image/gif" hidden></div>' +
+      '<textarea class="bolt-ai-textarea" id="boltAiInput" maxlength="9000" placeholder="Ask a question or paste an image (Ctrl+V)..."></textarea><div class="bolt-ai-image-preview" id="boltAiImagePreview" hidden><img id="boltAiImageThumb" alt="Attached image preview"><span>Image ready</span><button id="boltAiRemoveImage" type="button" aria-label="Remove attached image">× Remove</button></div><div class="bolt-ai-error" id="boltAiError" role="status"></div><div class="bolt-ai-actions"><span class="bolt-ai-hint">Paste screenshot: Ctrl+V · ↵ send</span><button class="bolt-ai-send" id="boltAiSend" type="submit">Send ↗</button></div></form></aside>' +
     '<section class="bolt-devdock" id="boltDevDock" aria-label="Lightning DevTools">' +
       '<nav class="bolt-dev-tabs"><button type="button" data-bolt-devtab="elements" class="on">Elements</button><button type="button" data-bolt-devtab="console">Console</button><button type="button" data-bolt-devtab="network">Network</button><button type="button" id="boltDevPick">Pick element</button><span class="bolt-aux-spacer"></span><button type="button" id="boltDevClose" title="Close DevTools">✕</button></nav>' +
       '<div class="bolt-dev-body" id="boltDevBody"></div><form class="bolt-dev-expression" id="boltDevExpr"><span>›</span><input id="boltDevInput" spellcheck="false" autocomplete="off" placeholder="JavaScript expression in active page"><button type="submit">Run</button></form>' +
@@ -29,6 +29,8 @@
   const sendButton = el("boltAiSend");
   const devBody = el("boltDevBody");
   let messages = [];
+  let pendingImage = null;
+  let processingImage = false;
   let busy = false;
   let devtab = "elements";
   let consoleLines = [];
@@ -81,6 +83,7 @@
       const data=await apiAi("/api/account/ai/chats",{method:"POST",body:JSON.stringify({title:"New conversation"})});
       chats.unshift({...data.chat,messageCount:0});
       activeChatId=data.chat.id;messages=[];workspaceReady=true;
+      clearAttachedImage();
       setError("");setActivity("");renderChatList();renderChat();input.focus();
     }catch(error){setError(error.message)}
   }
@@ -91,6 +94,7 @@
       await writeQueue.catch(()=>{});
       const {chat}=await apiAi("/api/account/ai/chats/"+encodeURIComponent(id));
       activeChatId=chat.id;messages=Array.isArray(chat.messages)?chat.messages.slice(-48):[];
+      clearAttachedImage();
       el("boltAiChatsDrawer").hidden=true;el("boltAiChatsToggle").setAttribute("aria-expanded","false");
       setError("");setActivity("");renderChatList();renderChat();
     }catch(error){setError(error.message)}
@@ -99,8 +103,12 @@
   function saveChat(){
     const id=activeChatId;
     if(!id)return Promise.resolve();
-    const snapshot=messages.slice(-48).map(({role,content,sources,searched})=>({role,content,
-      ...(sources?{sources}:{}),...(searched?{searched:true}:{})}));
+    // Keep one recent image per conversation to avoid oversized account data.
+    const recent=messages.slice(-48);
+    const lastImageIndex=recent.findLastIndex(message=>message.role==="user"&&message.image);
+    const snapshot=recent.map(({role,content,sources,searched,image},index)=>({role,content,
+      ...(sources?{sources}:{}),...(searched?{searched:true}:{}),
+      ...(index===lastImageIndex&&image?{image}:{})}));
     const next=writeQueue.catch(()=>{}).then(()=>apiAi("/api/account/ai/chats/"+encodeURIComponent(id)+"/messages",{
       method:"PUT",body:JSON.stringify({messages:snapshot})
     })).then(({chat})=>{
@@ -300,8 +308,18 @@
         });
         node.append(copy);
       } else {
-        node.textContent = message.content;
         node.dir = "auto";
+        const text=document.createElement("div");
+        text.textContent=message.content;
+        node.append(text);
+        if(typeof message.image==="string"&&/^data:image\/(?:jpeg|png);base64,/.test(message.image)){
+          const picture=document.createElement("img");
+          picture.className="bolt-ai-message-image";
+          picture.src=message.image;
+          picture.alt="Image attached to this message";
+          picture.loading="lazy";
+          node.append(picture);
+        }
       }
       messageView.append(node);
     }
@@ -457,12 +475,14 @@
 
   async function sendMessage(evt) {
     evt.preventDefault();
-    const value = input.value.trim();
-    if (!value || busy || !workspaceReady || !activeChatId || switchingChat) return;
-    messages.push({role:"user",content:value});
+    const attached=pendingImage;
+    const value=input.value.trim() || (attached?"Describe this image.":"");
+    if (!value || busy || processingImage || !workspaceReady || !activeChatId || switchingChat) return;
+    messages.push({role:"user",content:value,...(attached?{image:attached}:{})});
     messages = messages.slice(-24);
     saveChat();
     input.value = "";
+    clearAttachedImage();
     renderChat();
     busy = true;
     sendButton.disabled = true;
@@ -476,7 +496,13 @@
         method: "POST",
         credentials: "same-origin",
         headers: {"Content-Type":"application/json","Accept":"text/event-stream"},
-        body: JSON.stringify({messages: messages.slice(-16).map(({role,content})=>({role,content})), webSearch: webMode==="auto"?undefined:webMode==="on"})
+        body: JSON.stringify({messages: (() => {
+          const recent=messages.slice(-16);
+          const last=recent.findLastIndex(item=>item.role==="user"&&item.image);
+          return recent.map(({role,content,image},index)=>({
+            role,content,...(index===last&&image?{image}:{})
+          }));
+        })(), webSearch: webMode==="auto"?undefined:webMode==="on"})
       });
       const data=await readAiEvents(response);
       if (typeof data.reply !== "string" || !data.reply.trim()) throw new Error("AI returned an empty reply");
@@ -493,6 +519,82 @@
       sendButton.textContent = "Send ↗";
     }
   }
+  // Clipboard image support: one compact screenshot per prompt.
+  function clearAttachedImage(){
+    pendingImage=null;
+    const preview=el("boltAiImagePreview");
+    preview.hidden=true;
+    el("boltAiImageThumb").removeAttribute("src");
+  }
+  function showAttachedImage(image){
+    pendingImage=image;
+    el("boltAiImageThumb").src=image;
+    el("boltAiImagePreview").hidden=false;
+    setError("");
+  }
+  async function attachImage(file){
+    if(busy||processingImage||!file)return;
+    if(!/^image\/(?:png|jpeg|webp|gif)$/i.test(file.type)){
+      setError("Paste or choose a PNG, JPG, WebP or GIF image.");return;
+    }
+    if(file.size>12*1024*1024){setError("Image is too large. Choose one under 12 MB.");return;}
+    processingImage=true;
+    el("boltAiAttachImage").disabled=true;
+    sendButton.disabled=true;
+    try{
+      const bitmap=await createImageBitmap(file);
+      try{
+        let scale=Math.min(1,1120/Math.max(bitmap.width,bitmap.height));
+        let data="";
+        // Keep the outgoing request and saved conversation comfortably below
+        // the regular API body limit, without requiring a third-party upload.
+        for(let attempt=0;attempt<11;attempt++){
+          const canvas=document.createElement("canvas");
+          canvas.width=Math.max(1,Math.round(bitmap.width*scale));
+          canvas.height=Math.max(1,Math.round(bitmap.height*scale));
+          const context=canvas.getContext("2d");
+          if(!context)throw new Error("Canvas processing is not available.");
+          context.fillStyle="#ffffff";
+          context.fillRect(0,0,canvas.width,canvas.height);
+          context.drawImage(bitmap,0,0,canvas.width,canvas.height);
+          data=canvas.toDataURL("image/jpeg",Math.max(.45,.85-attempt*.045));
+          if(data.length<=140000)break;
+          scale*=.83;
+        }
+        if(data.length>140000)throw new Error("Image is still too large after resizing.");
+        showAttachedImage(data);
+      }finally{bitmap.close?.();}
+    }catch(error){setError(error?.message||"Could not read this image.");}
+    finally{
+      processingImage=false;
+      el("boltAiAttachImage").disabled=false;
+      sendButton.disabled=busy||!workspaceReady;
+      input.focus({preventScroll:true});
+    }
+  }
+  const imageFile=el("boltAiImageFile");
+  el("boltAiAttachImage").addEventListener("click",()=>imageFile.click());
+  imageFile.addEventListener("change",()=>{
+    if(imageFile.files?.[0])void attachImage(imageFile.files[0]);
+    imageFile.value="";
+  });
+  el("boltAiRemoveImage").addEventListener("click",()=>{clearAttachedImage();input.focus();});
+  input.addEventListener("paste",event=>{
+    const items=[...(event.clipboardData?.items||[])];
+    const file=items.find(item=>item.kind==="file"&&item.type.startsWith("image/"))?.getAsFile()
+      ||[...(event.clipboardData?.files||[])].find(file=>file.type.startsWith("image/"));
+    if(!file)return;
+    event.preventDefault();
+    void attachImage(file);
+  });
+  input.addEventListener("dragover",event=>{
+    if([...(event.dataTransfer?.items||[])].some(item=>item.kind==="file"&&item.type.startsWith("image/")))
+      event.preventDefault();
+  });
+  input.addEventListener("drop",event=>{
+    const file=[...(event.dataTransfer?.files||[])].find(file=>file.type.startsWith("image/"));
+    if(file){event.preventDefault();void attachImage(file);}
+  });
   el("boltAiForm").addEventListener("submit", sendMessage);
   input.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); el("boltAiForm").requestSubmit(); }});
   el("boltAiClose").addEventListener("click", () => { openAI(false); bubble.focus({preventScroll: true}); });
