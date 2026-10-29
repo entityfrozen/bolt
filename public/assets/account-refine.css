@@ -103,5 +103,5 @@ body.app-page .v3-browser-home .newtab-wordmark{background:linear-gradient(175de
 .account-space .as-message-actions button:hover,.account-space .as-message-actions button:focus-visible{background:#ffffff26;border-color:#ffffff7b}
 .account-space .as-react-count.selected{background:#9171b245;border-color:#ad9bd9}
 
-/* Nicknames are primary; handles are a smaller, gently raised detail. */
-.lightning-username{display:inline!important;font-family:inherit!important;font-size:.70em!important;line-height:1!important;font-weight:500!important;font-style:normal!important;letter-spacing:0!important;vertical-align:.26em;opacity:.7;color:inherit!important;white-space:nowrap}
+/* Nicknames stay primary; handles sit slightly lower in a smaller size. */
+.lightning-username{display:inline!important;font-family:inherit!important;font-size:.70em!important;line-height:1!important;font-weight:500!important;font-style:normal!important;letter-spacing:0!important;vertical-align:-.11em;opacity:.7;color:inherit!important;white-space:nowrap}

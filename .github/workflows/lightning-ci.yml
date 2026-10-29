@@ -32,6 +32,7 @@ jobs:
           node --check public/assets/split-chat.js
           node --check public/assets/apps-v5.js
           node --check public/assets/account-space-ui.js
+          node --check public/assets/name-label.js
           node --check account-space.js
           node --check public/assets/account-space-ui.js
           node --check public/assets/community-ui.js
@@ -59,6 +60,8 @@ jobs:
         run: node --test test/auth.test.mjs
       - name: Test account profiles, DMs and cross-device history
         run: node --test test/account-space.test.mjs
+      - name: Test compact nickname labels
+        run: node --test test/name-label.test.mjs
       - name: Test interface copy
         run: node --test test/copy.test.mjs
       - name: Test web search

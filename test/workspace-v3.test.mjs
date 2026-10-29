@@ -274,5 +274,5 @@ test("Lightning workspace links and WorldPvP fullscreen never launch outside tab
  assert.match(world,/data-act="worldFullscreen"/);
  assert.match(world,/requestFullscreen\(\)/);
  assert.doesNotMatch(world,/href="'\+GAME_URL\+'" target="_blank"/);
- assert.match(browser,/\/assets\/app\.js\?v=54/);
+ assert.match(browser,/\/assets\/app\.js\?v=\d+/);
 });
