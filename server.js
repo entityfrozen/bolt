@@ -11,6 +11,7 @@ import { needsWebSearch, searchWeb } from "./web-search.js";
 import {completeAi,activeRoleplay} from "./ai-provider.js";
 import {normalizeAiImage,visionMessages} from "./ai-images.js";
 import { installSearchCredentials } from "./web-search-credentials.js";
+import {ROLE_OPTIONS,isValidRole,hasPermission,permissionsFor,canManageAccount} from "./staff-roles.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const port = Number(process.env.PORT || 3030);
@@ -235,6 +236,18 @@ function mustBeSignedIn(req, res, next) {
   req.auth = found;
   found.session.lastSeenAt = now();
   next();
+}
+
+function requirePermission(permission){
+ return (req,res,next)=>{
+  const found=sessionFromRequest(req);
+  if(!found)return res.status(401).json({error:"Sign in required"});
+  if(state.settings.maintenance&&found.identity.role!=="admin")
+   return res.status(503).json({error:"Lightning is in maintenance mode"});
+  if(!hasPermission(found.identity.role,permission))
+   return res.status(403).json({error:"Your staff role does not allow this action"});
+  req.auth=found;found.session.lastSeenAt=now();next();
+ };
 }
 
 function mustBeAdmin(req, res, next) {
@@ -563,11 +576,15 @@ app.post("/api/ai/chat", mustBeSignedIn, sameOrigin, async (req, res) => {
   }
 });
 
-app.get("/api/admin/state", mustBeAdmin, (req, res) => {
+app.get("/api/admin/state", requirePermission("staff.access"), (req, res) => {
   cleanup();
+  const role=req.auth.identity.role;
+  const canReadAccounts=hasPermission(role,"accounts.read");
   res.json({
-    users: state.users.map(publicUser),
-    sessions: state.sessions.map(session => {
+    permissions:permissionsFor(role),
+    roles:hasPermission(role,"roles.assign")?ROLE_OPTIONS:[],
+    users:canReadAccounts?state.users.filter(u=>role==="admin"||u.role==="user").map(publicUser):[],
+    sessions:hasPermission(role,"sessions.read")?state.sessions.map(session => {
       const identity = identityForSession(session);
       return {
         id: session.id,
@@ -580,16 +597,19 @@ app.get("/api/admin/state", mustBeAdmin, (req, res) => {
         ip: session.ip,
         userAgent: session.userAgent
       };
-    }),
-    settings: state.settings,
-    audit: state.audit.slice(-200).reverse()
+    }):[],
+    settings:hasPermission(role,"settings.manage")?state.settings:null,
+    audit:hasPermission(role,"audit.read")?state.audit.slice(-200).reverse():[]
   });
 });
 
-app.post("/api/admin/users", mustBeAdmin, sameOrigin, (req, res) => {
+app.post("/api/admin/users", requirePermission("accounts.manage"), sameOrigin, (req, res) => {
   const username = normalizeUsername(req.body.username);
   const password = String(req.body.password || "");
-  const role = req.body.role === "admin" ? "admin" : "user";
+  const role = req.body.role??"user";
+  if(!isValidRole(role))return res.status(400).json({error:"Unknown account role"});
+  if(role!=="user"&&!hasPermission(req.auth.identity.role,"roles.assign"))
+   return res.status(403).json({error:"Only administrators can create staff accounts"});
   const expiresAt = Number(req.body.expiresAt || 0) || null;
 
   if (!validUsername(username)) return res.status(400).json({ error: "Use 3-32 letters, numbers, dots, dashes or underscores" });
@@ -614,20 +634,27 @@ app.post("/api/admin/users", mustBeAdmin, sameOrigin, (req, res) => {
   res.status(201).json({ user: publicUser(user) });
 });
 
-app.patch("/api/admin/users/:id", mustBeAdmin, sameOrigin, (req, res) => {
+app.patch("/api/admin/users/:id", requirePermission("accounts.manage"), sameOrigin, (req, res) => {
   const user = state.users.find(item => item.id === req.params.id);
   if (!user) return res.status(404).json({ error: "User not found" });
+  if(!canManageAccount(req.auth.identity,user))
+   return res.status(403).json({error:"You cannot manage this staff account"});
+  if(Object.prototype.hasOwnProperty.call(req.body,"role")){
+   if(!isValidRole(req.body.role))return res.status(400).json({error:"Unknown account role"});
+   if(!hasPermission(req.auth.identity.role,"roles.assign"))
+    return res.status(403).json({error:"Only administrators can assign roles"});
+  }
 
-  const adminCount = state.users.filter(item => item.role === "admin").length;
-  const lastAdmin = user.role === "admin" && adminCount <= 1;
-  if (lastAdmin && req.body.role === "user") return res.status(400).json({ error: "Create another admin first" });
+  const activeAdmins=state.users.filter(item=>item.role==="admin"&&activeUser(item)).length;
+  const lastAdmin=user.role==="admin"&&activeUser(user)&&activeAdmins<=1;
+  if (lastAdmin && req.body.role && req.body.role !== "admin") return res.status(400).json({ error: "Create another admin first" });
   if (lastAdmin && req.body.enabled === false) return res.status(400).json({ error: "Create another admin first" });
   if (lastAdmin && req.body.approved === false) return res.status(400).json({ error: "The last admin must remain approved" });
   if (lastAdmin && Object.prototype.hasOwnProperty.call(req.body, "expiresAt") && Number(req.body.expiresAt || 0) > 0) return res.status(400).json({ error: "The last admin cannot expire" });
 
   if (typeof req.body.approved === "boolean") user.approved = req.body.approved;
   if (typeof req.body.enabled === "boolean") user.enabled = req.body.enabled;
-  if (req.body.role === "admin" || req.body.role === "user") user.role = req.body.role;
+  if (Object.prototype.hasOwnProperty.call(req.body,"role")) user.role = req.body.role;
   if (Object.prototype.hasOwnProperty.call(req.body, "expiresAt")) {
     const value = Number(req.body.expiresAt || 0);
     user.expiresAt = value > 0 ? value : null;
@@ -647,12 +674,14 @@ app.patch("/api/admin/users/:id", mustBeAdmin, sameOrigin, (req, res) => {
   res.json({ user: publicUser(user) });
 });
 
-app.delete("/api/admin/users/:id", mustBeAdmin, sameOrigin, (req, res) => {
+app.delete("/api/admin/users/:id", requirePermission("accounts.manage"), sameOrigin, (req, res) => {
   const index = state.users.findIndex(item => item.id === req.params.id);
   if (index < 0) return res.status(404).json({ error: "User not found" });
   const user = state.users[index];
+  if(!canManageAccount(req.auth.identity,user))
+   return res.status(403).json({error:"You cannot delete this staff account"});
   if (user.id === req.auth.identity.id) return res.status(400).json({ error: "You cannot delete your current account" });
-  if (user.role === "admin" && state.users.filter(item => item.role === "admin").length <= 1) {
+  if (user.role === "admin" && activeUser(user) && state.users.filter(item=>item.role==="admin"&&activeUser(item)).length<=1) {
     return res.status(400).json({ error: "Create another admin first" });
   }
   state.users.splice(index, 1);
@@ -662,9 +691,11 @@ app.delete("/api/admin/users/:id", mustBeAdmin, sameOrigin, (req, res) => {
   res.json({ ok: true });
 });
 
-app.post("/api/admin/users/:id/revoke", mustBeAdmin, sameOrigin, (req, res) => {
+app.post("/api/admin/users/:id/revoke", requirePermission("accounts.manage"), sameOrigin, (req, res) => {
   const user = state.users.find(item => item.id === req.params.id);
   if (!user) return res.status(404).json({ error: "User not found" });
+  if(!canManageAccount(req.auth.identity,user))
+   return res.status(403).json({error:"You cannot revoke staff sessions"});
   const before = state.sessions.length;
   state.sessions = state.sessions.filter(session => session.userId !== user.id);
   audit(req.auth.identity, "user.sessions_revoked", user.username, String(before - state.sessions.length));
@@ -698,7 +729,7 @@ app.post("/api/admin/sessions/revoke-users", mustBeAdmin, sameOrigin, (req, res)
   const before = state.sessions.length;
   state.sessions = state.sessions.filter(session => {
     const identity = identityForSession(session);
-    return identity?.role === "admin";
+    return identity&&identity.role!=="user";
   });
   audit(req.auth.identity, "sessions.users_revoked", "all", String(before - state.sessions.length));
   saveState();
