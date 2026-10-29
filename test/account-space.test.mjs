@@ -261,3 +261,23 @@ test("AI workspaces isolate chats, support renaming, deletion and saved preferen
  assert.equal((await request(origin,"/api/account/ai/chats/"+id,alice,"DELETE")).status,200);
  assert.equal((await request(origin,"/api/account/ai/workspace",alice)).data.chats.length,1);
 });
+
+test("Pasted screenshot is saved only for its signed-in AI conversation",{timeout:50000},async t=>{
+  const origin=await runServer(t);
+  const admin=await request(origin,"/api/login","","POST",{username:"account-admin",password:"safe-test-admin-password"});
+  assert.equal(admin.status,200);
+  const chat=await request(origin,"/api/account/ai/chats",admin.cookie,"POST",{title:"Image test"});
+  assert.equal(chat.status,201);
+  const id=chat.data.chat.id;
+  const path="/api/account/ai/chats/"+id+"/messages";
+  const image="data:image/jpeg;base64,"+Buffer.from([255,216,255,224,1,2,3,4]).toString("base64");
+  const saved=await request(origin,path,admin.cookie,"PUT",{messages:[{role:"user",content:"What is shown?",image}]});
+  assert.equal(saved.status,200);
+  const fetched=await request(origin,"/api/account/ai/chats/"+id,admin.cookie);
+  assert.equal(fetched.data.chat.messages[0].image,image);
+  assert.equal((await request(origin,path,admin.cookie,"PUT",{messages:[{role:"user",content:"invalid",image:"https://evil.example/image.png"}]})).status,400);
+  assert.equal((await request(origin,path,admin.cookie,"PUT",{messages:[
+    {role:"user",content:"image 1",image},
+    {role:"user",content:"image 2",image}
+  ]})).status,400);
+});
