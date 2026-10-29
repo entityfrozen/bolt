@@ -47,3 +47,17 @@ test("thinking panel shows high-level progress and hides after reply", () => {
   assert.ok(toolsCss.includes(".bolt-ai-thought-entry em"));
   assert.ok(toolsCss.includes("@media(prefers-reduced-motion:reduce)"));
 });
+
+test("Lightning AI accepts pasted screenshots with preview and a remove action",()=>{
+  assert.ok(toolsJs.includes('id="boltAiAttachImage"'));
+  assert.ok(toolsJs.includes('id="boltAiImagePreview" hidden'));
+  assert.ok(toolsJs.includes('id="boltAiRemoveImage"'));
+  assert.ok(toolsJs.includes('input.addEventListener("paste",event=>'));
+  assert.ok(toolsJs.includes('event.clipboardData?.items'));
+  assert.ok(toolsJs.includes('context.drawImage(bitmap'));
+  assert.ok(toolsJs.includes('canvas.toDataURL("image/jpeg"'));
+  assert.ok(toolsJs.includes('image:attached'));
+  assert.ok(toolsJs.includes('lastImageIndex'));
+  assert.ok(toolsCss.includes(".bolt-ai-message-image"));
+  assert.ok(toolsCss.includes(".bolt-ai-image-preview[hidden]"));
+});
