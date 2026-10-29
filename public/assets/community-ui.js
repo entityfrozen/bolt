@@ -2,6 +2,7 @@ import {icon,serverIcon} from "./ui-icons.js?v=1";
 
 const MAIN="lightning-main";
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const nameLabel=(name,username)=>window.LightningNames.label(name,username);
 const channelIcon=c=>c.id==="announcements"?"megaphone":c.id==="welcome"?"book-open":c.id==="games"?"gamepad-2":c.id==="support"?"shield-check":"hash";
 const cat=c=>({INFORMATION:"INFORMATION",COMMUNITY:"CONVERSATION",TEXT:"TEXT CHANNELS",GAMES:"GAMES",HELP:"HELP"})[c]||c;
 const roleColor=color=>/^#[0-9a-f]{6}$/i.test(color||"")?color:"#c5bca9";
@@ -208,7 +209,7 @@ export function installCommunityUI(Hub){
    const heading=memberPanel.querySelector("h3"),body=memberPanel.querySelector("div");
    if(heading)heading.textContent="MEMBERS · "+(s.members?.length||0);
    if(body)body.innerHTML=(s.members||[]).slice(0,40).map(m=>'<button type="button" class="cm-member-preview" data-cm="dm" data-member="'+esc(m.id)+'" title="Private message">'+
-    '<span class="v2-avatar">'+esc(m.name?.[0]?.toUpperCase()||"?")+'</span><div><strong>'+esc(m.name)+'</strong><small>'+
+    '<span class="v2-avatar">'+esc(m.name?.[0]?.toUpperCase()||"?")+'</span><div><strong>'+nameLabel(m.name,m.username)+'</strong><small>'+
     (m.admin?"Lightning admin":esc(s.roles?.find(r=>r.id===m.role)?.name||"Member"))+'</small></div></button>').join("");
   }
  };
@@ -218,7 +219,7 @@ export function installCommunityUI(Hub){
   const previousScroll=this.$("#cmContent")?.scrollTop||0;
   this.$("#cmTabs").innerHTML=[["channels","Channels"],["roles","Roles"],["members","Members"],["server","Server"]].map(([id,label])=>
     '<button type="button" data-cm="tab" data-tab="'+id+'" class="'+(this.manageTab===id?"active":"")+'">'+label+'</button>').join("");
-  const row=(glyph,name,subtitle,actions)=>'<div class="cm-row"><span class="cm-row-icon">'+glyph+'</span><div class="cm-row-detail"><strong>'+esc(name)+'</strong><small>'+esc(subtitle)+'</small></div><div class="cm-row-actions">'+actions+'</div></div>';
+  const row=(glyph,name,subtitle,actions,nameIsHtml=false)=>'<div class="cm-row"><span class="cm-row-icon">'+glyph+'</span><div class="cm-row-detail"><strong>'+(nameIsHtml?name:esc(name))+'</strong><small>'+esc(subtitle)+'</small></div><div class="cm-row-actions">'+actions+'</div></div>';
   let html="";
   if(this.manageTab==="channels"){
    html='<section class="cm-card"><h3>Channel permissions</h3><p>Announcement posting is restricted to staff. Required channels cannot be deleted.</p>'+
@@ -248,9 +249,9 @@ export function installCommunityUI(Hub){
     '</section>';
   }else if(this.manageTab==="members"){
    html='<section class="cm-card"><h3>Members</h3><p>Assign roles to members without changing platform permissions.</p>'+
-    (s.members||[]).map(m=>row('<span class="v2-avatar">'+esc(m.name?.[0]?.toUpperCase()||"?")+'</span>',m.name,
+    (s.members||[]).map(m=>row('<span class="v2-avatar">'+esc(m.name?.[0]?.toUpperCase()||"?")+'</span>',nameLabel(m.name,m.username),
     m.admin?"Platform admin":"Member",'<select data-cm-role data-member="'+esc(m.id)+'" aria-label="Role for '+esc(m.name)+'">'+
-    s.roles.map(r=>'<option value="'+esc(r.id)+'"'+(m.role===r.id?" selected":"")+'>'+esc(r.name)+'</option>').join("")+'</select>')).join("")+'</section>';
+    s.roles.map(r=>'<option value="'+esc(r.id)+'"'+(m.role===r.id?" selected":"")+'>'+esc(r.name)+'</option>').join("")+'</select>',true)).join("")+'</section>';
   }else{
    html='<section class="cm-card"><h3>Server profile</h3><p>'+ (s.permanent?"Everyone is a member of this server.":"Change the server name and description.")+'</p>'+
     '<form class="cm-form" data-cm-form="server">'+

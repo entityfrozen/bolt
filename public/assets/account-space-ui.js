@@ -2,6 +2,7 @@
 (()=>{
  "use strict";
  const escape=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+ const nameLabel=(name,username)=>window.LightningNames.label(name,username);
  const emojiNames={smile:"😄",heart:"❤️",fire:"🔥",laugh:"😂",joy:"😂",cry:"😢",sob:"😭",skull:"💀",thumbsup:"👍",eyes:"👀",party:"🎉",wave:"👋",sparkles:"✨"};
  const emojiify=text=>String(text).replace(/:([a-z0-9_]+):/gi,(word,name)=>emojiNames[name.toLowerCase()]||word);
  const $=(s,r=document)=>r.querySelector(s);
@@ -118,7 +119,7 @@
  }
  const person=(user,unread=0)=>'<button type="button" class="as-person" data-as="dm" data-id="'+escape(user.id)+'">'+
   '<span class="as-avatar" style="--user-color:'+escape(user.accent)+'">'+escape((user.displayName||user.username||"?")[0].toUpperCase())+'</span>'+
-  '<span><strong>'+escape(user.displayName||user.username)+'</strong><small>@'+escape(user.username)+'</small></span><i>Message →</i>'+(unread?'<b class="as-unread">'+(unread>99?"99+":unread)+'</b>':"")+'</button>';
+  '<span><strong>'+nameLabel(user.displayName,user.username)+'</strong></span><i>Message →</i>'+(unread?'<b class="as-unread">'+(unread>99?"99+":unread)+'</b>':"")+'</button>';
  async function loadProfile(){const data=await api("/api/account/profile");profile=data.profile;window.LightningAccount.profile=profile;}
  async function loadThreads(){threads=(await api("/api/account/dms")).threads||[];}
  async function loadMessages(){if(!selected)return;const data=await api("/api/account/dms/"+encodeURIComponent(selected));messages=data.messages||[];document.dispatchEvent(new CustomEvent("lightning:dm-refresh"));}
@@ -126,7 +127,7 @@
   if(!selected)return '<div class="as-muted">Choose a member or search above to start a private conversation.</div>';
   const thread=threads.find(t=>t.user.id===selected),other=thread?.user;
   return '<div class="as-chat-head"><button type="button" data-as="back">←</button>'+
-    '<div><strong>'+escape(other?.displayName||"Private conversation")+'</strong><small>Only you and this member can view these messages.</small></div></div>'+
+    '<div><strong>'+nameLabel(other?.displayName||"Private conversation",other?.username)+'</strong><small>Only you and this member can view these messages.</small></div></div>'+
     '<div id="asChatMessages" class="as-messages" aria-live="polite"></div>'+
     '<form class="as-message-form" data-as-form="message"><textarea id="asMessage" maxlength="1500" rows="2" placeholder="Write a private message…" aria-label="Private message" required></textarea>'+
     '<button type="submit">Send ↗</button></form>';
@@ -154,7 +155,7 @@
   if(activeTab==="profile"){
    if(!profile)await loadProfile();
    content.innerHTML='<div class="as-profile-hero"><span class="as-large-avatar" style="--user-color:'+escape(profile.accent)+'">'+escape(profile.displayName[0]?.toUpperCase()||"L")+'</span>'+
-    '<div><h3>'+escape(profile.displayName)+'</h3><p>@'+escape(profile.username)+'</p></div>'+
+    '<div><h3>'+nameLabel(profile.displayName,profile.username)+'</h3></div>'+
     '<span class="as-role">'+escape(profile.role)+'</span></div>'+
     '<form class="as-profile-form" data-as-form="profile">'+
     '<label>Display name<input name="displayName" minlength="2" maxlength="32" required value="'+escape(profile.displayName)+'"></label>'+
@@ -182,7 +183,7 @@
     if(!threads.some(t=>t.user.id===selected)){
      const selectedProfile=await api("/api/account/dms/"+encodeURIComponent(selected));
      messages=selectedProfile.messages;const label=$(".as-chat-head strong");
-     if(label)label.textContent=selectedProfile.user.displayName;
+     if(label)label.innerHTML=nameLabel(selectedProfile.user.displayName,selectedProfile.user.username);
     }else await loadMessages();
     renderChat();
    }

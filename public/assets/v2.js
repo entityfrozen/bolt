@@ -1,6 +1,7 @@
 // Community screens retain the existing server-backed messaging protocol.
 import {serverIcon,icon} from "./ui-icons.js?v=1";
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const nameLabel=(name,username)=>window.LightningNames.label(name,username);
 const time=t=>new Date(t).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"});
 export function installV2(Hub){
   const baseOpen=Hub.prototype.open,baseClose=Hub.prototype.close,baseShow=Hub.prototype.show;
@@ -173,7 +174,7 @@ export function installV2(Hub){
     this.$("#hubContent").innerHTML='<div class="v2-room"><main class="v2-room-body"><div class="v2-room-intro"><span>#</span><h2>Welcome to #'+esc(c.name)+'</h2><p>This is the beginning of '+esc(s.name)+' / #'+esc(c.name)+'.</p></div>'+
       '<div id="v2RoomMessages" class="v2-room-feed" aria-live="polite"></div>'+
       '<form id="v2ChatForm" class="v2-room-compose"><button type="button" data-v2="ai" title="Ask AI">✧</button><textarea id="v2ChatInput" rows="1" maxlength="1500" placeholder="Message #'+esc(c.name)+'" aria-label="Message #'+esc(c.name)+'"></textarea><button class="v2-primary">Send ↗</button></form></main>'+
-      '<aside class="v2-online-panel"><h3>ONLINE · '+this.users.length+'</h3><div>'+this.users.map(u=>'<button class="v2-online-user" data-v2="mention" data-name="'+esc(u.name)+'"><span class="v2-avatar">'+esc(u.name?.[0]?.toUpperCase()||"?")+'</span><strong>'+esc(u.name)+'</strong><i>●</i></button>').join("")+'</div><small>People online across Lightning</small></aside></div>';
+      '<aside class="v2-online-panel"><h3>ONLINE · '+this.users.length+'</h3><div>'+this.users.map(u=>'<button class="v2-online-user" data-v2="mention" data-name="'+esc(u.username||u.name)+'"><span class="v2-avatar">'+esc(u.name?.[0]?.toUpperCase()||"?")+'</span><strong>'+nameLabel(u.name,u.username)+'</strong><i>●</i></button>').join("")+'</div><small>People online across Lightning</small></aside></div>';
     const form=this.$("#v2ChatForm"),input=this.$("#v2ChatInput");
     form.addEventListener("submit",event=>{event.preventDefault();const msg=input.value.trim();if(msg&&this.send({type:"v2Message",serverId:s.id,channel:c.id,message:msg})){input.value="";input.style.height="auto";}});
     input.addEventListener("keydown",event=>{if(event.key==="Enter"&&!event.shiftKey&&!event.isComposing){event.preventDefault();form.requestSubmit();}});
@@ -186,22 +187,22 @@ export function installV2(Hub){
     if(!panel)return;
     panel.querySelector("h3").textContent="ONLINE · "+this.users.length;
     panel.querySelector("div").innerHTML=this.users.map(user=>
-      '<button class="v2-online-user" data-v2="mention" data-name="'+esc(user.name)+'">'+
+      '<button class="v2-online-user" data-v2="mention" data-name="'+esc(user.username||user.name)+'">'+
       '<span class="v2-avatar">'+esc(user.name?.[0]?.toUpperCase()||"?")+'</span>'+
-      '<strong>'+esc(user.name)+'</strong><i>●</i></button>').join("");
+      '<strong>'+nameLabel(user.name,user.username)+'</strong><i>●</i></button>').join("");
   };
   Hub.prototype.v2Messages=function(){
     const el=this.$("#v2RoomMessages"),server=this.v2Servers.find(s=>s.id===this.v2ServerId);
     if(!el||!server)return;
     const query=this.v2Search||"",rows=(server.messages?.[this.v2Channel]||[])
-      .filter(m=>m&&!m.deleted&&(!query||(m.by+" "+m.message).toLowerCase().includes(query)));
+      .filter(m=>m&&!m.deleted&&(!query||(m.by+" "+(m.username||server.members?.find(user=>user.id===m.userId)?.username||"")+" "+m.message).toLowerCase().includes(query)));
     el.innerHTML=rows.length?rows.map(m=>{
       const reactions=Object.entries(m.reactions||{}).filter(([,ids])=>Array.isArray(ids)&&ids.length)
         .map(([emoji,ids])=>'<button class="v2-reaction'+(ids.includes(this.id)?" mine":"")+'" type="button" data-v2="react" data-id="'+esc(m.id)+'" data-emoji="'+esc(emoji)+'">'+esc(emoji)+' '+ids.length+'</button>').join("");
       const actions='<div class="v2-reaction-actions">'+reactions+
         ["❤️","😂","🔥"].map(emoji=>'<button type="button" data-v2="react" data-id="'+esc(m.id)+'" data-emoji="'+emoji+'" title="React '+emoji+'">'+emoji+'</button>').join("")+'</div>';
       const content=esc(m.message).replace(/(^|\s)(@[a-z0-9._-]{3,32})/gi,'$1<mark class="v2-mention">$2</mark>').replace(/\n/g,"<br>");
-      return '<article class="v2-row"><span class="v2-avatar">'+esc(m.by?.[0]?.toUpperCase()||"?")+'</span><div class="v2-row-body"><header><strong>'+esc(m.by)+'</strong><time>'+time(m.at)+'</time></header><p>'+content+'</p>'+actions+'</div>'+
+      return '<article class="v2-row"><span class="v2-avatar">'+esc(m.by?.[0]?.toUpperCase()||"?")+'</span><div class="v2-row-body"><header><strong>'+nameLabel(m.by,m.username||server.members?.find(user=>user.id===m.userId)?.username)+'</strong><time>'+time(m.at)+'</time></header><p>'+content+'</p>'+actions+'</div>'+
       ((m.userId===this.id||server.canManage)?'<button class="v2-delete" data-v2="delete" data-id="'+esc(m.id)+'" aria-label="Delete message">×</button>':"")+'</article>';
     }).join(""):'<div class="v2-room-empty">'+(query?"No messages match that search.":"Be the first to say something.")+'</div>';
     el.scrollTop=el.scrollHeight;

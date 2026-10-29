@@ -34,7 +34,7 @@ const memberState=(s,u)=>({
  channels:s.channels.filter(c=>channelAccess(u,s,c)).map(c=>({...c})),
  roles:s.roles.map(r=>({...r})),
  members:s.members.slice(-500).map(userId=>({
-  id:userId,name:s.profiles?.[userId]?.name||"Member",role:s.memberRoles?.[userId]||"member",
+  id:userId,name:s.profiles?.[userId]?.name||"Member",username:s.profiles?.[userId]?.username||"",role:s.memberRoles?.[userId]||"member",
   admin:s.profiles?.[userId]?.admin===true
  })),
  messages:Object.fromEntries(s.channels.filter(c=>channelAccess(u,s,c)).map(c=>[c.id,(s.messages[c.id]||[]).slice(-LIMITS.messages)]))
@@ -102,15 +102,15 @@ export function createCommunityStore({dataDir,sendToUser,sendAll}){
  const directory=()=>servers.filter(s=>!s.inviteOnly||s.permanent).map(publicServer);
  const refreshProfile=u=>{
   if(!u?.id)return false;
-  const name=clean(u.name,32)||"Member",isAdmin=u.role==="admin";
+  const name=clean(u.name,32)||"Member",username=clean(u.username,32),isAdmin=u.role==="admin";
   let changed=false;
   if(!main.members.includes(u.id)){main.members.push(u.id);changed=true;}
   // Update every joined server so the admin UI and backend privileges agree.
   for(const server of servers.filter(server=>server.members.includes(u.id))){
    if(!server.profiles)server.profiles={};
    const previous=server.profiles[u.id];
-   if(previous?.name!==name||previous?.admin!==isAdmin){
-    server.profiles[u.id]={name,admin:isAdmin};changed=true;
+   if(previous?.name!==name||previous?.username!==username||previous?.admin!==isAdmin){
+    server.profiles[u.id]={name,username,admin:isAdmin};changed=true;
    }
   }
   if(changed)save();
@@ -119,7 +119,7 @@ export function createCommunityStore({dataDir,sendToUser,sendAll}){
  const snapshot=u=>{
   const previous=typeof u==="string"?main.profiles[u]:null;
   const user=typeof u==="string"
-   ?{id:u,name:previous?.name||"Member",role:previous?.admin?"admin":"user"}:u;
+   ?{id:u,name:previous?.name||"Member",username:previous?.username||"",role:previous?.admin?"admin":"user"}:u;
   refreshProfile(user);
   return {servers:servers.filter(s=>s.members.includes(user.id)).map(s=>memberState(s,user)),
    directory:directory(),defaultServerId:MAIN_SERVER_ID};
@@ -146,7 +146,7 @@ export function createCommunityStore({dataDir,sendToUser,sendAll}){
    const s={id:id(),name,icon:clean(data.icon,4)||"users",description:clean(data.description,140)||"A place to meet and talk.",
     owner:u.id,members:[u.id],roles:[{id:"member",name:"Member",color:"#C5BCA9"}],memberRoles:{},
      inviteOnly:!!data.inviteOnly,inviteCode:data.inviteOnly?crypto.randomBytes(16).toString("hex"):null,
-    profiles:{[u.id]:{name:u.name,admin:u.role==="admin"}},channels:[
+    profiles:{[u.id]:{name:u.name,username:u.username,admin:u.role==="admin"}},channels:[
      {id:"general",name:"general",category:"TEXT"},
      {id:"introductions",name:"introductions",category:"TEXT"},
      {id:"gaming",name:"gaming",category:"GAMES"}
@@ -161,7 +161,7 @@ export function createCommunityStore({dataDir,sendToUser,sendAll}){
    if(!invited)return err(u,"Invite is invalid or has expired.");
    if(!invited.members.includes(u.id)){
     if(invited.members.length>=500)return err(u,"That server is full.");
-    invited.members.push(u.id);invited.profiles[u.id]={name:u.name,admin:u.role==="admin"};save();
+    invited.members.push(u.id);invited.profiles[u.id]={name:u.name,username:u.username,admin:u.role==="admin"};save();
    }
    sendToUser(u.id,{type:"v2State",...snapshot(u),selected:invited.id});
    serverChanged(invited);return;
@@ -172,7 +172,7 @@ export function createCommunityStore({dataDir,sendToUser,sendAll}){
   if(type==="v2Join"){
    if(!member){if(s.inviteOnly)return err(u,"This server requires an invite.");
     if(s.members.length>=500&&!s.permanent)return err(u,"That server is full.");
-    s.members.push(u.id);s.profiles[u.id]={name:u.name,admin:u.role==="admin"};save();}
+    s.members.push(u.id);s.profiles[u.id]={name:u.name,username:u.username,admin:u.role==="admin"};save();}
    sendToUser(u.id,{type:"v2State",...snapshot(u),selected:s.id});
    serverChanged(s);return;
   }
@@ -281,7 +281,7 @@ export function createCommunityStore({dataDir,sendToUser,sendAll}){
    const c=s.channels.find(c=>c.id===channel);
    if(!c||!channelAccess(u,s,c)||!message)return err(u,"Choose a channel and enter a message.");
    if(c.readOnly&&!authorized(u,s))return err(u,"This is a staff-only posting channel.");
-   const entry={id:id(),channel,message,by:u.name,userId:u.id,at:Date.now(),reactions:{}};
+   const entry={id:id(),channel,message,by:u.name,username:u.username,userId:u.id,at:Date.now(),reactions:{}};
    (s.messages[channel]??=[]).push(entry);s.messages[channel]=s.messages[channel].slice(-LIMITS.messages);
    save();s.members.forEach(memberId=>{const p=s.profiles[memberId]||{};if(!c.staffOnly||p.admin||memberId===s.owner)sendToUser(memberId,{type:"v2Message",serverId:s.id,entry});});return;
   }

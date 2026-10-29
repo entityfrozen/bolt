@@ -1,14 +1,14 @@
 import {installArenaPolish} from "./arena-v3.js?v=12";
 import {installWorldPort} from "./openfront-port.js?v=7";
-import {installSocial} from "./social-v4.js?v=6";
+import {installSocial} from "./social-v4.js?v=7";
 import {installChatPolish} from "./chat-polish.js?v=3";
 import {installArcade} from "./arcade.js?v=3";
 import {installChessVisuals} from "./chess-visuals.js?v=1";
 import {installRpsVisuals} from "./rps-visuals.js?v=2";
-import {installV2} from "./v2.js?v=9";
+import {installV2} from "./v2.js?v=10";
 import {installWorkspaceV3} from "./workspace-v3.js?v=9";
 import {installApps} from "./apps-v5.js?v=2";
-import {installCommunityUI} from "./community-ui.js?v=5";
+import {installCommunityUI} from "./community-ui.js?v=6";
 import {installSplitChat} from "./split-chat.js?v=4";
 
 const E=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -49,8 +49,8 @@ class Hub{
  }
  onMessage(m){
   if(m.type==="hello"){
-   this.id=m.id;this.name=m.name;this.history=m.history||{};this.users=m.online||[];this.summary=m.summary||{};
-   this.$("#hubUsername").textContent=this.name;this.$("#hubAvatar").textContent=this.name[0]?.toUpperCase()||"L";this.presence();
+   this.id=m.id;this.name=m.name;this.username=m.username||m.name;this.history=m.history||{};this.users=m.online||[];this.summary=m.summary||{};
+   this.$("#hubUsername").innerHTML=window.LightningNames.label(this.name,this.username);this.$("#hubAvatar").textContent=this.name[0]?.toUpperCase()||"L";this.presence();
    if(this.view==="chat")this.chat();
   }else if(m.type==="presence"){
    this.summary=m;if(m.online)this.users=m.online;this.presence();if(this.view==="chat")this.members();
@@ -110,12 +110,12 @@ class Hub{
   const el=this.$("#hubMessages");if(!el)return;
   const intro=this.channel==="suggestions"?"Share a suggestion.":"This is the start of the "+this.channel+" channel.";
   el.innerHTML='<div class="hub-chat-welcome"><strong>Welcome to #'+E(this.channel)+'</strong><p>'+E(intro)+'</p></div>'+
-   (this.history[this.channel]||[]).slice(-120).map(m=>'<div class="hub-chat-line"><span class="hub-chat-avatar">'+E(m.by?.slice(0,1).toUpperCase()||"?")+'</span><div><div class="hub-chat-top"><strong>'+E(m.by)+'</strong><time>'+new Date(m.at).toLocaleString()+'</time></div><p>'+E(m.message)+'</p></div></div>').join("");
+   (this.history[this.channel]||[]).slice(-120).map(m=>'<div class="hub-chat-line"><span class="hub-chat-avatar">'+E(m.by?.slice(0,1).toUpperCase()||"?")+'</span><div><div class="hub-chat-top"><strong>'+window.LightningNames.label(m.by,m.username||this.users.find(u=>u.id===m.userId)?.username)+'</strong><time>'+new Date(m.at).toLocaleString()+'</time></div><p>'+E(m.message)+'</p></div></div>').join("");
   el.scrollTop=el.scrollHeight;
  }
  members(){
   const el=this.$("#hubMembers");if(!el)return;
-  el.innerHTML=this.users.map(u=>'<div class="hub-member"><span class="hub-statusdot"></span>'+E(u.name)+'<button class="hub-member-copy" type="button" title="Copy player ID" data-act="copyUser" data-id="'+E(u.id)+'">⧉</button></div>').join("")||'<p class="hub-footer">Connecting…</p>';
+  el.innerHTML=this.users.map(u=>'<div class="hub-member"><span class="hub-statusdot"></span>'+window.LightningNames.label(u.name,u.username)+'<button class="hub-member-copy" type="button" title="Copy player ID" data-act="copyUser" data-id="'+E(u.id)+'">⧉</button></div>').join("")||'<p class="hub-footer">Connecting…</p>';
  }
  games(){
   this.header("Games","Live multiplayer arcade");

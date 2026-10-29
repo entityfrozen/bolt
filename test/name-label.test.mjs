@@ -1,0 +1,10 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import {readFileSync} from "node:fs";
+import vm from "node:vm";
+const window={};
+vm.runInNewContext(readFileSync(new URL("../public/assets/name-label.js",import.meta.url),"utf8"),{window});
+const {label}=window.LightningNames;
+test("nicknames include a smaller account handle",()=>assert.equal(label("Nova","real_user"),'Nova,<small class="lightning-username">real_user</small>'));
+test("matching or missing nicknames do not repeat the handle",()=>{assert.equal(label("alex","alex"),"alex");assert.equal(label("Alex","alex"),"Alex");assert.equal(label("","alex"),"alex");});
+test("user-provided names are escaped",()=>{const result=label("<script>","a&b");assert.ok(result.includes("&lt;script&gt;"));assert.ok(result.includes("a&amp;b"));assert.ok(!result.includes("<script>"));});

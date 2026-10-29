@@ -74,7 +74,7 @@ export function installChatPolish(Hub){
    const query=this.chatQuery||"";
    for(let i=0;i<elements.length;i++){
      const element=elements[i],msg=rows[i];
-     const matchesQuery=!query||(msg.by+" "+msg.message).toLowerCase().includes(query);
+     const matchesQuery=!query||(msg.by+" "+(msg.username||this.users.find(u=>u.id===msg.userId)?.username||"")+" "+msg.message).toLowerCase().includes(query);
      element.hidden=!matchesQuery;if(!matchesQuery)continue;
      matches++;
      const currentDate=new Date(msg.at).toDateString();
@@ -108,8 +108,8 @@ export function installChatPolish(Hub){
    users.querySelectorAll(".social-member").forEach((row,i)=>{
      const user=this.users[i];if(!user)return;
      row.classList.add("chat-member");
-     row.setAttribute("data-chat-mention",user.name);
-     row.setAttribute("title","Mention @"+user.name);
+     row.setAttribute("data-chat-mention",user.username||user.name);
+     row.setAttribute("title","Mention @"+(user.username||user.name));
      const online=row.querySelector(".social-dot");if(online)online.textContent="●";
    });
    const existing=sidebar.querySelector(".chat-side-info");

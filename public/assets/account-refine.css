@@ -102,3 +102,6 @@ body.app-page .v3-browser-home .newtab-wordmark{background:linear-gradient(175de
 .account-space .as-message-actions button{cursor:pointer;border:1px solid #ffffff35;border-radius:7px;background:#ffffff12;color:inherit;min-height:24px;padding:3px 7px;font:600 11px system-ui;transition:background .15s,border-color .15s}
 .account-space .as-message-actions button:hover,.account-space .as-message-actions button:focus-visible{background:#ffffff26;border-color:#ffffff7b}
 .account-space .as-react-count.selected{background:#9171b245;border-color:#ad9bd9}
+
+/* Nicknames are primary; handles are a smaller, gently raised detail. */
+.lightning-username{display:inline!important;font-family:inherit!important;font-size:.70em!important;line-height:1!important;font-weight:500!important;font-style:normal!important;letter-spacing:0!important;vertical-align:.26em;opacity:.7;color:inherit!important;white-space:nowrap}

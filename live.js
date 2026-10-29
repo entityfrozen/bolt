@@ -446,7 +446,7 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir,getDispla
     if(!CHANNELS.includes(channel)||!message)return;
     const parentId=trimText(data.replyTo,32);
     const parent=parentId?history[channel].find(entry=>entry.id===parentId&&!entry.deleted):null;
-    const entry={id:uid(),by:u.name,userId:u.id,channel,message,at:Date.now(),
+    const entry={id:uid(),by:u.name,username:u.username,userId:u.id,channel,message,at:Date.now(),
       replyTo:parent?.id||null,reactions:{}};
     history[channel].push(entry);history[channel]=history[channel].slice(-120);save();
     sendAll({type:"chat",entry});return;

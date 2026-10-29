@@ -7,6 +7,7 @@ const emojiify=text=>String(text).replace(/:([a-z0-9_]+):/gi,(match,name)=>SHORT
 const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const get=(k,def)=>{try{return JSON.parse(localStorage.getItem(k))??def}catch{return def}};
 const put=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}};
+const nameLabel=(name,username)=>window.LightningNames.label(name,username);
 const avatar=n=>["#c4a4d5","#b0bf8c","#80b6ce","#d0ad77","#83bca9"][String(n||"").split("").reduce((a,c)=>a+c.charCodeAt(0),0)%5];
 export function installSocial(Hub){
  const oldMessage=Hub.prototype.onMessage,oldShow=Hub.prototype.show,oldConnect=Hub.prototype.connect;
@@ -155,7 +156,7 @@ export function installSocial(Hub){
        if(!result.ok||this.mentionRequest!==request)return;
        const people=(await result.json()).people||[];
        if(this.mentionRequest!==request)return;
-       list.innerHTML=people.slice(0,7).map(user=>'<button type="button" data-social="pickMention" data-name="'+esc(user.username)+'"><strong>@'+esc(user.username)+'</strong><span>'+esc(user.displayName||user.username)+'</span></button>').join("");
+       list.innerHTML=people.slice(0,7).map(user=>'<button type="button" data-social="pickMention" data-name="'+esc(user.username)+'"><strong>@'+esc(user.username)+'</strong><span>'+nameLabel(user.displayName,user.username)+'</span></button>').join("");
        list.hidden=!people.length;
      }catch{list.hidden=true}
    },180);
@@ -205,12 +206,13 @@ export function installSocial(Hub){
    if(!rows.length){el.innerHTML='<div class="social-empty"><strong># '+esc(this.channel)+'</strong><p>Be the first to say something.</p></div>';return}
    el.innerHTML=rows.slice(-120).map(m=>{
      const reply=byId.get(m.replyTo),deleted=!!m.deleted;
+     const username=m.username||this.users.find(user=>user.id===m.userId)?.username;
      const content=deleted?'<i>Message deleted</i>':esc(m.message).replace(/(^|[\s])(@[a-z0-9._-]{3,32})/gi,'$1<span class="social-mention">$2</span>').replace(/\n/g,"<br>");
      const react=Object.entries(m.reactions||{}).filter(([,ids])=>Array.isArray(ids)&&ids.length)
        .map(([emoji,ids])=>'<button type="button" class="social-reaction" data-social="react" data-emoji="'+esc(emoji)+'" data-id="'+esc(m.id)+'">'+esc(emoji)+' '+ids.length+'</button>').join("");
      return '<article class="social-msg"><div class="social-avatar" style="--av:'+avatar(m.by)+'">'+esc(m.by?.[0]?.toUpperCase()||"?")+'</div>'+
-       '<div class="social-msg-body"><div class="social-msg-meta"><strong>'+esc(m.by)+'</strong><time>'+new Date(m.at).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})+'</time>'+(m.editedAt?'<span>edited</span>':'')+'</div>'+
-       (reply?'<div class="social-reference">↳ '+esc(reply.by)+': '+esc(reply.deleted?"Deleted":reply.message.slice(0,95))+'</div>':'')+
+       '<div class="social-msg-body"><div class="social-msg-meta"><strong>'+nameLabel(m.by,username)+'</strong><time>'+new Date(m.at).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"})+'</time>'+(m.editedAt?'<span>edited</span>':'')+'</div>'+
+       (reply?'<div class="social-reference">↳ '+nameLabel(reply.by,reply.username||this.users.find(user=>user.id===reply.userId)?.username)+': '+esc(reply.deleted?"Deleted":reply.message.slice(0,95))+'</div>':'')+
        '<div class="social-text">'+content+'</div><div class="social-reactions">'+react+'</div></div>'+
        (deleted?'':'<div class="social-message-actions"><button data-social="reply" data-id="'+esc(m.id)+'" title="Reply">↳</button>'+
        EMOJI.map(emoji=>'<button data-social="react" data-emoji="'+esc(emoji)+'" data-id="'+esc(m.id)+'" title="React">'+emoji+'</button>').join("")+
@@ -222,7 +224,7 @@ export function installSocial(Hub){
  Hub.prototype.members=function(){
    const box=this.$("#hubMembers");if(!box)return;
    box.innerHTML='<small>'+this.users.length+' online</small>'+
-     this.users.map(user=>'<div class="social-member"><span class="social-avatar" style="--av:'+avatar(user.name)+'">'+esc(user.name?.[0]?.toUpperCase()||"?")+'</span><span>'+esc(user.name)+'</span><span class="social-dot">●</span></div>').join("");
+     this.users.map(user=>'<div class="social-member"><span class="social-avatar" style="--av:'+avatar(user.name)+'">'+esc(user.name?.[0]?.toUpperCase()||"?")+'</span><span>'+nameLabel(user.name,user.username)+'</span><span class="social-dot">●</span></div>').join("");
  };
  Hub.prototype.show=function(view,channel){
    oldShow.call(this,view,channel);

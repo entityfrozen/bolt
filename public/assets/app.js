@@ -874,7 +874,7 @@ function renderSettingsPanel(){
     </section>
     <section class="panel-section">
       <h3>Session</h3>
-      <p class="panel-copy">Signed in as <strong>${escapeHtml(me.username)}</strong>${me.temporary?" · temporary access":""}.</p>
+      <p class="panel-copy">Signed in as <strong>${window.LightningNames.label(me.displayName,me.username)}</strong>${me.temporary?" · temporary access":""}.</p>
       <div class="button-row"><button class="button" id="openDirect" type="button">Open direct</button><button class="button danger" id="logoutSettings" type="button">Sign out</button></div>
     </section>`;
   prefs.cloak=prefs.cloak||{preset:"lightning",title:"",icon:""};
@@ -1159,7 +1159,7 @@ function formatDate(value){
 
 function accountPopover(){
   dom.accountPopover.hidden=false;
-  dom.accountPopover.innerHTML=`<div class="popover-head"><strong>${escapeHtml(me.displayName||me.username)}</strong><span>@${escapeHtml(me.username)} · ${escapeHtml(me.role)}</span></div><button type="button" id="popoverProfile">My profile</button><button type="button" id="popoverDMs">Direct messages</button><button type="button" id="popoverSettings">Appearance settings</button>${me.role==="admin"?'<button type="button" id="popoverAdmin">Admin</button>':""}<button type="button" id="popoverLogout">Sign out</button>`;
+  dom.accountPopover.innerHTML=`<div class="popover-head"><strong>${window.LightningNames.label(me.displayName,me.username)}</strong><span>${escapeHtml(me.role)}</span></div><button type="button" id="popoverProfile">My profile</button><button type="button" id="popoverDMs">Direct messages</button><button type="button" id="popoverSettings">Appearance settings</button>${me.role==="admin"?'<button type="button" id="popoverAdmin">Admin</button>':""}<button type="button" id="popoverLogout">Sign out</button>`;
   $("#popoverProfile").addEventListener("click",()=>{dom.accountPopover.hidden=true;window.LightningAccount?.open("profile")});
   $("#popoverDMs").addEventListener("click",()=>{dom.accountPopover.hidden=true;window.LightningAccount?.open("messages")});
   $("#popoverSettings").addEventListener("click",()=>{dom.accountPopover.hidden=true;if(window.LightningGlass)window.LightningGlass.open();else openPanel("settings")});
@@ -1174,7 +1174,7 @@ async function logout(){
 
 function openLightningHub(view){
   closePanel();
-  import("/assets/hub.js?v=41").then(hub=>hub.openHub(view)).catch(()=>toast("Could not open the Lightning hub."));
+  import("/assets/hub.js?v=42").then(hub=>hub.openHub(view)).catch(()=>toast("Could not open the Lightning hub."));
 }
 
 function bindUi(){
@@ -1295,7 +1295,7 @@ async function start(){
   restoreTabs();
   void pollDirectMessages();
   setInterval(()=>void pollDirectMessages(),8000);
-  import("/assets/hub.js?v=40").then(hub=>{
+  import("/assets/hub.js?v=42").then(hub=>{
     hub.startHubNotifications();
     if(new URL(location.href).searchParams.get("view")!=="browser")hub.openHub("overview");
   }).catch(error=>console.warn("Workspace unavailable:",error));
