@@ -217,7 +217,7 @@ export function installSocial(Hub){
        (deleted?'':'<div class="social-message-actions"><button data-social="reply" data-id="'+esc(m.id)+'" title="Reply">↳</button>'+
        EMOJI.map(emoji=>'<button data-social="react" data-emoji="'+esc(emoji)+'" data-id="'+esc(m.id)+'" title="React">'+emoji+'</button>').join("")+
        (m.userId===this.id&&Date.now()-m.at<900000?'<button data-social="edit" data-id="'+esc(m.id)+'" title="Edit">✎</button>':'')+
-       (m.userId===this.id?'<button data-social="delete" data-id="'+esc(m.id)+'" title="Delete">×</button>':'')+'</div>')+'</article>';
+       ((m.userId===this.id||["admin","community_manager","moderator"].includes(this.role))?'<button data-social="delete" data-id="'+esc(m.id)+'" title="Delete">×</button>':'')+'</div>')+'</article>';
    }).join("");
    if(bottom)el.scrollTop=el.scrollHeight;
  };

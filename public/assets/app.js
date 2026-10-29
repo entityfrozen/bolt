@@ -172,10 +172,10 @@ async function loadConfig(){
   const data=await api("/api/config");
   me=data.user;
   config=data.settings;
-  document.body.classList.toggle("admin-mode",me.role==="admin");
+  document.body.classList.toggle("admin-mode",me.role!=="user");
   dom.accountInitial.textContent=(me.displayName||me.username||"B").slice(0,1).toUpperCase();
-  dom.roleChip.textContent=me.role;
-  dom.roleChip.style.display=me.role==="admin"?"inline-flex":"none";
+  dom.roleChip.textContent=({admin:"Administrator",account_manager:"Account Manager",community_manager:"Community Manager",moderator:"Moderator",support_agent:"Support Agent"})[me.role]||me.role;
+  dom.roleChip.style.display=me.role!=="user"?"inline-flex":"none";
 }
 
 function newTab(options={}){
@@ -933,102 +933,128 @@ function settingSwitch(key,title,copy,on){
   return `<div class="setting-row"><div class="setting-copy"><strong>${title}</strong><span>${copy}</span></div><button class="switch${on?" on":""}" type="button" data-setting-switch="${key}"><i></i></button></div>`;
 }
 
+
 async function renderAdminPanel(){
-  panelHead("CONTROL","Admin");
-  dom.panelBody.innerHTML='<div class="empty-row">Loading control panel…</div>';
+  panelHead("STAFF","Staff console");
+  dom.panelBody.innerHTML='<div class="empty-row">Loading staff tools…</div>';
   try{
-    const data=await api("/api/admin/state");
-    config=data.settings;
-    dom.panelBody.innerHTML=`
-      <div class="admin-tabs">
-        <button class="admin-tab active" data-admin-tab="users">Users</button>
-        <button class="admin-tab" data-admin-tab="controls">Controls</button>
-        <button class="admin-tab" data-admin-tab="sessions">Sessions</button>
-        <button class="admin-tab" data-admin-tab="audit">Audit</button>
-      </div>
-      <div class="admin-view active" data-admin-view="users"></div>
-      <div class="admin-view" data-admin-view="controls"></div>
-      <div class="admin-view" data-admin-view="sessions"></div>
-      <div class="admin-view" data-admin-view="audit"></div>`;
+    const data=await api("/api/admin/state"),rights=new Set(data.permissions||[]);
+    if(data.settings)config=data.settings;
+    const tabs=[
+      ["users","Accounts",rights.has("accounts.read")],
+      ["community","Community",rights.has("community.moderate")],
+      ["controls","Controls",rights.has("settings.manage")],
+      ["sessions","Sessions",rights.has("sessions.read")],
+      ["audit","Audit",rights.has("audit.read")]
+    ].filter(row=>row[2]);
+    if(!tabs.length)throw Error("No tools assigned to this staff role.");
+    const title=({admin:"Administrator",account_manager:"Account Manager",community_manager:"Community Manager",moderator:"Moderator",support_agent:"Support Agent"})[me.role]||"Staff";
+    const description={
+      admin:"Full platform access, including staff roles and global settings.",
+      account_manager:"Manage regular accounts and approvals, without access to staff credentials.",
+      community_manager:"Manage joined communities, channels, roles and messages.",
+      moderator:"Remove inappropriate messages without access to account administration.",
+      support_agent:"Review account statuses without making changes."
+    }[me.role]||"Staff workspace";
+    dom.panelBody.innerHTML='<section class="panel-section"><h3>'+escapeHtml(title)+'</h3><p class="panel-copy">'+escapeHtml(description)+'</p></section>'+
+      '<div class="admin-tabs">'+tabs.map(([key,name],i)=>'<button type="button" class="admin-tab'+(!i?" active":"")+'" data-admin-tab="'+key+'">'+name+'</button>').join("")+'</div>'+
+      tabs.map(([key],i)=>'<div class="admin-view'+(!i?" active":"")+'" data-admin-view="'+key+'"></div>').join("");
     $$(".admin-tab").forEach(button=>button.addEventListener("click",()=>{
       $$(".admin-tab").forEach(item=>item.classList.toggle("active",item===button));
-      $$(".admin-view").forEach(view=>view.classList.toggle("active",view.dataset.adminView===button.dataset.adminTab));
+      $$(".admin-view").forEach(item=>item.classList.toggle("active",item.dataset.adminView===button.dataset.adminTab));
     }));
-    renderAdminUsers(data);
-    renderAdminControls(data);
-    renderAdminSessions(data);
-    renderAdminAudit(data);
+    if(rights.has("accounts.read"))renderAdminUsers(data);
+    if(rights.has("community.moderate")){
+      const container=$('[data-admin-view="community"]');
+      container.innerHTML='<section class="panel-section"><h3>Community tools</h3><p class="panel-copy">'+
+        (rights.has("community.manage")?"Manage channels, community roles and messages in the communities you join.":"You can remove messages from joined communities. Server settings stay protected.")+
+        '</p><button class="button primary" type="button" id="staffCommunity">Open community</button></section>';
+      $("#staffCommunity").addEventListener("click",()=>openLightningHub("room"));
+    }
+    if(rights.has("settings.manage"))renderAdminControls(data);
+    if(rights.has("sessions.read"))renderAdminSessions(data);
+    if(rights.has("audit.read"))renderAdminAudit(data);
   }catch(error){
-    dom.panelBody.innerHTML=`<div class="empty-row">${escapeHtml(error.message)}</div>`;
+    dom.panelBody.innerHTML='<div class="empty-row">'+escapeHtml(error.message)+'</div>';
   }
 }
 
+
 function renderAdminUsers(data){
-  const view=$('[data-admin-view="users"]');
-  view.innerHTML=`
-    <section class="panel-section">
-      <h3>Create account</h3>
-      <div class="field"><span>Username</span><input class="input" id="newUserName"></div>
-      <div class="field"><span>Password</span><input class="input" id="newUserPass" type="password"></div>
-      <div class="field"><span>Role</span><select class="select" id="newUserRole"><option value="user">User</option><option value="admin">Admin</option></select></div>
-      <div class="field"><span>Access length</span><select class="select" id="newUserExpiry"><option value="0">No expiry</option><option value="60">1 hour</option><option value="1440">1 day</option><option value="10080">7 days</option><option value="43200">30 days</option></select></div>
-      <div class="button-row"><button class="button primary" id="createUser" type="button">Create account</button></div>
-    </section>
-    <section class="panel-section"><h3>Pending approval <span id="pendingCount"></span></h3><div id="pendingApprovals"></div></section>
-    <section class="panel-section"><h3>Accounts</h3><div id="adminUserTable"></div></section>`;
-  $("#createUser").addEventListener("click",async()=>{
-    const minutes=Number($("#newUserExpiry").value);
-    const expiresAt=minutes?Date.now()+minutes*60000:null;
-    try{
-      await api("/api/admin/users",{method:"POST",body:JSON.stringify({
-        username:$("#newUserName").value,
-        password:$("#newUserPass").value,
-        role:$("#newUserRole").value,
-        expiresAt
-      })});
-      toast("Account created");
-      renderAdminPanel();
-    }catch(error){toast(error.message)}
-  });
-  const pending=data.users.filter(user=>user.approved===false);
-  $("#pendingCount").textContent="("+pending.length+")";
-  const pendingPanel=$("#pendingApprovals");
-  if(!pending.length)pendingPanel.innerHTML='<div class="empty-row">No accounts waiting for approval.</div>';
-  else for(const user of pending){
-    const row=document.createElement("div");row.className="history-item";
-    const details=document.createElement("div");
-    details.innerHTML="<strong>"+escapeHtml(user.username)+"</strong><span>Requested "+formatDate(user.createdAt)+"</span>";
-    const actions=document.createElement("div");actions.className="row-actions";
-    actions.append(actionButton("Approve",()=>adminPatchUser(user.id,{approved:true})),
-      actionButton("Reject",()=>adminDeleteUser(user),true));
-    row.append(details,actions);pendingPanel.append(row);
+ const view=$('[data-admin-view="users"]');if(!view)return;
+ const rights=new Set(data.permissions||[]),write=rights.has("accounts.manage"),assign=rights.has("roles.assign");
+ const roles=data.roles||[];
+ const labels={user:"Member",admin:"Administrator",account_manager:"Account Manager",
+  community_manager:"Community Manager",moderator:"Moderator",support_agent:"Support Agent"};
+ const options=selected=>roles.map(role=>'<option value="'+escapeHtml(role.id)+'"'+
+  (selected===role.id?" selected":"")+'>'+escapeHtml(role.label)+'</option>').join("");
+ view.innerHTML=(write?
+  '<section class="panel-section"><h3>Create account</h3>'+
+   '<div class="field"><span>Username</span><input class="input" id="newUserName"></div>'+
+   '<div class="field"><span>Password</span><input class="input" type="password" id="newUserPass" autocomplete="new-password"></div>'+
+   (assign?'<div class="field"><span>Staff role</span><select class="select" id="newUserRole">'+options("user")+'</select></div>':'')+
+   '<div class="field"><span>Access length</span><select class="select" id="newUserExpiry">'+
+   '<option value="0">No expiry</option><option value="60">1 hour</option><option value="1440">1 day</option>'+
+   '<option value="10080">7 days</option><option value="43200">30 days</option></select></div>'+
+   '<div class="button-row"><button class="button primary" id="createUser" type="button">Create account</button></div></section>':'')+
+  '<section class="panel-section"><h3>Pending approval <span id="pendingCount"></span></h3><div id="pendingApprovals"></div></section>'+
+  '<section class="panel-section"><h3>Accounts</h3><div id="adminUserTable"></div></section>'+
+  (assign?'<section class="panel-section"><h3>What staff roles can do</h3>'+
+   roles.filter(role=>role.id!=="user").map(role=>
+    '<p class="panel-copy"><strong>'+escapeHtml(role.label)+': </strong>'+escapeHtml(role.description)+'</p>').join("")+
+    '</section>':'');
+ if(write)$("#createUser").addEventListener("click",async()=>{
+  const minutes=Number($("#newUserExpiry").value);
+  try{
+   await api("/api/admin/users",{method:"POST",body:JSON.stringify({
+    username:$("#newUserName").value,password:$("#newUserPass").value,
+    role:assign?$("#newUserRole").value:"user",
+    expiresAt:minutes?Date.now()+minutes*60000:null
+   })});
+   toast("Account created");renderAdminPanel();
+  }catch(error){toast(error.message)}
+ });
+ const pending=(data.users||[]).filter(user=>user.approved===false);
+ $("#pendingCount").textContent="("+pending.length+")";
+ const pendingPanel=$("#pendingApprovals");
+ if(!pending.length)pendingPanel.innerHTML='<div class="empty-row">No pending accounts.</div>';
+ for(const user of pending){
+  const row=document.createElement("div");row.className="history-item";
+  const description=document.createElement("div");
+  description.innerHTML='<strong>'+escapeHtml(user.username)+'</strong><span>Requested '+formatDate(user.createdAt)+'</span>';
+  row.append(description);
+  if(write){
+   const actions=document.createElement("div");actions.className="row-actions";
+   actions.append(actionButton("Approve",()=>adminPatchUser(user.id,{approved:true})),
+    actionButton("Reject",()=>adminDeleteUser(user),true));row.append(actions);
   }
-  const holder=$("#adminUserTable");
-  const table=document.createElement("table");
-  table.className="admin-table";
-  table.innerHTML="<thead><tr><th>User</th><th>Access</th><th>Role</th><th></th></tr></thead>";
-  const body=document.createElement("tbody");
-  data.users.slice().sort((a,b)=>Number(a.approved!==false)-Number(b.approved!==false)).forEach(user=>{
-    const row=document.createElement("tr");
-    row.innerHTML=`
-      <td><span class="admin-user">${escapeHtml(user.username)}</span></td>
-      <td>${user.approved===false?"Awaiting approval":user.enabled?(user.expiresAt?formatDate(user.expiresAt):"Active"):"Disabled"}</td>
-      <td><span class="admin-badge ${user.role==="admin"?"admin":""} ${!user.enabled?"off":""}">${escapeHtml(user.role)}</span></td>
-      <td><div class="row-actions"></div></td>`;
-    const actions=row.querySelector(".row-actions");
-    actions.append(
-      ...(user.approved===false?[actionButton("Approve",()=>adminPatchUser(user.id,{approved:true}))]:[]),
-      actionButton(user.enabled?"off":"on",()=>adminPatchUser(user.id,{enabled:!user.enabled})),
-      actionButton(user.role==="admin"?"user":"admin",()=>adminPatchUser(user.id,{role:user.role==="admin"?"user":"admin"})),
-      actionButton("time",()=>adminSetExpiry(user)),
-      actionButton("pass",()=>adminResetPassword(user)),
-      actionButton("kick",()=>adminRevokeUser(user.id)),
-      actionButton("del",()=>adminDeleteUser(user),true)
-    );
-    body.append(row);
-  });
-  table.append(body);
-  holder.append(table);
+  pendingPanel.append(row);
+ }
+ const table=document.createElement("table");table.className="admin-table";
+ table.innerHTML='<thead><tr><th>User</th><th>Access</th><th>Role</th>'+(write?'<th>Actions</th>':'')+'</tr></thead>';
+ const body=document.createElement("tbody");
+ for(const user of (data.users||[]).slice().sort((a,b)=>Number(a.approved!==false)-Number(b.approved!==false))){
+  const row=document.createElement("tr");
+  row.innerHTML='<td><span class="admin-user">'+escapeHtml(user.username)+'</span></td>'+
+   '<td>'+(user.approved===false?"Awaiting approval":user.enabled?(user.expiresAt?formatDate(user.expiresAt):"Active"):"Disabled")+'</td>'+
+   '<td>'+(assign?'<select class="select" data-role-select aria-label="Role for '+escapeHtml(user.username)+'">'+options(user.role)+'</select>':
+      '<span class="admin-badge '+(user.role==="admin"?"admin":"")+'">'+escapeHtml(labels[user.role]||user.role)+'</span>')+'</td>'+
+   (write?'<td><div class="row-actions"></div></td>':'');
+  const select=row.querySelector("[data-role-select]");
+  select?.addEventListener("change",()=>adminPatchUser(user.id,{role:select.value}));
+  if(write&&(assign||(user.role==="user"&&user.id!==me.id))){
+   row.querySelector(".row-actions").append(
+    ...(user.approved===false?[actionButton("Approve",()=>adminPatchUser(user.id,{approved:true}))]:[]),
+    actionButton(user.enabled?"Disable":"Enable",()=>adminPatchUser(user.id,{enabled:!user.enabled})),
+    actionButton("Expiry",()=>adminSetExpiry(user)),
+    actionButton("Password",()=>adminResetPassword(user)),
+    actionButton("Revoke",()=>adminRevokeUser(user.id)),
+    actionButton("Delete",()=>adminDeleteUser(user),true)
+   );
+  }
+  body.append(row);
+ }
+ table.append(body);$("#adminUserTable").append(table);
 }
 
 function actionButton(label,handler,danger=false){
@@ -1159,7 +1185,7 @@ function formatDate(value){
 
 function accountPopover(){
   dom.accountPopover.hidden=false;
-  dom.accountPopover.innerHTML=`<div class="popover-head"><strong>${window.LightningNames.label(me.displayName,me.username)}</strong><span>${escapeHtml(me.role)}</span></div><button type="button" id="popoverProfile">My profile</button><button type="button" id="popoverDMs">Direct messages</button><button type="button" id="popoverSettings">Appearance settings</button>${me.role==="admin"?'<button type="button" id="popoverAdmin">Admin</button>':""}<button type="button" id="popoverLogout">Sign out</button>`;
+  dom.accountPopover.innerHTML=`<div class="popover-head"><strong>${window.LightningNames.label(me.displayName,me.username)}</strong><span>${escapeHtml(me.role)}</span></div><button type="button" id="popoverProfile">My profile</button><button type="button" id="popoverDMs">Direct messages</button><button type="button" id="popoverSettings">Appearance settings</button>${me.role!=="user"?'<button type="button" id="popoverAdmin">Staff console</button>':""}<button type="button" id="popoverLogout">Sign out</button>`;
   $("#popoverProfile").addEventListener("click",()=>{dom.accountPopover.hidden=true;window.LightningAccount?.open("profile")});
   $("#popoverDMs").addEventListener("click",()=>{dom.accountPopover.hidden=true;window.LightningAccount?.open("messages")});
   $("#popoverSettings").addEventListener("click",()=>{dom.accountPopover.hidden=true;if(window.LightningGlass)window.LightningGlass.open();else openPanel("settings")});
@@ -1174,7 +1200,7 @@ async function logout(){
 
 function openLightningHub(view){
   closePanel();
-  import("/assets/hub.js?v=42").then(hub=>hub.openHub(view)).catch(()=>toast("Could not open the Lightning hub."));
+  import("/assets/hub.js?v=43").then(hub=>hub.openHub(view)).catch(()=>toast("Could not open the Lightning hub."));
 }
 
 function bindUi(){
@@ -1295,7 +1321,7 @@ async function start(){
   restoreTabs();
   void pollDirectMessages();
   setInterval(()=>void pollDirectMessages(),8000);
-  import("/assets/hub.js?v=42").then(hub=>{
+  import("/assets/hub.js?v=43").then(hub=>{
     hub.startHubNotifications();
     if(new URL(location.href).searchParams.get("view")!=="browser")hub.openHub("overview");
   }).catch(error=>console.warn("Workspace unavailable:",error));

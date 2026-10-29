@@ -771,7 +771,7 @@ server.on("upgrade", (req, socket, head) => {
   routeUpgrade(req, socket, head);
 });
 
-attachLightningLive({server,sessionFromHeaders,dataDir,getDisplayName:(id,username)=>accountSpace?.getDisplayName(id,username)||username});
+attachLightningLive({server,sessionFromHeaders,dataDir,getDisplayName:(id,username)=>accountSpace?.getDisplayName(id,username)||username,getRole:id=>state.users.find(user=>user.id===id)?.role||"user"});
 
 server.listen(port, () => {
   console.log(`Lightning listening on http://localhost:${port}`);

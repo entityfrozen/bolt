@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
+import {hasPermission} from "./staff-roles.js";
 
 export const MAIN_SERVER_ID="lightning-main";
 const LIMITS={servers:60,owned:5,channels:35,messages:150,roles:30};
@@ -26,10 +27,11 @@ const publicServer=s=>({
  id:s.id,name:s.name,icon:s.icon,description:s.description,permanent:!!s.permanent,inviteOnly:!!s.inviteOnly,
  memberCount:s.members.length,channelCount:s.channels.length
 });
-const canManage=(u,s)=>u.role==="admin"||(!s.permanent&&s.owner===u.id);
+const canManage=(u,s)=>hasPermission(u.role,"community.manage")||(!s.permanent&&s.owner===u.id);
+const canModerate=(u,s)=>canManage(u,s)||hasPermission(u.role,"community.moderate");
 const channelAccess=(u,s,c)=>!c.staffOnly||canManage(u,s);
 const memberState=(s,u)=>({
- ...publicServer(s),owner:s.owner,canManage:canManage(u,s),
+ ...publicServer(s),owner:s.owner,canManage:canManage(u,s),canModerate:canModerate(u,s),
   ...(canManage(u,s)&&s.inviteOnly?{inviteCode:s.inviteCode||""}:{}),
  channels:s.channels.filter(c=>channelAccess(u,s,c)).map(c=>({...c})),
  roles:s.roles.map(r=>({...r})),
@@ -41,7 +43,7 @@ const memberState=(s,u)=>({
 });
 
 // Server-authoritative permissions. Never trust roles or ownership supplied by clients.
-export function createCommunityStore({dataDir,sendToUser,sendAll}){
+export function createCommunityStore({dataDir,sendToUser,sendAll,getRole=()=>null}){
  const filename=path.join(dataDir,"lightning-v2-communities.json");
  let servers=[];
  try{
@@ -129,11 +131,13 @@ export function createCommunityStore({dataDir,sendToUser,sendAll}){
  const serverChanged=s=>{
   s.members.forEach(uid=>{
    const profile=s.profiles?.[uid]||{};
-   sendToUser(uid,{type:"v2Server",server:memberState(s,{id:uid,role:profile.admin?"admin":"user"})});
+   sendToUser(uid,{type:"v2Server",server:memberState(s,{id:uid,role:roleFor(uid,s)})});
   });
   sendAll({type:"v2Directory",directory:directory()});
  };
  const authorized=(u,s)=>canManage(u,s);
+ const roleFor=(userId,s)=>getRole(userId)||(s.profiles?.[userId]?.admin?"admin":"user");
+ const canSeeStaff=(userId,s)=>canManage({id:userId,role:roleFor(userId,s)},s);
  function handle(u,data){
   const type=String(data.type||"");
   if(type==="v2Snapshot"){sendToUser(u.id,{type:"v2State",...snapshot(u)});return;}
@@ -283,16 +287,16 @@ export function createCommunityStore({dataDir,sendToUser,sendAll}){
    if(c.readOnly&&!authorized(u,s))return err(u,"This is a staff-only posting channel.");
    const entry={id:id(),channel,message,by:u.name,username:u.username,userId:u.id,at:Date.now(),reactions:{}};
    (s.messages[channel]??=[]).push(entry);s.messages[channel]=s.messages[channel].slice(-LIMITS.messages);
-   save();s.members.forEach(memberId=>{const p=s.profiles[memberId]||{};if(!c.staffOnly||p.admin||memberId===s.owner)sendToUser(memberId,{type:"v2Message",serverId:s.id,entry});});return;
+   save();s.members.forEach(memberId=>{const p=s.profiles[memberId]||{};if(!c.staffOnly||canSeeStaff(memberId,s))sendToUser(memberId,{type:"v2Message",serverId:s.id,entry});});return;
   }
   if(type==="v2DeleteMessage"){
    const channel=clean(data.channel,40),c=s.channels.find(c=>c.id===channel);
    if(!c||!channelAccess(u,s,c))return err(u,"Channel not found.");
    const entry=(s.messages[channel]||[]).find(m=>m.id===clean(data.messageId,40));
    if(!entry)return err(u,"Message not found.");
-   if(entry.userId!==u.id&&!authorized(u,s))return err(u,"You cannot remove this message.");
+   if(entry.userId!==u.id&&!canModerate(u,s))return err(u,"You cannot remove this message.");
    s.messages[channel]=s.messages[channel].filter(m=>m.id!==entry.id);save();
-   s.members.forEach(memberId=>{const p=s.profiles[memberId]||{};if(!c.staffOnly||p.admin||memberId===s.owner)sendToUser(memberId,{type:"v2MessageDeleted",serverId:s.id,channel,id:entry.id});});return;
+   s.members.forEach(memberId=>{const p=s.profiles[memberId]||{};if(!c.staffOnly||canSeeStaff(memberId,s))sendToUser(memberId,{type:"v2MessageDeleted",serverId:s.id,channel,id:entry.id});});return;
   }
   if(type==="v2React"){
    const channel=clean(data.channel,40),c=s.channels.find(item=>item.id===channel);
@@ -306,7 +310,7 @@ export function createCommunityStore({dataDir,sendToUser,sendAll}){
    entry.reactions[emoji]=voters.includes(u.id)?voters.filter(id=>id!==u.id):[...voters.slice(-119),u.id];
    if(!entry.reactions[emoji].length)delete entry.reactions[emoji];
    save();
-   s.members.forEach(memberId=>{const p=s.profiles[memberId]||{};if(!c.staffOnly||p.admin||memberId===s.owner)sendToUser(memberId,{type:"v2MessageUpdate",serverId:s.id,entry});});
+   s.members.forEach(memberId=>{const p=s.profiles[memberId]||{};if(!c.staffOnly||canSeeStaff(memberId,s))sendToUser(memberId,{type:"v2MessageUpdate",serverId:s.id,entry});});
    return;
   }
  }

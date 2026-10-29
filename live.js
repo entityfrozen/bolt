@@ -4,6 +4,7 @@ import crypto from "node:crypto";
 import {WebSocketServer, WebSocket} from "ws";
 import {Chess} from "chess.js";
 import {createCommunityStore} from "./community-v2.js";
+import {hasPermission} from "./staff-roles.js";
 
 const CHANNELS=["general","games","suggestions","support"];
 const LIMIT=1100;
@@ -37,7 +38,7 @@ for(const seed of landIndices){
 const makeMap=()=>Array.from({length:WORLD_W*WORLD_H},(_,i)=>isLand(i)?{owner:null,def:4+(i*17%5),kind:"",fort:0}:{owner:"sea"});
 const colors=["#f0bd67","#72b9c1","#f08381","#9c91d3","#89c574","#d9a0da","#d5c777","#87a5de","#c28d78","#9bc4a6"];
 const channelsFileName="lightning-social.json";
-export function attachLightningLive({server,sessionFromHeaders,dataDir,getDisplayName=(_id,username)=>username}){
+export function attachLightningLive({server,sessionFromHeaders,dataDir,getDisplayName=(_id,username)=>username,getRole=()=>null}){
  // An isolated game engine per HTTP server: tests and previews must never
  // receive WebSocket state from other Lightning instances in the process.
  const clients=new Map(),queues={chess:[],rps:[]},chessGames=new Map(),rpsGames=new Map(),tournaments=new Map();
@@ -65,7 +66,7 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir,getDispla
  const sendUser=(id,evt)=>{for(const [socket] of clientOf(id))safeSend(socket,evt)};
  const summary=()=>({users:usersOnline().length,queue:{chess:queues.chess.length,rps:queues.rps.length,world:worldQueue.length},tournaments:[...tournaments.values()].filter(t=>!t.done).map(t=>({id:t.id,players:t.ids.length,max:4,status:t.status})),games:{chess:chessGames.size,rps:rpsGames.size}});
  const presence=()=>sendAll({type:"presence",...summary(),online:usersOnline().map(id=>({id,name:clientOf(id)[0]?.[1]?.name||id,username:clientOf(id)[0]?.[1]?.username||""}))});
- const communities=createCommunityStore({dataDir,sendToUser:sendUser,sendAll});
+ const communities=createCommunityStore({dataDir,sendToUser:sendUser,sendAll,getRole});
  const validateSend=(ws,msg)=>{
   const u=clients.get(ws);
   if(!u)return false;
@@ -468,7 +469,7 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir,getDispla
       if(!next)return;
       entry.message=next;entry.editedAt=Date.now();
     }else if(data.type==="chatDelete"){
-      if(entry.userId!==u.id&&u.role!=="admin")
+      if(entry.userId!==u.id&&!hasPermission(u.role,"community.moderate"))
         return safeSend(ws,{type:"error",message:"You cannot delete that message."});
       history[channel].splice(history[channel].indexOf(entry),1);
       save();sendAll({type:"chatDeleted",channel,id:messageId});return;

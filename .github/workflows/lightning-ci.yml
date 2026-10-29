@@ -62,6 +62,8 @@ jobs:
         run: node --test test/account-space.test.mjs
       - name: Test compact nickname labels
         run: node --test test/name-label.test.mjs
+      - name: Test staff roles and privileged APIs
+        run: node --test test/staff-roles.test.mjs
       - name: Test interface copy
         run: node --test test/copy.test.mjs
       - name: Test web search

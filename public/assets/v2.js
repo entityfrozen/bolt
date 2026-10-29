@@ -203,7 +203,7 @@ export function installV2(Hub){
         ["❤️","😂","🔥"].map(emoji=>'<button type="button" data-v2="react" data-id="'+esc(m.id)+'" data-emoji="'+emoji+'" title="React '+emoji+'">'+emoji+'</button>').join("")+'</div>';
       const content=esc(m.message).replace(/(^|\s)(@[a-z0-9._-]{3,32})/gi,'$1<mark class="v2-mention">$2</mark>').replace(/\n/g,"<br>");
       return '<article class="v2-row"><span class="v2-avatar">'+esc(m.by?.[0]?.toUpperCase()||"?")+'</span><div class="v2-row-body"><header><strong>'+nameLabel(m.by,m.username||server.members?.find(user=>user.id===m.userId)?.username)+'</strong><time>'+time(m.at)+'</time></header><p>'+content+'</p>'+actions+'</div>'+
-      ((m.userId===this.id||server.canManage)?'<button class="v2-delete" data-v2="delete" data-id="'+esc(m.id)+'" aria-label="Delete message">×</button>':"")+'</article>';
+      ((m.userId===this.id||server.canModerate)?'<button class="v2-delete" data-v2="delete" data-id="'+esc(m.id)+'" aria-label="Delete message">×</button>':"")+'</article>';
     }).join(""):'<div class="v2-room-empty">'+(query?"No messages match that search.":"Be the first to say something.")+'</div>';
     el.scrollTop=el.scrollHeight;
   };
