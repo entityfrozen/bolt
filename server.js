@@ -283,6 +283,10 @@ const { routeRequest, routeUpgrade } = await bootstrap();
 const app = express();
 app.set("trust proxy", 1);
 app.disable("x-powered-by");
+// Image prompts and AI history may contain one compact screenshot.
+// Keep larger JSON budgets limited to those endpoints, not the whole app.
+app.use("/api/ai/chat",express.json({limit:"400kb"}));
+app.use(/^\/api\/account\/ai\/chats\/[^/]+\/messages$/,express.json({limit:"500kb"}));
 app.use(express.json({ limit: "200kb" }));
 app.use(express.urlencoded({ extended: false, limit: "100kb" }));
 
