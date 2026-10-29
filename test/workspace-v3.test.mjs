@@ -213,13 +213,13 @@ test("Apps search and starring do not reset scroll or rebuild every card",()=>{
  assert.match(apps,/this\.umaSavedFrame/);
  assert.match(browser,/apps-v5\.css/);
 });
-test("Community roles and administrator message moderation are visible",()=>{
+test("Community roles and scoped message moderation are visible",()=>{
  const community=fs.readFileSync(new URL("../public/assets/community-ui.js",import.meta.url),"utf8");
  const channels=fs.readFileSync(new URL("../public/assets/v2.js",import.meta.url),"utf8");
  assert.match(community,/data-cm-form="role"/);
  assert.match(community,/Create role/);
  assert.match(community,/Existing roles/);
- assert.match(channels,/server\.canManage/);
+ assert.match(channels,/server\.canModerate/);
 });
 
 test("YouTube and external app links use Lightning browser tabs",()=>{
