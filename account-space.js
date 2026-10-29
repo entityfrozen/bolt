@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
+import {normalizeAiImage} from "./ai-images.js";
 
 // Private, session-scoped account data. Never infer identity from a request body.
 export function registerAccountSpace({app,dataDir,mustBeSignedIn,sameOrigin,listUsers}){
@@ -254,7 +255,10 @@ export function registerAccountSpace({app,dataDir,mustBeSignedIn,sameOrigin,list
   if(!value||!["user","assistant"].includes(value.role)||typeof value.content!=="string")return null;
   const content=value.content.trim().slice(0,9000);
   if(!content)return null;
+  const image=value.role==="user"&&value.image!==undefined?normalizeAiImage(value.image):null;
+  if(value.image!==undefined&&!image)return null;
   return {role:value.role,content,
+   ...(image?{image}:{}),
    ...(Array.isArray(value.sources)?{sources:value.sources.slice(0,8).filter(x=>x&&typeof x.url==="string").map(x=>({
     title:clip(x.title,120),url:clip(x.url,1600)
    })).filter(x=>/^https?:\/\//i.test(x.url))}:{}),
@@ -304,6 +308,8 @@ export function registerAccountSpace({app,dataDir,mustBeSignedIn,sameOrigin,list
   const ws=aiWorkspace(req.auth.identity.id),chat=ws.chats.find(c=>c.id===req.params.id);
   if(!chat)return fail(res,404,"Conversation not found.");
   if(!Array.isArray(req.body?.messages)||req.body.messages.length>48)return fail(res,400,"Conversation is too long.");
+  if(req.body.messages.filter(message=>message?.image!==undefined).length>1)
+   return fail(res,400,"Only the latest image can be saved in conversation history.");
   const messages=req.body.messages.map(aiMessage);
   if(messages.some(x=>!x))return fail(res,400,"Invalid conversation messages.");
   chat.messages=messages;chat.updatedAt=Date.now();ws.activeId=chat.id;
