@@ -1,0 +1,54 @@
+/* Update log: editorial styling, scoped to Lightning's community workspace. */
+#hubMount .ul-page{height:100%;width:100%;overflow:auto;background:radial-gradient(ellipse 70% 28% at 80% 0%,#56422337,transparent),#0b161e;color:#f7f1e8;scrollbar-color:#665338 transparent}
+#hubMount .ul-wrap{width:min(900px,100%);margin:0 auto;padding:clamp(24px,4vw,53px) clamp(18px,4vw,54px) 95px}
+#hubMount .ul-hero{padding-bottom:41px;border-bottom:1px solid #6d61434f}
+#hubMount .ul-kicker{font:800 10px/1.5 var(--mono,monospace);letter-spacing:.16em;color:#e5b877}
+#hubMount .ul-kicker-dot{display:inline-grid;place-items:center;margin-right:8px;color:#f5c778;font-size:17px}
+#hubMount .ul-hero h1{font:760 clamp(41px,6vw,69px)/1.07 "Instrument Sans",system-ui,sans-serif;letter-spacing:-.065em;margin:13px 0 14px;color:#fff9ee}
+#hubMount .ul-hero h1 span{color:#edb85c}
+#hubMount .ul-hero p{max-width:590px;font:400 13px/1.8 "Instrument Sans",system-ui,sans-serif;color:#9db5b4;margin:0}
+#hubMount .ul-compose{margin:31px 0 37px;padding:23px;border:1px solid #85663c88;background:linear-gradient(150deg,#302717,#192630 72%);border-radius:17px;box-shadow:0 11px 42px #030b1345}
+#hubMount .ul-compose[hidden],#hubMount .ul-status[hidden],#hubMount .ul-secondary[hidden]{display:none!important}
+#hubMount .ul-compose-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:21px}
+#hubMount .ul-compose-heading h2{font:700 21px "Instrument Sans",system-ui;margin:5px 0 0;color:#faf2df;letter-spacing:-.04em}
+#hubMount .ul-admin-marker{padding:6px 9px;border-radius:6px;border:1px solid #8f744a6e;color:#eebd78;font:800 9px var(--mono,monospace);white-space:nowrap}
+#hubMount .ul-compose form{display:flex;flex-direction:column;gap:9px}
+#hubMount .ul-compose label{display:flex;align-items:center;gap:8px;color:#ebdfcb;font:700 12px "Instrument Sans",system-ui;margin-top:6px}
+#hubMount .ul-compose label small{color:#99aba8;font:700 9px var(--mono,monospace)}
+#hubMount .ul-compose input,#hubMount .ul-compose textarea{box-sizing:border-box;width:100%;border:1px solid #6d684e;background:#0d1a23;border-radius:10px;padding:12px 14px;color:#fff9ec;outline:none;font:450 13px/1.65 "Instrument Sans",system-ui;transition:border-color .15s,box-shadow .15s}
+#hubMount .ul-compose textarea{resize:vertical;min-height:145px}
+#hubMount .ul-compose input:focus,#hubMount .ul-compose textarea:focus{border-color:#e2b269;box-shadow:0 0 0 3px #edb85c20}
+#hubMount .ul-compose input::placeholder,#hubMount .ul-compose textarea::placeholder{color:#829497}
+#hubMount .ul-hint{margin:0;color:#92a7a7;font:450 11px/1.65 "Instrument Sans",system-ui}
+#hubMount .ul-form-actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:10px;margin-top:8px}
+#hubMount .ul-publish,#hubMount .ul-secondary,#hubMount .ul-refresh{border-radius:9px;cursor:pointer;font:700 11px "Instrument Sans",system-ui;transition:filter .15s,background .15s}
+#hubMount .ul-publish{padding:11px 16px;background:linear-gradient(130deg,#f5c67f,#dfa345);color:#302009;border:1px solid #f3bd65}
+#hubMount .ul-publish:disabled{opacity:.6;cursor:progress}
+#hubMount .ul-secondary{padding:11px 16px;background:#26343b;border:1px solid #53696a;color:#d0dcd4}
+#hubMount .ul-publish:hover,#hubMount .ul-secondary:hover{filter:brightness(1.12)}
+#hubMount .ul-feed-head{display:flex;justify-content:space-between;align-items:end;gap:12px;padding:34px 0 20px}
+#hubMount .ul-feed-head h2{font:700 23px "Instrument Sans",system-ui;letter-spacing:-.04em;color:#f8f3e9;margin:6px 0 0}
+#hubMount .ul-refresh{background:#23323a;border:1px solid #536263;color:#d9c8a9;padding:9px 12px}
+#hubMount .ul-status{padding:10px 2px;color:#d4ae7e;font:500 12px "Instrument Sans",system-ui}
+#hubMount .ul-feed{display:flex;flex-direction:column;gap:0}
+#hubMount .ul-entry{display:grid;grid-template-columns:30px minmax(0,1fr);gap:16px;position:relative}
+#hubMount .ul-entry-rail{display:flex;align-items:center;flex-direction:column}
+#hubMount .ul-entry-rail:after{content:"";flex:1;width:1px;background:#5b634c70}
+#hubMount .ul-entry:last-child .ul-entry-rail:after{background:linear-gradient(#5b634c70,transparent)}
+#hubMount .ul-entry-mark{display:grid;place-items:center;height:26px;width:26px;border:1px solid #876b3f;border-radius:9px;background:#34291a;color:#edb86c;font:750 15px system-ui}
+#hubMount .ul-entry-main{padding:4px 0 39px;min-width:0}
+#hubMount .ul-entry-meta{display:flex;align-items:center;gap:11px;flex-wrap:wrap;color:#91aaa6;font:700 10px var(--mono,monospace);letter-spacing:.045em}
+#hubMount .ul-meta-divider{color:#806a45}
+#hubMount .ul-edited{color:#d5b784}
+#hubMount .ul-entry h3{color:#faf2e1;font:700 24px/1.28 "Instrument Sans",system-ui;letter-spacing:-.035em;margin:12px 0 10px;overflow-wrap:anywhere}
+#hubMount .ul-body{font:440 13px/1.9 "Instrument Sans",system-ui;white-space:pre-wrap;overflow-wrap:anywhere;color:#c8d5d3;margin-top:12px}
+#hubMount .ul-entry-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:15px}
+#hubMount .ul-entry-actions button{border:0;border-bottom:1px solid #697e7b;background:none;color:#bbd4d0;cursor:pointer;font:700 11px "Instrument Sans",system-ui;padding:4px 0}
+#hubMount .ul-entry-actions .ul-danger{color:#dba296;border-color:#bc7168}
+#hubMount .ul-entry-actions button:hover{color:white}
+#hubMount .ul-empty{padding:62px 20px;border:1px dashed #6258397d;border-radius:17px;text-align:center;background:#14222b88}
+#hubMount .ul-empty>span{font-size:35px;color:#dfb467}
+#hubMount .ul-empty h3{font:700 20px "Instrument Sans",system-ui;margin:12px 0 5px}
+#hubMount .ul-empty p{color:#8da7a4;font-size:12px}
+@media(max-width:600px){#hubMount .ul-wrap{padding:27px 16px 65px}#hubMount .ul-hero{padding-bottom:25px}#hubMount .ul-compose{padding:16px}#hubMount .ul-entry{grid-template-columns:24px minmax(0,1fr);gap:11px}#hubMount .ul-entry h3{font-size:21px}#hubMount .ul-entry-main{padding-bottom:27px}}
+@media(prefers-reduced-motion:reduce){#hubMount .ul-publish,#hubMount .ul-secondary,#hubMount .ul-refresh,#hubMount .ul-compose input,#hubMount .ul-compose textarea{transition:none!important}}

@@ -44,6 +44,7 @@ jobs:
           node --check public/assets/app.js
           node --check public/assets/bolt-tools.js
           node --check public/assets/hub.js
+          node --check public/assets/update-log.js
           node --check public/assets/arena-v3.js
           node --check public/assets/world-renderer.js
           node --check public/assets/openfront-port.js
@@ -62,6 +63,8 @@ jobs:
         run: node --test test/account-space.test.mjs
       - name: Test compact nickname labels
         run: node --test test/name-label.test.mjs
+      - name: Test persistent admin update log
+        run: node --test test/update-log.test.mjs
       - name: Test staff roles and privileged APIs
         run: node --test test/staff-roles.test.mjs
       - name: Test interface copy

@@ -24,6 +24,7 @@ fs.mkdirSync(dataDir, { recursive: true });
 
 const freshState = () => ({
   users: [],
+  updates: [],
   sessions: [],
   passes: [],
   audit: [],
@@ -61,6 +62,7 @@ function loadState() {
 }
 
 let state = loadState();
+if(!Array.isArray(state.updates))state.updates=[];
 
 function saveState() {
   cleanup();
@@ -574,6 +576,48 @@ app.post("/api/ai/chat", mustBeSignedIn, sameOrigin, async (req, res) => {
     console.warn("Lightning AI request failed:",String(error?.message||error).slice(0,200));
     return aiError(error?.message||"The AI provider failed. Please try again.");
   }
+});
+
+// Persistent public changelog. Writes are protected by session-verified admin access.
+const updateInput=(body)=>{
+ const title=body?.title??"",content=body?.body;
+ if(typeof title!=="string"||title.length>140)return {error:"Title must be 140 characters or fewer."};
+ if(typeof content!=="string"||!content.trim()||content.length>30000)
+  return {error:"Write an update between 1 and 30,000 characters."};
+ return {title:title.trim(),body:content.replace(/\r\n?/g,"\n")};
+};
+app.get("/api/updates",mustBeSignedIn,(req,res)=>{
+ res.json({updates:state.updates,canEdit:req.auth.identity.role==="admin"});
+});
+app.post("/api/updates",mustBeAdmin,sameOrigin,(req,res)=>{
+ const input=updateInput(req.body);
+ if(input.error)return res.status(400).json({error:input.error});
+ const time=now();
+ const post={id:id("upd"),title:input.title,body:input.body,
+  author:req.auth.identity.username,createdAt:time,updatedAt:null};
+ state.updates.unshift(post);
+ state.updates=state.updates.slice(0,200);
+ audit(req.auth.identity,"update.published",post.id,post.title);
+ saveState();
+ res.status(201).json({update:post});
+});
+app.patch("/api/updates/:id",mustBeAdmin,sameOrigin,(req,res)=>{
+ const post=state.updates.find(item=>item.id===req.params.id);
+ if(!post)return res.status(404).json({error:"Update not found."});
+ const input=updateInput(req.body);
+ if(input.error)return res.status(400).json({error:input.error});
+ post.title=input.title;post.body=input.body;post.updatedAt=now();
+ audit(req.auth.identity,"update.edited",post.id,post.title);
+ saveState();
+ res.json({update:post});
+});
+app.delete("/api/updates/:id",mustBeAdmin,sameOrigin,(req,res)=>{
+ const index=state.updates.findIndex(item=>item.id===req.params.id);
+ if(index<0)return res.status(404).json({error:"Update not found."});
+ const [removed]=state.updates.splice(index,1);
+ audit(req.auth.identity,"update.deleted",removed.id,removed.title);
+ saveState();
+ res.json({ok:true});
 });
 
 app.get("/api/admin/state", requirePermission("staff.access"), (req, res) => {

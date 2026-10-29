@@ -10,6 +10,7 @@ import {installWorkspaceV3} from "./workspace-v3.js?v=9";
 import {installApps} from "./apps-v5.js?v=2";
 import {installCommunityUI} from "./community-ui.js?v=6";
 import {installSplitChat} from "./split-chat.js?v=4";
+import {installUpdateLog} from "./update-log.js?v=1";
 
 const E=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const PIECES={K:"♔",Q:"♕",R:"♖",B:"♗",N:"♘",P:"♙",k:"♚",q:"♛",r:"♜",b:"♝",n:"♞",p:"♟"};
@@ -404,6 +405,7 @@ installWorkspaceV3(Hub);
 installApps(Hub);
 installCommunityUI(Hub);
 installSplitChat(Hub);
+installUpdateLog(Hub);
 function ensureHubStyles(){
  if(!document.getElementById("lightningHubCss")){
   const css=document.createElement("link");css.id="lightningHubCss";css.rel="stylesheet";css.href="/assets/hub.css?v=3";document.head.append(css);
@@ -423,6 +425,7 @@ function ensureHubStyles(){
      const worldStyle=document.createElement("link");worldStyle.id="lightningWorldOverhaul";worldStyle.rel="stylesheet";worldStyle.href="/assets/worldpvp-overhaul.css?v=1";document.head.append(worldStyle);
      const cleanup=document.createElement("link");cleanup.id="lightningThemeCleanup";cleanup.rel="stylesheet";cleanup.href="/assets/theme-cleanup.css?v=1";document.head.append(cleanup);
      const apps=document.createElement("link");apps.id="lightningAppsCss";apps.rel="stylesheet";apps.href="/assets/apps-v5.css?v=2";document.head.append(apps);
+     const logStyle=document.createElement("link");logStyle.id="lightningUpdateLogCss";logStyle.rel="stylesheet";logStyle.href="/assets/update-log.css?v=1";document.head.append(logStyle);
  }
 }
 export function openHub(view="chat"){
