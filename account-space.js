@@ -54,6 +54,43 @@ export function registerAccountSpace({app,dataDir,mustBeSignedIn,sameOrigin,list
  const unreadIn=(thread,userId)=>thread.messages.filter(message=>
   message.from!==userId&&message.at>Number(thread.readAt?.[userId]||0)).length;
  const historyTypes=["browser","ai"];
+ // Search destinations are transient by default. This also prunes older records.
+ const sensitiveUrl=value=>{
+  try{
+   const url=new URL(String(value||""));
+   if(!["http:","https:"].includes(url.protocol))return false;
+   return !!url.search||/\/(?:search|results?|find)(?:\/|$)/i.test(url.pathname)||
+    /^(?:www\.)?(?:google|bing|duckduckgo|yahoo|ecosia|startpage)\./i.test(url.hostname)&&
+    /\/(?:web|images|news|videos)(?:\/|$)/i.test(url.pathname);
+  }catch{return false}
+ };
+ const privateSearches=id=>data.settings[id]?.["bolt.prefs"]?.privateSearches!==false;
+ const pruneBrowserRecords=id=>{
+  if(!privateSearches(id))return;
+  let changed=false;
+  const history=data.history[id]?.browser;
+  if(Array.isArray(history)){
+   const clean=history.filter(item=>!sensitiveUrl(item?.url));
+   if(clean.length!==history.length){data.history[id].browser=clean;changed=true;}
+  }
+  const settings=data.settings[id];
+  if(settings){
+   if(Array.isArray(settings["bolt.bookmarks"])){
+    const old=settings["bolt.bookmarks"];
+    const clean=old.filter(item=>!sensitiveUrl(item?.url));
+    if(clean.length!==old.length){settings["bolt.bookmarks"]=clean;changed=true;}
+   }
+   const oldTabs=settings["bolt.tabs"];
+   if(Array.isArray(oldTabs?.tabs)){
+    const clean=oldTabs.tabs.map(tab=>sensitiveUrl(tab?.url)?{title:"New tab",url:"bolt://newtab"}:tab);
+    if(clean.some((tab,index)=>tab!==oldTabs.tabs[index])){
+     settings["bolt.tabs"]={...oldTabs,tabs:clean};
+     changed=true;
+    }
+   }
+  }
+  if(changed)persist();
+ };
  const visitRecord=record=>{
   if(!record||typeof record!=="object")return null;
   const url=clip(record.url,1600);
@@ -95,14 +132,15 @@ export function registerAccountSpace({app,dataDir,mustBeSignedIn,sameOrigin,list
  });
  app.get("/api/account/history/:kind",mustBeSignedIn,(req,res)=>{
   const kind=req.params.kind;if(!historyTypes.includes(kind))return fail(res,404,"Not found");
-  const id=req.auth.identity.id;res.setHeader("Cache-Control","no-store");
+  const id=req.auth.identity.id;pruneBrowserRecords(id);res.setHeader("Cache-Control","no-store");
   res.json({items:data.history[id]?.[kind]||[]});
  });
  app.put("/api/account/history/:kind",mustBeSignedIn,sameOrigin,(req,res)=>{
   const kind=req.params.kind;if(!historyTypes.includes(kind))return fail(res,404,"Not found");
   if(!Array.isArray(req.body?.items)||req.body.items.length>160)return fail(res,400,"Invalid history.");
   const id=req.auth.identity.id;
-  (data.history[id]??={})[kind]=bounded(kind,req.body.items);
+  (data.history[id]??={})[kind]=bounded(kind,req.body.items)
+   .filter(item=>kind!=="browser"||!privateSearches(id)||!sensitiveUrl(item.url));
   persist();res.json({ok:true,count:data.history[id][kind].length});
  });
  // Account settings include appearance, tabs, bookmarks, server-channel choice,
@@ -149,8 +187,10 @@ export function registerAccountSpace({app,dataDir,mustBeSignedIn,sameOrigin,list
   persist();res.json({ok:true});
  });
  app.get("/api/account/settings",mustBeSignedIn,(req,res)=>{
+  const userId=req.auth.identity.id;
+  pruneBrowserRecords(userId);
   res.setHeader("Cache-Control","no-store");
-  res.json({settings:cleanSettings(data.settings[req.auth.identity.id])});
+  res.json({settings:cleanSettings(data.settings[userId])});
  });
  app.put("/api/account/settings/:key",mustBeSignedIn,sameOrigin,(req,res)=>{
   const key=req.params.key;
@@ -176,7 +216,9 @@ export function registerAccountSpace({app,dataDir,mustBeSignedIn,sameOrigin,list
     catch{return fail(res,400,"Use a valid http or https link.");}
    }
   }
-  (data.settings[req.auth.identity.id]??={})[key]=value;
+  const userId=req.auth.identity.id;
+  (data.settings[userId]??={})[key]=value;
+  pruneBrowserRecords(userId);
   persist();res.json({ok:true});
  });
  app.get("/api/account/dms",mustBeSignedIn,(req,res)=>{

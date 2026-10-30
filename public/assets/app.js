@@ -63,6 +63,7 @@ let prefs={
   engine:"google",
   restore:true,
   preventClosing:true,
+  privateSearches:true,
   compact:false,
   autoEmoji:true,
   cloak:{preset:"lightning",title:"",icon:""},
@@ -224,6 +225,53 @@ function newTab(options={}){
   return tab;
 }
 
+// Private searches keep their live destination in memory only. No query text
+// is copied into our tab chrome, saved browsing history, or account settings.
+// A proxied site still receives the destination URL as part of navigation.
+function isPrivateSearchUrl(value){
+  if(!prefs.privateSearches)return false;
+  try{
+    const url=new URL(String(value||""));
+    if(!["http:","https:"].includes(url.protocol))return false;
+    return !!url.search||/\/(?:search|results?|find)(?:\/|$)/i.test(url.pathname)||
+      /^(?:www\.)?(?:google|bing|duckduckgo|yahoo|ecosia|startpage)\./i.test(url.hostname)&&
+      /\/(?:web|images|news|videos)(?:\/|$)/i.test(url.pathname);
+  }catch{return false;}
+}
+function privateTabLabel(tab){
+  if(!isPrivateSearchUrl(tab?.url))return tab?.title||"New tab";
+  try{return "Research results · "+new URL(tab.url).hostname.replace(/^www\./,"");}
+  catch{return "Research results";}
+}
+function privateAddress(url){
+  if(!isPrivateSearchUrl(url))return url;
+  try{return "Research results · "+new URL(url).hostname.replace(/^www\./,"");}
+  catch{return "Research results";}
+}
+function protectedSavedTab(tab){
+  if(isPrivateSearchUrl(tab.url))return {title:"New tab",url:"bolt://newtab"};
+  return {title:tab.title,url:tab.type==="newtab"?"bolt://newtab":tab.url};
+}
+function prunePrivateSearchRecords(){
+  if(!prefs.privateSearches)return;
+  const historyClean=accountHistory.filter(item=>!isPrivateSearchUrl(item.url));
+  if(historyClean.length!==accountHistory.length){
+    accountHistory=historyClean;
+    saveAccountHistory();
+  }
+  for(const key of ["bolt.bookmarks","bolt.tabs"]){
+    const value=store.get(key,null);
+    if(key==="bolt.bookmarks"&&Array.isArray(value)){
+      const filtered=value.filter(item=>!isPrivateSearchUrl(item?.url));
+      if(filtered.length!==value.length)store.set(key,filtered);
+    }
+    if(key==="bolt.tabs"&&Array.isArray(value?.tabs)){
+      const clean=value.tabs.map(item=>isPrivateSearchUrl(item?.url)?{title:"New tab",url:"bolt://newtab"}:item);
+      if(clean.some((item,index)=>item!==value.tabs[index]))
+        store.set(key,{...value,tabs:clean});
+    }
+  }
+}
 function activeTab(){
   return tabs.find(tab=>tab.id===activeId)||null;
 }
@@ -253,12 +301,12 @@ function renderTabs(){
 
     const title=document.createElement("span");
     title.className="tab-title";
-    title.textContent=tab.title||"New tab";
+    title.textContent=privateTabLabel(tab);
 
     const close=document.createElement("button");
     close.type="button";
     close.className="tab-close";
-    close.setAttribute("aria-label","Close "+(tab.title||"tab"));
+    close.setAttribute("aria-label","Close "+privateTabLabel(tab));
     close.innerHTML=svg("i-x");
     close.addEventListener("click",event=>{
       event.stopPropagation();
@@ -303,7 +351,7 @@ function activateTab(id){
   activeId=id;
   tabs.forEach(item=>item.iframe?.classList.toggle("active",item.id===id));
   dom.newtab.classList.toggle("hidden",tab.type!=="newtab");
-  dom.address.value=tab.type==="newtab"?"":tab.url;
+  dom.address.value=tab.type==="newtab"?"":privateAddress(tab.url);
   dom.back.disabled=tab.type==="newtab";
   dom.forward.disabled=tab.type==="newtab";
   dom.reload.disabled=tab.type==="newtab";
@@ -334,10 +382,7 @@ function closeTab(id){
 
 function persistTabs(){
   if(!prefs.restore)return;
-  const saved=tabs.slice(0,12).map(tab=>({
-    title:tab.title,
-    url:tab.type==="newtab"?"bolt://newtab":tab.url
-  }));
+  const saved=tabs.slice(0,12).map(protectedSavedTab);
   store.set("bolt.tabs",{tabs:saved,active:Math.max(0,tabs.findIndex(tab=>tab.id===activeId))});
 }
 
@@ -345,7 +390,8 @@ function restoreTabs(){
   if(!prefs.restore){newTab();return}
   const saved=store.get("bolt.tabs",null);
   if(!saved?.tabs?.length){newTab();return}
-  saved.tabs.slice(0,12).forEach(entry=>{
+  saved.tabs.slice(0,12).forEach(savedEntry=>{
+    const entry=isPrivateSearchUrl(savedEntry?.url)?{title:"New tab",url:"bolt://newtab"}:savedEntry;
     const tab={
       id:`tab_${++tabCounter}_${Date.now().toString(36)}`,
       title:entry.title||"New tab",
@@ -480,7 +526,7 @@ async function makeFrame(tab){
   const cache=new $scramjetUtils.HttpCachePlugin();
   const watcher=new $scramjetUtils.UrlWatcherPlugin(url=>{
     tab.url=String(url);
-    if(tab.id===activeId)dom.address.value=tab.url;
+    if(tab.id===activeId)dom.address.value=privateAddress(tab.url);
     rememberVisit(tab);
     persistTabs();
   });
@@ -503,7 +549,8 @@ function refreshTabMeta(tab){
   try{
     const doc=tab.iframe.contentDocument;
     const title=(doc?.title||"").trim();
-    if(title)tab.title=title.slice(0,80);
+    if(isPrivateSearchUrl(tab.url))tab.title="Research results";
+    else if(title)tab.title=title.slice(0,80);
     const icon=doc?.querySelector('link[rel~="icon"]')?.href;
     if(icon)tab.favicon=icon;
   }catch{}
@@ -518,7 +565,7 @@ async function navigateTab(tab,value){
   tab.type="web";
   tab.title=tab.title==="New tab"?"Loading…":tab.title;
   dom.newtab.classList.add("hidden");
-  dom.address.value=destination;
+  dom.address.value=privateAddress(destination);
   renderTabs();
   showStatus("Connecting…",3000);
   try{
@@ -544,11 +591,13 @@ async function navigateTab(tab,value){
 function navigate(value){
   let tab=activeTab();
   if(!tab)tab=newTab();
-  navigateTab(tab,value);
+  // Submitting the masked address again should reload, not search the label.
+  const destination=isPrivateSearchUrl(tab.url)&&value===privateAddress(tab.url)?tab.url:value;
+  navigateTab(tab,destination);
 }
 
 function rememberVisit(tab){
-  if(!/^https?:\/\//i.test(tab.url||""))return;
+  if(!/^https?:\/\//i.test(tab.url||"")||isPrivateSearchUrl(tab.url))return;
   const list=accountHistory.filter(item=>item.url!==tab.url);
   list.unshift({url:tab.url,title:tab.title||tab.url,at:Date.now()});
   accountHistory=list.slice(0,100);saveAccountHistory();
@@ -592,6 +641,7 @@ function updateBookmarkState(){
 function toggleBookmark(){
   const tab=activeTab();
   if(!tab||tab.type!=="web")return toast("Open a page first");
+  if(isPrivateSearchUrl(tab.url))return toast("Private searches are not saved as bookmarks");
   const saved=store.get("bolt.bookmarks",[]);
   const index=saved.findIndex(item=>item.url===tab.url);
   if(index>=0){
@@ -880,6 +930,7 @@ function renderSettingsPanel(){
       <div class="field"><span>Search engine</span><select class="select" id="settingEngine"><option value="google">Google</option><option value="duckduckgo">DuckDuckGo</option><option value="bing">Bing</option></select></div>
       ${settingSwitch("restore","Restore tabs","Open the last session when Lightning starts",prefs.restore)}
       ${settingSwitch("preventClosing","Prevent Closing","Ask before closing, reloading, or leaving this tab. Browser support varies.",prefs.preventClosing!==false)}
+      ${settingSwitch("privateSearches","Private searches","Hide query text in tab labels and the address field; do not save searches to account history or restored tabs.",prefs.privateSearches!==false)}
     </section>
     <section class="panel-section">
       <h3>Interface</h3>
@@ -947,6 +998,11 @@ function renderSettingsPanel(){
     prefs[key]=!prefs[key];
     button.classList.toggle("on",prefs[key]);
     savePrefs();
+    if(key==="privateSearches"){
+      prunePrivateSearchRecords();
+      if(activeTab())activateTab(activeTab().id);
+      renderNewtabLists();
+    }
     applyPrefs();
   }));
   $$("[data-accent]").forEach(button=>button.addEventListener("click",()=>{
@@ -1346,6 +1402,7 @@ async function start(){
     try{await window.LightningAccount?.refreshProfile();}catch(error){console.warn("Profile unavailable:",error.message)}
     prefs={...prefs,...(store.get("bolt.prefs",{}))};applyPrefs();
     try{accountHistory=await window.LightningAccount?.history.load("browser")||[];}catch(error){console.warn("Account history unavailable:",error.message)}
+    prunePrivateSearchRecords();
     renderNewtabLists();
   }catch{return}
   restoreTabs();

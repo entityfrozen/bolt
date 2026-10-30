@@ -66,6 +66,8 @@ jobs:
         run: node --test test/workspace-source.test.mjs
       - name: Test study exercises and Prevent Closing preference
         run: node --test test/study-portal.test.mjs
+      - name: Test private search URLs and account storage
+        run: node --test test/browser-query-privacy.test.mjs
       - name: Test account profiles, DMs and cross-device history
         run: node --test test/account-space.test.mjs
       - name: Test compact nickname labels
