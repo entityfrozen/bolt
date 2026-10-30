@@ -82,7 +82,7 @@ export function registerAccountSpace({app,dataDir,mustBeSignedIn,sameOrigin,list
    }
    const oldTabs=settings["bolt.tabs"];
    if(Array.isArray(oldTabs?.tabs)){
-    const clean=oldTabs.tabs.map(tab=>sensitiveUrl(tab?.url)?{title:"New tab",url:"bolt://newtab"}:tab);
+    const clean=oldTabs.tabs.map(tab=>tab?.url==="bolt://research"||sensitiveUrl(tab?.url)?{title:"New tab",url:"bolt://newtab"}:tab);
     if(clean.some((tab,index)=>tab!==oldTabs.tabs[index])){
      settings["bolt.tabs"]={...oldTabs,tabs:clean};
      changed=true;

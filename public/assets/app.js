@@ -249,7 +249,7 @@ function privateAddress(url){
   catch{return "Research results";}
 }
 function protectedSavedTab(tab){
-  if(isPrivateSearchUrl(tab.url))return {title:"New tab",url:"bolt://newtab"};
+  if(tab.type==="research"||tab.url==="bolt://research"||isPrivateSearchUrl(tab.url))return {title:"New tab",url:"bolt://newtab"};
   return {title:tab.title,url:tab.type==="newtab"?"bolt://newtab":tab.url};
 }
 function prunePrivateSearchRecords(){
@@ -266,7 +266,7 @@ function prunePrivateSearchRecords(){
       if(filtered.length!==value.length)store.set(key,filtered);
     }
     if(key==="bolt.tabs"&&Array.isArray(value?.tabs)){
-      const clean=value.tabs.map(item=>isPrivateSearchUrl(item?.url)?{title:"New tab",url:"bolt://newtab"}:item);
+      const clean=value.tabs.map(item=>item?.url==="bolt://research"||isPrivateSearchUrl(item?.url)?{title:"New tab",url:"bolt://newtab"}:item);
       if(clean.some((item,index)=>item!==value.tabs[index]))
         store.set(key,{...value,tabs:clean});
     }
@@ -351,10 +351,10 @@ function activateTab(id){
   activeId=id;
   tabs.forEach(item=>item.iframe?.classList.toggle("active",item.id===id));
   dom.newtab.classList.toggle("hidden",tab.type!=="newtab");
-  dom.address.value=tab.type==="newtab"?"":privateAddress(tab.url);
-  dom.back.disabled=tab.type==="newtab";
-  dom.forward.disabled=tab.type==="newtab";
-  dom.reload.disabled=tab.type==="newtab";
+  dom.address.value=tab.type==="newtab"?"":tab.type==="research"?"Private research":privateAddress(tab.url);
+  dom.back.disabled=tab.type!=="web";
+  dom.forward.disabled=tab.type!=="web";
+  dom.reload.disabled=tab.type!=="web";
   renderTabs();
   updateBookmarkState();
   renderNewtabLists();
@@ -391,7 +391,7 @@ function restoreTabs(){
   const saved=store.get("bolt.tabs",null);
   if(!saved?.tabs?.length){newTab();return}
   saved.tabs.slice(0,12).forEach(savedEntry=>{
-    const entry=isPrivateSearchUrl(savedEntry?.url)?{title:"New tab",url:"bolt://newtab"}:savedEntry;
+    const entry=savedEntry?.url==="bolt://research"||isPrivateSearchUrl(savedEntry?.url)?{title:"New tab",url:"bolt://newtab"}:savedEntry;
     const tab={
       id:`tab_${++tabCounter}_${Date.now().toString(36)}`,
       title:entry.title||"New tab",
@@ -558,7 +558,88 @@ function refreshTabMeta(tab){
   rememberVisit(tab);
 }
 
+function privateQueryFromInput(value){
+  if(prefs.privateSearches===false)return null;
+  const raw=String(value||"").trim();
+  if(!raw)return null;
+  if(/^(?:www\.)?(?:google\.[a-z.]+|bing\.com|duckduckgo\.com|yahoo\.com|ecosia\.org|startpage\.com)\//i.test(raw))
+    return privateQueryFromInput("https://"+raw);
+  if(/^https?:\/\//i.test(raw)){
+    let url;
+    try{url=new URL(raw)}catch{return null;}
+    const host=url.hostname.toLowerCase();
+    const supported=/^(?:www\.)?(?:google\.[a-z.]+|bing\.com|duckduckgo\.com|yahoo\.com|ecosia\.org|startpage\.com)$/.test(host);
+    return supported?(url.searchParams.get("q")||url.searchParams.get("query")||null):null;
+  }
+  if(/^(?:localhost|127\.0\.0\.1)(?::\d+)?(?:\/.*)?$/i.test(raw))return null;
+  if(/^(?:[\w-]+\.)+[a-z]{2,}(?::\d+)?(?:[/?#].*)?$/i.test(raw))return null;
+  return raw;
+}
+async function showPrivateResults(tab,query){
+  tab.iframe?.remove();
+  tab.iframe=null;tab.frame=null;
+  tab.url="bolt://research";tab.type="research";tab.title="Research results";tab.favicon=null;
+  const hub=document.getElementById("hubMount");if(hub)hub.hidden=true;
+  const panel=document.createElement("section");
+  panel.className="proxy-frame research-results";
+  panel.setAttribute("aria-label","Private research results");
+  const inner=document.createElement("div");
+  inner.className="research-inner";
+  const kicker=document.createElement("span");kicker.className="research-kicker";kicker.textContent="PRIVATE RESEARCH";
+  const headline=document.createElement("h1");headline.className="research-title";headline.textContent="Your research results.";
+  const description=document.createElement("p");description.className="research-description";
+  description.textContent="Search terms stay out of Lightning's visible URLs, saved tabs and browser history. Results are fetched by the server. Opening a source may expose its website address.";
+  const meta=document.createElement("p");meta.className="research-meta";meta.textContent="Searching securely…";
+  const items=document.createElement("div");items.className="research-items";
+  inner.append(kicker,headline,description,meta,items);panel.append(inner);
+  dom.frameStack.append(panel);tab.iframe=panel;
+  activateTab(tab.id);
+  try{
+    const data=await window.LightningResearch.search(query);
+    if(!tabs.includes(tab)||tab.iframe!==panel)return;
+    meta.textContent=(data.provider||"Private research")+" · Search results";
+    if(!(data.results||[]).length){
+      const empty=document.createElement("p");empty.className="research-empty";
+      empty.textContent=data.notice||"No results found. Try another phrase.";items.append(empty);
+      return;
+    }
+    for(const result of data.results){
+      const button=document.createElement("button");
+      button.type="button";button.className="research-result";
+      const domain=document.createElement("span");domain.className="research-domain";domain.textContent=result.domain||"Research source";
+      const title=document.createElement("strong");title.textContent=result.title||"Open source";
+      const snippet=document.createElement("span");snippet.className="research-snippet";snippet.textContent=result.snippet||"Read this resource.";
+      const hint=document.createElement("span");hint.className="research-open";hint.textContent="Open resource ↗";
+      button.append(domain,title,snippet,hint);
+      button.addEventListener("click",async()=>{
+        if(!tabs.includes(tab)||tab.iframe!==panel)return;
+        button.disabled=true;
+        try{
+          const url=await window.LightningResearch.open(result.id);
+          if(tabs.includes(tab)&&tab.iframe===panel)await navigateTab(tab,url);
+        }catch(error){meta.textContent=error.message||"Could not open this resource.";}
+        finally{button.disabled=false;}
+      });
+      items.append(button);
+    }
+  }catch(error){
+    if(!tabs.includes(tab)||tab.iframe!==panel)return;
+    meta.textContent="Private research unavailable";
+    const empty=document.createElement("p");empty.className="research-empty";
+    empty.textContent=error.message||"Could not load results. Try again.";
+    items.append(empty);
+  }
+}
 async function navigateTab(tab,value){
+  const privateQuery=privateQueryFromInput(value);
+  if(privateQuery!==null){
+    await showPrivateResults(tab,privateQuery);
+    return;
+  }
+  if(tab.type==="research"){
+    tab.iframe?.remove();
+    tab.iframe=null;tab.frame=null;
+  }
   const destination=resolveInput(value);
   if(!destination)return;
   tab.url=destination;
@@ -930,7 +1011,7 @@ function renderSettingsPanel(){
       <div class="field"><span>Search engine</span><select class="select" id="settingEngine"><option value="google">Google</option><option value="duckduckgo">DuckDuckGo</option><option value="bing">Bing</option></select></div>
       ${settingSwitch("restore","Restore tabs","Open the last session when Lightning starts",prefs.restore)}
       ${settingSwitch("preventClosing","Prevent Closing","Ask before closing, reloading, or leaving this tab. Browser support varies.",prefs.preventClosing!==false)}
-      ${settingSwitch("privateSearches","Private searches","Hide query text in tab labels and the address field; do not save searches to account history or restored tabs.",prefs.privateSearches!==false)}
+      ${settingSwitch("privateSearches","Private searches","Encrypt search phrases to fetch private results without readable query URLs or saved search history. External pages can still expose their URLs.",prefs.privateSearches!==false)}
     </section>
     <section class="panel-section">
       <h3>Interface</h3>
