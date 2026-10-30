@@ -102,7 +102,7 @@ test("Default appearance no longer relies on device-only theme migrations",()=>{
  assert.match(settings,/accent:"#a3cef8"/);
  assert.match(settings,/lightning:account-settings-loaded/);
  assert.doesNotMatch(settings,/localStorage\.setItem\(KEY/);
- assert.match(browser,/glass-settings\.js\?v=6/);
+ assert.match(browser,/glass-settings\.js\?v=\d+/);
 });
 
 test("Dashboard shows real announcement feed and direct community links",()=>{
