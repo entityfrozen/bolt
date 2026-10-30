@@ -2,7 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import {slide2048,make2048,makeMines,openMine} from "../public/assets/workspace-v3.js";
-const browser=fs.readFileSync(new URL("../views/app.html",import.meta.url),"utf8");
+const source=fs.readFileSync(new URL("../views/app.html",import.meta.url),"utf8");
+const browser=source.replace(/&#(\d+);/g,(_,code)=>String.fromCodePoint(Number(code)));
 const workspace=fs.readFileSync(new URL("../public/assets/workspace-v3.js",import.meta.url),"utf8");
 test("V2 browser has a redesigned, navigable workspace launcher",()=>{
   for(const id of ["newtabInput","newtabForm","recentList","bookmarkList","lightningSuggestionButton"])assert.ok(browser.includes('id="'+id+'"'));

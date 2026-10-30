@@ -11,7 +11,7 @@ test("Lightning binds home search, Games and Chat without crashing on startup",a
   if(!elements.has(key)){
    const handlers=new Map();
    elements.set(key,{
-    key,handlers,dataset:{hub:key.includes("data-hub")?"games":undefined,lightningQuick:"https://example.com"},
+    key,handlers,dataset:{hub:key.includes("data-hub")?"games":undefined,researchLink:"https://example.com"},
     classList:{add(){},remove(){},toggle(){},contains(){return false}},
     style:{setProperty(){}},
     addEventListener(name,fn){handlers.set(name,fn)},

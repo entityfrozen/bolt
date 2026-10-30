@@ -62,6 +62,8 @@ jobs:
         run: node --test test/auth.test.mjs
       - name: Test educational portal and access routing
         run: node --test test/learning-portal.test.mjs
+      - name: Test signed-in workspace source and live interface hooks
+        run: node --test test/workspace-source.test.mjs
       - name: Test study exercises and Prevent Closing preference
         run: node --test test/study-portal.test.mjs
       - name: Test account profiles, DMs and cross-device history

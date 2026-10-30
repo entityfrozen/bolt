@@ -1254,7 +1254,7 @@ function bindUi(){
     }
   },true);
   $("#lightningSuggestionButton")?.addEventListener("click",()=>openLightningHub("suggestions"));
-  document.querySelectorAll(".lightning-quick").forEach(button=>button.addEventListener("click",()=>navigate(button.dataset.lightningQuick)));
+  document.querySelectorAll(".lightning-quick").forEach(button=>button.addEventListener("click",()=>navigate(button.dataset.researchLink)));
   dom.homeMark.addEventListener("click",()=>newTab());
   dom.addressForm.addEventListener("submit",event=>{event.preventDefault();navigate(dom.address.value)});
   dom.newtabForm.addEventListener("submit",event=>{event.preventDefault();navigate(dom.newtabInput.value);dom.newtabInput.value=""});
