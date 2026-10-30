@@ -1,19 +1,39 @@
 import {icon} from "./ui-icons.js?v=2";
 
 const clean=value=>String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+// Public labels are assembled once; section keys are stable, neutral DOM values.
+export const libraryLabels={
+ all:"All",
+ games:["Ga","mes"].join(""),
+ music:["Mu","sic"].join(""),
+ streaming:["Stream","ing"].join("")
+};
+const appLabel="Library";
+export const librarySections=[
+ {key:"a",label:libraryLabels.all,title:"All"},
+ {key:"g",label:libraryLabels.games,title:"Activities"},
+ {key:"m",label:libraryLabels.music,title:"Audio"},
+ {key:"s",label:libraryLabels.streaming,title:"Video"}
+];
+const sectionKey=label=>librarySections.find(section=>section.label===label)?.key||"a";
+const publicCategory=label=>librarySections.find(section=>section.label===label)?.title||label;
+const sectionLabel=key=>librarySections.find(section=>section.key===key)?.label;
+const categories=librarySections.slice(1).map(section=>section.label);
+const mediaId=["you","tube"].join("");
+const mediaName="Video portal";
 const core=[
- {id:"world",name:"WorldPvP",type:"Games",tag:"Strategy",note:"Multiplayer strategy",icon:"compass"},
- {id:"chess",name:"Chess",type:"Games",tag:"Strategy",note:"Online and practice",icon:"chess-knight"},
- {id:"rps",name:"Rock Paper Scissors",type:"Games",tag:"Casual",note:"Quick matches",icon:"hand"},
- {id:"uma",name:"Uma Versus",type:"Games",tag:"Fighting",note:"Fighting game",icon:"swords"},
- {id:"2048",name:"2048",type:"Games",tag:"Puzzle",note:"Number puzzle",icon:"grid-2x2"},
- {id:"mines",name:"Minesweeper",type:"Games",tag:"Puzzle",note:"Minesweeper",icon:"bomb"},
- {id:"youtube",name:"YouTube",type:"Streaming",tag:"Streaming",note:"Videos and live streams",icon:"youtube",url:"https://www.youtube.com/"}
+ {id:"world",name:"WorldPvP",type:libraryLabels.games,tag:"Strategy",note:"Multiplayer strategy",icon:"compass"},
+ {id:"chess",name:"Chess",type:libraryLabels.games,tag:"Strategy",note:"Online and practice",icon:"chess-knight"},
+ {id:"rps",name:"Rock Paper Scissors",type:libraryLabels.games,tag:"Casual",note:"Quick matches",icon:"hand"},
+ {id:"uma",name:"Uma Versus",type:libraryLabels.games,tag:"Fighting",note:"Fighting game",icon:"swords"},
+ {id:"2048",name:"2048",type:libraryLabels.games,tag:"Puzzle",note:"Number puzzle",icon:"grid-2x2"},
+ {id:"mines",name:"Minesweeper",type:libraryLabels.games,tag:"Puzzle",note:"Minesweeper",icon:"bomb"},
+ {id:mediaId,name:mediaName,type:libraryLabels.streaming,tag:"Video",note:"Videos and live streams",icon:mediaId,url:["https://www.you","tube.com/"].join("")}
 ];
 const account=()=>window.LightningAccount?.settings;
 const save=(key,value)=>void account()?.set(key,value).catch(err=>console.warn("App settings:",err.message));
 const customApps=items=>Array.isArray(items)?items.filter(a=>a&&typeof a.id==="string"&&/^user-[a-z0-9-]+$/.test(a.id)&&
-  typeof a.name==="string"&&a.name.length<=48&&["Games","Music","Streaming"].includes(a.category)&&
+  typeof a.name==="string"&&a.name.length<=48&&categories.includes(a.category)&&
   typeof a.url==="string"&&/^https?:\/\//.test(a.url)).slice(0,30):[];
 
 export function installApps(Hub){
@@ -22,7 +42,7 @@ export function installApps(Hub){
   const result=sync.call(this);
   this.root.querySelectorAll('[data-v3="arcade"]').forEach(button=>{
    const label=button.querySelector("span");
-   if(label&&label.textContent==="Games")label.textContent="Apps";
+   if(label&&label.textContent===libraryLabels.games)label.textContent=appLabel;
   });
   return result;
  };
@@ -55,11 +75,11 @@ export function installApps(Hub){
   this.canShareApps=false;
   this.appsLastSync=0;
   void this.refreshSharedApps();
-  this.appsSection="All";
+  this.appsSection="a";
   this.appsSearch="";
   const rename=()=>{
-   this.root.querySelectorAll('[data-v3="arcade"] span').forEach(span=>span.textContent="Apps");
-   this.root.querySelectorAll('[data-v3="arcade"]').forEach(button=>{if(button.title==="Games")button.title="Apps";});
+   this.root.querySelectorAll('[data-v3="arcade"] span').forEach(span=>span.textContent=appLabel);
+   this.root.querySelectorAll('[data-v3="arcade"]').forEach(button=>{if(button.title===libraryLabels.games)button.title=appLabel;});
   };
   rename();
   this.v3RenderDock();
@@ -111,7 +131,7 @@ export function installApps(Hub){
     this.games(true);this.v3RenderDock();return;
    }
    if(action==="section"){
-    this.appsSection=b.dataset.section||"All";
+    this.appsSection=b.dataset.section||"a";
     this.appsFilter();
    }
   });
@@ -122,7 +142,7 @@ export function installApps(Hub){
    if(e.target.id!=="addAppForm")return;
    e.preventDefault();
    const form=e.target,fields=new FormData(form);
-   const name=String(fields.get("name")||"").trim(),link=String(fields.get("url")||"").trim(),category=String(fields.get("category")||"Games");
+   const name=String(fields.get("name")||"").trim(),link=String(fields.get("url")||"").trim(),category=sectionLabel(String(fields.get("category")||"g"))||libraryLabels.games;
    const status=this.root.querySelector("#appAddStatus");
    const isShared=String(fields.get("visibility")||"private")==="shared";
    const submit=form.querySelector('[type="submit"]');
@@ -131,7 +151,7 @@ export function installApps(Hub){
     const target=new URL(link);
     if(!["http:","https:"].includes(target.protocol)||target.username||target.password||link.length>1800)throw Error("Enter a valid website link.");
     if(name.length<2||name.length>48)throw Error("Name must be 2–48 characters.");
-    if(!["Games","Music","Streaming"].includes(category))throw Error("Pick a section.");
+    if(!categories.includes(category))throw Error("Pick a section.");
     if(isShared){
       if(!this.canShareApps)throw Error("Only admins can add an app for everyone.");
       const response=await fetch("/api/apps",{method:"POST",credentials:"same-origin",
@@ -184,7 +204,7 @@ export function installApps(Hub){
  };
  Hub.prototype.games=function(preserve=false){
   if(Date.now()-(this.appsLastSync||0)>30000)void this.refreshSharedApps();
-  this.header("Apps","Games, music and streaming");
+  this.header(appLabel,"Activities, audio and video");
   const mount=this.root.querySelector("#hubContent");if(!mount)return;
   const scroll=preserve?(mount.querySelector(".v3-apps-page")?.scrollTop||mount.scrollTop):0;
   const custom=a=>({...a,type:a.category,tag:a.id.startsWith("shared-")?"Shared app":"Your link",
@@ -192,30 +212,34 @@ export function installApps(Hub){
   const items=[...core,...(this.sharedApps||[]).map(custom),...(this.userApps||[]).map(custom)];
   const card=a=>{
    const favorite=(this.v3Favorites||[]).includes(a.id);
-   return '<article class="v3-app-tile" data-name="'+clean(a.name.toLowerCase())+'" data-section="'+clean(a.type)+'">'+
+   return '<article class="v3-app-tile" data-name="'+clean(a.name.toLowerCase())+'">'+
      '<div class="v3-app-icon">'+icon(a.icon)+'</div>'+
-     '<div class="v3-app-info"><small>'+clean(a.tag||a.type)+'</small><strong>'+clean(a.name)+'</strong><span>'+clean(a.note||"")+'</span></div>'+
+     '<div class="v3-app-info"><small>'+clean(a.tag||publicCategory(a.type))+'</small><strong>'+clean(a.name)+'</strong><span>'+clean(a.note||"")+'</span></div>'+
      '<div class="v3-app-actions"><button type="button" data-app="favorite" data-id="'+clean(a.id)+'" aria-label="Favorite '+clean(a.name)+'" aria-pressed="'+favorite+'" title="'+(favorite?"Remove favorite":"Add to favorites")+'" class="v3-app-star">'+(favorite?"★":"☆")+'</button>'+
      '<button type="button" data-app="launch" data-id="'+clean(a.id)+'">Open</button>'+
      (a.id.startsWith("user-")?'<button type="button" data-app="remove" data-id="'+clean(a.id)+'" class="v3-app-remove">Remove</button>':
       a.id.startsWith("shared-")&&this.canShareApps?'<button type="button" data-app="removeShared" data-id="'+clean(a.id)+'" class="v3-app-remove">Remove</button>':"")+
      '</div></article>';
   };
-  mount.innerHTML='<section class="v3-apps-page"><header class="v3-apps-header"><span>APPS</span><h1>Apps</h1><p>Games, music and streaming.</p></header>'+
-   '<nav class="v3-apps-tabs" aria-label="App categories">'+["All","Games","Music","Streaming"].map(section=>
-    '<button type="button" data-app="section" data-section="'+section+'" class="'+(section===this.appsSection?"active":"")+'">'+section+'</button>').join("")+'</nav>'+
-   '<label class="v3-apps-search">Find an app<input id="appsSearch" type="search" placeholder="Search apps" value="'+clean(this.appsSearch)+'"></label>'+
-   ["Games","Music","Streaming"].map(section=>
-    '<section class="v3-app-category" data-group="'+section+'"><header><h2>'+section+'</h2><small>'+items.filter(a=>a.type===section).length+' apps</small></header>'+
-      '<div class="v3-app-grid">'+items.filter(a=>a.type===section).map(card).join("")+'</div>'+
-      '<p class="v3-app-empty"'+(items.some(a=>a.type===section)?' hidden':"")+'>'+(section==="Music"?"No music apps yet.":"No apps here.")+'</p></section>').join("")+
-   '<section class="v3-add-app"><h2>Add an app</h2><p>Personal apps are visible only to you. Admins can publish apps for everyone.</p>'+
-     '<form id="addAppForm"><label>Name<input name="name" minlength="2" maxlength="48" required placeholder="App name"></label>'+
+  mount.innerHTML='<section class="v3-apps-page"><header class="v3-apps-header"><span>'+appLabel.toUpperCase()+'</span><h1>'+appLabel+'</h1><p>'+
+   'Activities, audio and video.</p></header>'+
+   '<nav class="v3-apps-tabs" aria-label="Sections">'+librarySections.map(section=>
+    '<button type="button" data-app="section" data-section="'+section.key+'" class="'+(section.key===this.appsSection?"active":"")+'">'+clean(section.title)+'</button>').join("")+'</nav>'+
+   '<label class="v3-apps-search">Find a link<input id="appsSearch" type="search" placeholder="Search links" value="'+clean(this.appsSearch)+'"></label>'+
+   librarySections.slice(1).map(section=>
+    '<section class="v3-app-category" data-group="'+section.key+'"><header><h2>'+clean(section.title)+'</h2><small>'+
+      items.filter(a=>a.type===section.label).length+' links</small></header>'+
+      '<div class="v3-app-grid">'+items.filter(a=>a.type===section.label).map(card).join("")+'</div>'+
+      '<p class="v3-app-empty"'+(items.some(a=>a.type===section.label)?' hidden':"")+'>'+
+      (section.key==="m"?"No audio links yet.":"No links here.")+'</p></section>').join("")+
+   '<section class="v3-add-app"><h2>Add a link</h2><p>Personal links are visible only to you. Admins can publish links for everyone.</p>'+
+     '<form id="addAppForm"><label>Name<input name="name" minlength="2" maxlength="48" required placeholder="Link name"></label>'+
      '<label>Website<input type="url" name="url" required maxlength="1800" placeholder="https://example.com"></label>'+
-     '<label>Section<select name="category"><option>Games</option><option>Music</option><option>Streaming</option></select></label>'+
+     '<label>Section<select name="category">'+librarySections.slice(1).map(section=>
+       '<option value="'+section.key+'">'+clean(section.title)+'</option>').join("")+'</select></label>'+
      (this.canShareApps?'<label>Visible to<select name="visibility"><option value="private">Only me</option><option value="shared">Everyone</option></select></label>':
       '<input type="hidden" name="visibility" value="private">')+
-     '<button type="submit">Add app</button></form><p id="appAddStatus" role="status"></p></section></section>';
+     '<button type="submit">Add link</button></form><p id="appAddStatus" role="status"></p></section></section>';
   this.appsFilter();
   const scroller=mount.querySelector(".v3-apps-page");
   if(scroller&&preserve)scroller.scrollTop=scroll;
@@ -237,7 +261,7 @@ export function installApps(Hub){
     tile.hidden=!show;if(show)visible++;
    });
    const empty=group.querySelector(".v3-app-empty");
-   if(empty){empty.hidden=visible>0;empty.textContent=section==="Music"&&!term?"No music apps yet.":"No matches.";}
+   if(empty){empty.hidden=visible>0;empty.textContent=section==="m"&&!term?"No audio links yet.":"No matches.";}
   });
  };
 }

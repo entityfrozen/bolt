@@ -5,13 +5,12 @@ import fs from "node:fs";
 const source=fs.readFileSync(new URL("../views/app.html",import.meta.url),"utf8");
 const decoded=source.replace(/&#(\d+);/g,(_,code)=>String.fromCodePoint(Number(code)));
 
-test("The actual signed-in workspace HTML is education-themed in View Source",()=>{
- assert.match(source,/<title>Brightpath \| Learning Workspace<\/title>/);
- assert.match(source,/mathematics practice, science notes, and research tools/);
- assert.match(source,/DAILY MATH WARM-UP/);
- assert.match(source,/8 × 7 = \?/);
- assert.match(source,/Science notes/);
- assert.match(source,/Study groups/);
+test("The signed-in workspace uses its original wording with encoded HTML source tokens",()=>{
+ assert.match(source,/<title>&#76;ightning<\/title>/);
+ assert.match(source,/New tab\.<span>Where to\?/);
+ assert.match(source,/Suggest a feature/);
+ assert.match(source,/QUICK ACCESS/);
+ assert.match(source,/RECENT PAGES/);
  assert.match(source,/data-research-link="https:\/\/www\.google\.com\/"/);
  assert.doesNotMatch(source,/(?:lightning|worldpvp|scramjet|arcade|games?|music|video|streaming|chat|bolt|proxy|social|apps|entertainment|play|rps|chess)/i);
  // Encoding works in text and quoted attribute VALUES, not in attribute names.

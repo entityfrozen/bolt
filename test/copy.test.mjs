@@ -15,7 +15,7 @@ test("Games use plain labels without promotional headlines",()=>{
 test("Browser, login, settings and AI use direct language",()=>{
  const home=read("views/app.html"),login=read("views/login.html");
  const settings=read("public/assets/glass-settings.js"),ai=read("public/assets/bolt-tools.js");
- assert.match(home,/Study space\.<span>Explore a topic\./);
+ assert.match(home,/New tab\.<span>Where to\?/);
  assert.match(login,/type="submit">Sign in</);
  assert.match(settings,/Used for buttons and highlights/);
  assert.match(ai,/What do you need\?/);

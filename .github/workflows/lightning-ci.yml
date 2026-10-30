@@ -90,6 +90,8 @@ jobs:
         run: node --test test/community-v2.test.mjs
       - name: Test new workspace and puzzle engines
         run: node --test test/workspace-v3.test.mjs
+      - name: Verify app section source and neutral category selectors
+        run: node --test test/library-sections.test.mjs
       - name: Test Lightning Live
         run: node --test test/live.test.mjs
       - name: Test click layers and overlays

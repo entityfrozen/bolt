@@ -75,11 +75,11 @@ test("Learning portal is the public landing page; links reveal the signed-in wor
  const workspace=await fetch(origin+"/workspace",auth);
  assert.equal(workspace.status,200);
  const workspaceHtml=await workspace.text();
- assert.match(workspaceHtml,/<title>Brightpath \| Learning Workspace<\/title>/);
+ assert.match(workspaceHtml,/<title>&#76;ightning<\/title>/);
  assert.doesNotMatch(workspaceHtml,/lightning|games?|arcade|bolt|worldpvp|proxy|chat|music|video/i);
  assert.match(workspaceHtml,/data-hub="&#103;ames"/);
- assert.match(workspaceHtml,/DAILY MATH WARM-UP/);
- assert.match(workspaceHtml,/Science notes/);
+ assert.match(workspaceHtml,/New tab\.<span>Where to\?/);
+ assert.match(workspaceHtml,/Suggest a feature/);
  const signedInLogin=await fetch(origin+"/login",auth);
  assert.equal(signedInLogin.status,302);
  assert.equal(signedInLogin.headers.get("location"),"/workspace");

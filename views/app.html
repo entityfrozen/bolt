@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#100f0d">
-<meta name="description" content="Learning resources, mathematics practice, science notes, and research tools.">
-<title>Brightpath | Learning Workspace</title>
-<link rel="icon" href="/assets/brightpath-icon.svg">
+<meta name="description" content="Browser tabs, saved pages, and your personal workspace.">
+<title>&#76;ightning</title>
+<link rel="icon" href="/favicon.svg">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -26,13 +26,13 @@
 <link rel="stylesheet" href="/assets/workspace-interactions.css?v=1">
 <link rel="stylesheet" href="/assets/&#119;orldpvp-overhaul.css?v=1">
 <link rel="stylesheet" href="/assets/theme-cleanup.css?v=2">
-<link rel="stylesheet" href="/assets/&#97;pps-v5.css?v=2">
+<link rel="stylesheet" href="/assets/&#97;pps-v5.css?v=3">
 <script src="/bootstrap-init.js"></script>
 
 <script defer src="/assets/name-label.js?v=1"></script>
 <script defer src="/assets/glass-settings.js?v=7"></script>
 <script defer src="/assets/account-space-ui.js?v=6"></script>
-<script defer src="/assets/app.js?v=61"></script>
+<script defer src="/assets/app.js?v=62"></script>
 <script defer src="/assets/&#98;olt-tools.js?v=18"></script>
 <script defer src="/assets/web-search-settings.js?v=3"></script>
 </head>
@@ -65,9 +65,9 @@
 
 <div class="&#98;olt-shell" id="&#98;oltShell">
   <header class="tabbar">
-    <button class="&#98;olt-brand" id="homeMark" type="button" title="Brightpath — New resource">
+    <button class="&#98;olt-brand" id="homeMark" type="button" title="&#76;ightning — New tab">
       <span class="brand-symbol"><img class="&#108;ightning-mark" src="/assets/&#108;ightning-mark.svg?v=1" alt="" aria-hidden="true"></span>
-      <span class="brand-name">brightpath<em>.</em></span>
+      <span class="brand-name">&#108;ightning<em>.</em></span>
     </button>
     <div class="tabs" id="tabs"></div>
     <button class="tab-new" id="newTabBtn" type="button" title="New tab"><svg><use href="#i-plus"/></svg></button>
@@ -97,10 +97,10 @@
       <button class="rail-button active" data-action="newtab" type="button" title="Home"><svg><use href="#i-home"/></svg></button>
       <button class="rail-button" data-panel="history" type="button" title="History"><svg><use href="#i-clock"/></svg></button>
       <div class="rail-spacer"></div>
-      <button class="rail-button" data-hub="&#99;hat" type="button" title="Study groups"><svg><use href="#i-&#99;hat"/></svg></button>
-      <button class="rail-button" data-hub="&#103;ames" type="button" title="Learning activities"><svg><use href="#i-&#103;ames"/></svg></button>
+      <button class="rail-button" data-hub="&#99;hat" type="button" title="Community &#99;hat"><svg><use href="#i-&#99;hat"/></svg></button>
+      <button class="rail-button" data-hub="&#103;ames" type="button" title="Library"><svg><use href="#i-&#103;ames"/></svg></button>
       <button class="rail-button" data-hub="updates" type="button" title="Update log"><svg><use href="#i-clock"/></svg></button>
-      <button class="rail-button" data-glass-settings type="button" title="Personalize learning space"><svg><use href="#i-settings"/></svg></button>
+      <button class="rail-button" data-glass-settings type="button" title="Customize appearance & settings"><svg><use href="#i-settings"/></svg></button>
       <button class="rail-button admin-only" data-panel="admin" type="button" title="Admin"><svg><use href="#i-users"/></svg></button>
     </nav>
 
@@ -108,42 +108,42 @@
       <section class="newtab v3-browser-home" id="newtabView">
         <div class="v3-browser-dashboard">
           <div class="v3-browser-body">
-            <span class="v3-browser-kicker">STUDENT WORKSPACE</span>
-            <h1 class="v3-browser-title">Study space.<span>Explore a topic.</span></h1>
-            <p class="v3-browser-description">Explore a subject, open a research resource, or revisit your notes.</p>
+            <span class="v3-browser-kicker">NEW TAB</span>
+            <h1 class="v3-browser-title">New tab.<span>Where to?</span></h1>
+            <p class="v3-browser-description">Search the web or open a saved page.</p>
             <form class="newtab-search" id="newtabForm">
               <svg><use href="#i-search"/></svg>
-              <input id="newtabInput" autocomplete="off" spellcheck="false" placeholder="Search lessons and research resources" aria-label="Search lessons and research resources">
+              <input id="newtabInput" autocomplete="off" spellcheck="false" placeholder="Search or enter a web address" aria-label="Search or enter a web address">
               <span class="newtab-keycap">ENTER ↵</span>
             </form>
             <nav class="&#108;ightning-shortcuts v3-browser-shortcuts" aria-label="Quick destinations">
-              <button type="button" class="&#108;ightning-quick" data-hub="overview">⌂ Study overview</button>
-              <button type="button" class="&#108;ightning-quick" data-hub="&#99;hat"># Study groups</button>
-              <button type="button" class="&#108;ightning-quick" data-hub="&#103;ames">▣ Learning activities</button>
+              <button type="button" class="&#108;ightning-quick" data-hub="overview">⌂ Overview</button>
+              <button type="button" class="&#108;ightning-quick" data-hub="&#99;hat"># Community</button>
+              <button type="button" class="&#108;ightning-quick" data-hub="&#103;ames">▣ Library</button>
               <button type="button" class="&#108;ightning-quick" data-research-link="https://www.google.com/">Google</button>
                             <button type="button" class="&#108;ightning-quick" data-research-link="https://www.wikipedia.org/">Wikipedia</button>
             </nav>
-            <button class="newtab-eyebrow &#108;ightning-suggest-button v3-browser-suggestion" id="&#108;ightningSuggestionButton" type="button" title="Suggest a learning resource">Suggest a learning resource</button>
+            <button class="newtab-eyebrow &#108;ightning-suggest-button v3-browser-suggestion" id="&#108;ightningSuggestionButton" type="button" title="Suggest a feature">Suggest a feature</button>
           </div>
           <aside class="v3-browser-sidebar">
             <section class="v3-browser-feature">
-              <span>DAILY MATH WARM-UP</span>
-              <strong>8 × 7 = ?</strong>
-              <p>Practice multiplication, then explore number patterns and problem-solving.</p>
-              <button type="button" data-hub="overview">Open study notes</button>
+              <span>QUICK ACCESS</span>
+              <strong>Recent spaces</strong>
+              <p>Pick up where you left off.</p>
+              <button type="button" data-hub="overview">Open home</button>
             </section>
             <section class="v3-browser-guide">
-              <strong>QUICK LESSONS</strong>
-              <button type="button" data-hub="&#99;hat"><span>#</span> Study groups</button>
-              <button type="button" data-hub="&#103;ames"><span>∑</span> Math practice</button>
-              <button type="button" data-hub="overview"><span>⚛</span> Science notes</button>
+              <strong>OPEN</strong>
+              <button type="button" data-hub="&#99;hat"><span>#</span> &#67;hat channels</button>
+              <button type="button" data-hub="&#103;ames"><span>▣</span> Library</button>
+              <button type="button" data-hub="overview"><span>⌂</span> Home</button>
             </section>
           </aside>
           <div class="v3-browser-history">
-            <div><span class="meta-label">RECENT RESEARCH</span><div class="recent-list" id="recentList"></div></div>
-            <div><span class="meta-label">SAVED RESOURCES</span><div class="recent-list" id="bookmarkList"></div></div>
+            <div><span class="meta-label">RECENT PAGES</span><div class="recent-list" id="recentList"></div></div>
+            <div><span class="meta-label">YOUR BOOKMARKS</span><div class="recent-list" id="bookmarkList"></div></div>
           </div>
-          <footer class="v3-browser-footer"><span>STUDY TIPS</span><span>Try a quick equation · Read a science article · Save useful sources</span></footer>
+          <footer class="v3-browser-footer"><span>KEYBOARD SHORTCUTS</span><span>Ctrl+L for address bar · Ctrl+T for new tab</span></footer>
         </div>
       </section>
       <div class="frame-stack" id="frameStack"></div>

@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import {slide2048,make2048,makeMines,openMine} from "../public/assets/workspace-v3.js";
+import {installApps,libraryLabels,librarySections} from "../public/assets/apps-v5.js";
 const source=fs.readFileSync(new URL("../views/app.html",import.meta.url),"utf8");
 const browser=source.replace(/&#(\d+);/g,(_,code)=>String.fromCodePoint(Number(code)));
 const workspace=fs.readFileSync(new URL("../public/assets/workspace-v3.js",import.meta.url),"utf8");
@@ -195,9 +196,11 @@ test("Browser, glass and games read account-backed settings",()=>{
 test("Apps library starts empty, has YouTube in streaming and private custom links",()=>{
  const apps=fs.readFileSync(new URL("../public/assets/apps-v5.js",import.meta.url),"utf8");
  const css=fs.readFileSync(new URL("../public/assets/apps-v5.css",import.meta.url),"utf8");
- assert.match(apps,/name:"YouTube",type:"Streaming"/);
+ assert.match(apps,/name:mediaName,type:libraryLabels\.streaming/);
  assert.match(apps,/["']customApps["']/);
- assert.match(apps,/Games","Music","Streaming/);
+ assert.deepEqual(librarySections.map(section=>section.key),["a","g","m","s"]);
+ assert.deepEqual(librarySections.map(section=>section.label),["All","Games","Music","Streaming"]);
+ assert.match(apps,/category=sectionLabel/);
  assert.match(apps,/No favorites yet/);
  assert.match(apps,/data-app="favorite"/);
  assert.doesNotMatch(apps,/catalog\.slice\(0,4\)/);
@@ -226,7 +229,7 @@ test("Community roles and scoped message moderation are visible",()=>{
 test("YouTube and external app links use Lightning browser tabs",()=>{
  const apps=fs.readFileSync(new URL("../public/assets/apps-v5.js",import.meta.url),"utf8");
  const browserApp=fs.readFileSync(new URL("../public/assets/app.js",import.meta.url),"utf8");
- assert.match(apps,/name:"YouTube",type:"Streaming"/);
+ assert.match(apps,/name:mediaName,type:libraryLabels\.streaming/);
  assert.match(apps,/lightning:open-browser-tab/);
  assert.match(browserApp,/addEventListener\("lightning:open-browser-tab"/);
  assert.match(browserApp,/openInsideLightning\(event\.detail\?\.url/);

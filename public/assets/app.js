@@ -1286,7 +1286,7 @@ async function logout(){
 
 function openLightningHub(view){
   closePanel();
-  import("/assets/hub.js?v=43").then(hub=>hub.openHub(view)).catch(()=>toast("Could not open the Lightning hub."));
+  import("/assets/hub.js?v=44").then(hub=>hub.openHub(view)).catch(()=>toast("Could not open the Lightning hub."));
 }
 
 function bindUi(){
@@ -1408,7 +1408,7 @@ async function start(){
   restoreTabs();
   void pollDirectMessages();
   setInterval(()=>void pollDirectMessages(),8000);
-  import("/assets/hub.js?v=43").then(hub=>{
+  import("/assets/hub.js?v=44").then(hub=>{
     hub.startHubNotifications();
     if(new URL(location.href).searchParams.get("view")!=="browser")hub.openHub("overview");
   }).catch(error=>console.warn("Workspace unavailable:",error));
