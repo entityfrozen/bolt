@@ -10,7 +10,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/assets/learning-portal.css?v=1">
+  <link rel="stylesheet" href="/assets/learning-portal.css?v=2">
+  <script defer src="/assets/study-practice.js?v=1"></script>
 </head>
 <body>
 <div class="learning-shell">
@@ -96,6 +97,41 @@
         <a class="subject-card subject-science" href="/workspace"><span class="subject-icon" aria-hidden="true">⚛</span><span class="subject-tag">DISCOVER &amp; OBSERVE</span><strong>Science</strong><span class="subject-copy">The world, from tiny atoms to distant stars</span><span class="subject-foot">Explore lessons <span aria-hidden="true">↗</span></span></a>
         <a class="subject-card subject-literature" href="/workspace"><span class="subject-icon" aria-hidden="true">✎</span><span class="subject-tag">READ &amp; CREATE</span><strong>Language Arts</strong><span class="subject-copy">Stories, writing, and creative thinking</span><span class="subject-foot">Explore lessons <span aria-hidden="true">↗</span></span></a>
         <a class="subject-card subject-history" href="/workspace"><span class="subject-icon" aria-hidden="true">◎</span><span class="subject-tag">PEOPLE &amp; PLACES</span><strong>World History</strong><span class="subject-copy">Ideas and events that shaped our world</span><span class="subject-foot">Explore lessons <span aria-hidden="true">↗</span></span></a>
+      </section>
+
+      <section class="practice-section" aria-labelledby="practiceHeading">
+        <div class="section-heading">
+          <div><span class="section-kicker">QUICK PRACTICE</span><h2 id="practiceHeading">Try a little brainwork<span class="accent-dot">.</span></h2></div>
+          <span class="practice-caption">TWO-MINUTE STUDY BREAK</span>
+        </div>
+        <div class="practice-grid">
+          <article class="practice-card">
+            <div class="practice-top"><span class="practice-topic">01 / MATHEMATICS</span><span aria-hidden="true" class="practice-art">∑</span></div>
+            <h3>Warm-up problem</h3>
+            <p>Work through a quick calculation. Try another when you're ready.</p>
+            <div class="math-problem" id="practiceMathQuestion" aria-live="polite">12 + 8 = ?</div>
+            <form id="practiceMathForm" class="math-form">
+              <label class="visually-hidden" for="practiceMathAnswer">Your answer</label>
+              <input id="practiceMathAnswer" inputmode="numeric" type="number" step="1" placeholder="Your answer" required autocomplete="off">
+              <button type="submit">Check answer <span aria-hidden="true">↗</span></button>
+            </form>
+            <p id="practiceMathFeedback" class="practice-feedback" role="status" aria-live="polite">Try it without a calculator.</p>
+            <button type="button" id="practiceNextMath" class="practice-next">Another problem <span aria-hidden="true">↻</span></button>
+          </article>
+          <article class="practice-card practice-science">
+            <div class="practice-top"><span class="practice-topic">02 / NATURAL SCIENCE</span><span aria-hidden="true" class="practice-art">⚛</span></div>
+            <h3>Science check-in</h3>
+            <p>Explore one small question about the world around us.</p>
+            <div class="science-question" id="practiceScienceQuestion" aria-live="polite">What is the main source of energy for Earth's climate?</div>
+            <div id="practiceScienceOptions" class="science-options" role="group" aria-label="Science question answers">
+              <button type="button" data-science-answer="0">The Moon</button>
+              <button type="button" data-science-answer="1">The Sun</button>
+              <button type="button" data-science-answer="2">Earth's core</button>
+            </div>
+            <p id="practiceScienceFeedback" class="practice-feedback" role="status" aria-live="polite">Choose the best answer.</p>
+            <button type="button" id="practiceNextScience" class="practice-next">New science question <span aria-hidden="true">↻</span></button>
+          </article>
+        </div>
       </section>
 
       <section class="bottom-grid" aria-label="Additional study resources">

@@ -115,6 +115,11 @@ function initDialog(){
   if(action==="import")$("#lgImport")?.click();
  });
  dialog.addEventListener("input",e=>{
+  const closeToggle=e.target.closest("[data-lg-close-protection]");
+  if(closeToggle){
+    document.dispatchEvent(new CustomEvent("lightning:set-prevent-closing",{detail:{enabled:closeToggle.checked}}));
+    return;
+  }
   const input=e.target.closest("[data-lg-setting]");if(!input)return;
   const key=input.dataset.lgSetting;
   const value=input.type==="checkbox"?input.checked:input.type==="range"?Number(input.value):input.value;
@@ -172,6 +177,7 @@ function draw(tab="appearance"){
    box("Backup","Move your look between browsers and devices.",
      '<div class="lg-data-actions"><button data-lg-action="export">↓ Export theme</button><button data-lg-action="import">↑ Import theme</button></div><input id="lgImport" type="file" accept=".json,application/json" hidden>')+
    box("Browser settings","Search engine, tab behavior and browser preferences.",
+     '<label class="lg-switch"><span><strong>Prevent Closing</strong><small>Ask before closing or leaving the workspace. The browser controls the confirmation.</small></span><input type="checkbox" data-lg-close-protection '+(window.LightningPrefs?.preventClosing!==false?"checked":"")+'><i></i></label>'+
      '<button data-lg-action="browser" class="lg-plain-action">Open browser settings ↗</button>')+
    box("Reset","Restores the original appearance, without deleting accounts or chats.",
      '<button data-lg-action="reset" class="lg-plain-action lg-danger">↻ Reset appearance</button>');

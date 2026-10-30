@@ -62,6 +62,7 @@ const accents={
 let prefs={
   engine:"google",
   restore:true,
+  preventClosing:true,
   compact:false,
   autoEmoji:true,
   cloak:{preset:"lightning",title:"",icon:""},
@@ -130,9 +131,35 @@ function savePrefs(){
   store.set("bolt.prefs",prefs);
 }
 
+// The browser controls the wording and may require user interaction.
+let closeProtectionActive=false;
+let intentionalExit=false;
+function confirmPageExit(event){
+  if(intentionalExit)return;
+  event.preventDefault();
+  event.returnValue=true; // Fallback for browsers using the legacy path.
+}
+function syncCloseProtection(){
+  if(typeof window.addEventListener!=="function")return;
+  const enabled=prefs.preventClosing!==false;
+  if(enabled&&!closeProtectionActive){
+    window.addEventListener("beforeunload",confirmPageExit);
+    closeProtectionActive=true;
+  }else if(!enabled&&closeProtectionActive){
+    window.removeEventListener("beforeunload",confirmPageExit);
+    closeProtectionActive=false;
+  }
+}
+document.addEventListener("lightning:set-prevent-closing",event=>{
+  prefs.preventClosing=event.detail?.enabled!==false;
+  savePrefs();
+  applyPrefs();
+});
+
 function applyPrefs(){
   document.body.classList.toggle("compact",!!prefs.compact);
   window.LightningPrefs=prefs;
+  syncCloseProtection();
   updateTabIdentity();
   const [color,rgb]=accents[prefs.accent]||accents.champagne;
   document.documentElement.style.setProperty("--accent",color);
@@ -161,6 +188,7 @@ async function api(url,options={}){
   });
   const data=await response.json().catch(()=>({}));
   if(response.status===401){
+    intentionalExit=true;
     location.replace("/login");
     throw new Error("Signed out");
   }
@@ -851,6 +879,7 @@ function renderSettingsPanel(){
       <h3>Browsing</h3>
       <div class="field"><span>Search engine</span><select class="select" id="settingEngine"><option value="google">Google</option><option value="duckduckgo">DuckDuckGo</option><option value="bing">Bing</option></select></div>
       ${settingSwitch("restore","Restore tabs","Open the last session when Lightning starts",prefs.restore)}
+      ${settingSwitch("preventClosing","Prevent Closing","Ask before closing, reloading, or leaving this tab. Browser support varies.",prefs.preventClosing!==false)}
     </section>
     <section class="panel-section">
       <h3>Interface</h3>
@@ -1195,6 +1224,7 @@ function accountPopover(){
 
 async function logout(){
   try{await api("/api/logout",{method:"POST",body:"{}"})}catch{}
+  intentionalExit=true;
   location.replace("/login");
 }
 
