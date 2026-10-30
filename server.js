@@ -11,7 +11,6 @@ import { needsWebSearch, searchWeb } from "./web-search.js";
 import {completeAi,activeRoleplay} from "./ai-provider.js";
 import {normalizeAiImage,visionMessages} from "./ai-images.js";
 import { installSearchCredentials } from "./web-search-credentials.js";
-import { installPrivateResearch } from "./private-research.js";
 import {ROLE_OPTIONS,isValidRole,hasPermission,permissionsFor,canManageAccount} from "./staff-roles.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -430,7 +429,6 @@ app.get("/api/config", mustBeSignedIn, (req, res) => {
 
 
 const aiSearch=installSearchCredentials({app,dataDir,mustBeAdmin,sameOrigin,searchWeb,getAdminIds:()=>state.users.filter(u=>u.role==="admin"&&u.enabled).map(u=>u.id)});
-installPrivateResearch({app,mustBeSignedIn,sameOrigin,search:aiSearch.search});
 const aiRequests = new Map();
 app.post("/api/ai/chat", mustBeSignedIn, sameOrigin, async (req, res) => {
   res.setHeader("Cache-Control", "no-store");

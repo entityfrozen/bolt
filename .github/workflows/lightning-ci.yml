@@ -25,8 +25,6 @@ jobs:
       - name: Check app and live scripts
         run: |
           node --check server.js
-          node --check private-research.js
-          node --check public/assets/research-client.js
           node --check ai-stream.js
           node --check ai-provider.js
           node --check web-search-credentials.js
@@ -70,8 +68,6 @@ jobs:
         run: node --test test/study-portal.test.mjs
       - name: Test private search URLs and account storage
         run: node --test test/browser-query-privacy.test.mjs
-      - name: Test encrypted private results transport
-        run: node --test test/private-research.test.mjs
       - name: Test account profiles, DMs and cross-device history
         run: node --test test/account-space.test.mjs
       - name: Test compact nickname labels
