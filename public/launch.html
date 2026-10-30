@@ -34,13 +34,13 @@
   <p>This standalone page tries to open Lightning inside a fresh <code>about:blank</code> tab.</p>
   <div class="actions">
     <button id="launch" type="button">Open Lightning ↗</button>
-    <a id="direct" href="/" target="_blank" rel="noopener noreferrer">Open directly</a>
+    <a id="direct" href="/workspace" target="_blank" rel="noopener noreferrer">Open directly</a>
   </div>
   <p id="status" role="status" aria-live="polite">Preparing your session…</p>
   <small>Chromium can block automatic popups or third-party storage in an embedded browser. If the blank tab fails to load Lightning, use the direct link.</small>
 </main>
 <script>
-  const target = new URL("/", location.href).href;
+  const target = new URL("/workspace", location.href).href;
   const status = document.getElementById("status");
   function launch(){
     const win = window.open("about:blank","_blank");

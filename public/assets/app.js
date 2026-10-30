@@ -925,7 +925,7 @@ function renderSettingsPanel(){
     savePrefs();
     applyPrefs();
   }));
-  $("#openDirect").addEventListener("click",()=>window.open(location.origin,"_blank","noopener"));
+  $("#openDirect").addEventListener("click",()=>window.open(location.origin+"/workspace","_blank","noopener"));
   $("#logoutSettings").addEventListener("click",logout);
 }
 

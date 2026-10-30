@@ -808,12 +808,24 @@ app.get("/launch", (req, res) => {
 app.get("/login", (req, res) => {
   const found = sessionFromRequest(req);
   const invite=typeof req.query?.invite==="string"&&/^[a-f0-9]{32}$/.test(req.query.invite)?req.query.invite:null;
-  if (found) return res.redirect(invite?"/?invite="+invite:"/");
+  if (found) return res.redirect(invite?"/workspace?invite="+invite:"/workspace");
   res.setHeader("Cache-Control", "no-store");
   res.sendFile(path.join(here, "views", "login.html"));
 });
 
+// The public landing page is independent of the signed-in workspace.
+// Keep invite links working for members who arrive through the old homepage.
 app.get("/", (req, res) => {
+  const invite=typeof req.query?.invite==="string"&&/^[a-f0-9]{32}$/.test(req.query.invite)?req.query.invite:null;
+  if(invite){
+    const found=sessionFromRequest(req);
+    return res.redirect((found?"/workspace":"/login")+"?invite="+invite);
+  }
+  res.setHeader("Cache-Control", "no-store");
+  res.sendFile(path.join(here, "views", "learning.html"));
+});
+
+app.get("/workspace", (req, res) => {
   const found = sessionFromRequest(req);
   if (!found) {
     const invite=typeof req.query?.invite==="string"&&/^[a-f0-9]{32}$/.test(req.query.invite)?req.query.invite:null;

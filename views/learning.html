@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f8fc">
+  <meta name="description" content="A calm space to organize study sessions, subjects, and learning resources.">
+  <title>Brightpath — Learning Dashboard</title>
+  <link rel="icon" href="/assets/brightpath-icon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/assets/learning-portal.css?v=1">
+</head>
+<body>
+<div class="learning-shell">
+  <aside class="learning-sidebar" aria-label="Primary navigation">
+    <a class="brand" href="/workspace" aria-label="Open Brightpath learning workspace">
+      <span class="brand-symbol" aria-hidden="true">✳</span>
+      <span>brightpath<span class="brand-period">.</span></span>
+    </a>
+    <div class="sidebar-section-heading">YOUR SPACE</div>
+    <nav class="sidebar-navigation" aria-label="Learning sections">
+      <a class="sidebar-link selected" href="/workspace" aria-current="page"><span class="sidebar-icon" aria-hidden="true">◫</span> Overview</a>
+      <a class="sidebar-link" href="/workspace"><span class="sidebar-icon" aria-hidden="true">▤</span> My courses</a>
+      <a class="sidebar-link" href="/workspace"><span class="sidebar-icon" aria-hidden="true">◈</span> Study library</a>
+      <a class="sidebar-link" href="/workspace"><span class="sidebar-icon" aria-hidden="true">☑</span> Assignments</a>
+      <a class="sidebar-link" href="/workspace"><span class="sidebar-icon" aria-hidden="true">▦</span> Schedule</a>
+    </nav>
+    <div class="sidebar-section-heading second-heading">LEARNING TOOLS</div>
+    <nav class="sidebar-navigation" aria-label="Study tools">
+      <a class="sidebar-link" href="/workspace"><span class="sidebar-icon" aria-hidden="true">✎</span> Notes</a>
+      <a class="sidebar-link" href="/workspace"><span class="sidebar-icon" aria-hidden="true">♧</span> Focus sessions</a>
+      <a class="sidebar-link" href="/workspace"><span class="sidebar-icon" aria-hidden="true">◌</span> Study groups</a>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="daily-note">
+        <span class="daily-note-illustration" aria-hidden="true">☀</span>
+        <strong>A little progress<br>adds up.</strong>
+        <p>Make room for one good idea today.</p>
+        <a href="/workspace">Explore resources <span aria-hidden="true">↗</span></a>
+      </div>
+      <a class="sidebar-link support-link" href="/workspace"><span class="sidebar-icon" aria-hidden="true">ⓘ</span> Help &amp; support</a>
+    </div>
+  </aside>
+
+  <div class="learning-content">
+    <header class="topbar">
+      <div class="topbar-breadcrumb"><span>Learning</span><span class="breadcrumb-separator">/</span><strong>Overview</strong></div>
+      <div class="topbar-actions">
+        <a class="topbar-search" href="/workspace"><span aria-hidden="true">⌕</span> Search courses and materials <kbd>⌘ K</kbd></a>
+        <a class="notification-link" href="/workspace" aria-label="View reminders"><span aria-hidden="true">♧</span></a>
+        <a class="profile-link" href="/workspace" aria-label="Open learning profile"><span class="profile-avatar">S</span><span>Student</span><span class="profile-arrow" aria-hidden="true">⌄</span></a>
+      </div>
+    </header>
+
+    <main class="dashboard">
+      <div class="greeting-line"><span class="greeting-sparkle" aria-hidden="true">✦</span> YOUR LEARNING SPACE <span class="greeting-line-trail">/ TODAY</span></div>
+      <div class="greeting-heading">
+        <div><h1>Good things start<br>with <em>curiosity.</em></h1><p>A fresh page, a clear mind, and plenty to discover. Where will you start?</p></div>
+        <a class="small-outline-link" href="/workspace">View learning plan <span aria-hidden="true">↗</span></a>
+      </div>
+
+      <section class="hero-grid" aria-label="Featured learning materials">
+        <a class="hero-card" href="/workspace">
+          <div class="hero-card-content">
+            <span class="hero-eyebrow"><span class="hero-eyebrow-dot"></span> FEATURED LEARNING PATH</span>
+            <h2>Build a little<br>knowledge every day.</h2>
+            <p>Short lessons, useful resources, and room to explore at your own pace.</p>
+            <span class="hero-cta">Continue exploring <span aria-hidden="true">↗</span></span>
+          </div>
+          <div class="hero-art" aria-hidden="true">
+            <div class="hero-orbit orbit-one"></div><div class="hero-orbit orbit-two"></div>
+            <div class="art-flower">✳</div>
+            <div class="floating-card floating-a"><span>✦</span><i></i><i></i></div>
+            <div class="floating-card floating-b"><span>∑</span><span>π</span><span>∞</span></div>
+            <div class="hero-art-base"></div>
+          </div>
+        </a>
+        <a class="reflection-card" href="/workspace">
+          <span class="reflection-label">STUDY REMINDER <span aria-hidden="true">↗</span></span>
+          <div class="reflection-symbol" aria-hidden="true">✽</div>
+          <h2>Stay a little<br>curious.</h2>
+          <p>Even five focused minutes can spark a new connection.</p>
+          <span class="reflection-footer">Start a focus session <span aria-hidden="true">→</span></span>
+        </a>
+      </section>
+
+      <div class="section-heading">
+        <div><span class="section-kicker">YOUR SUBJECTS</span><h2>Explore by subject<span class="accent-dot">.</span></h2></div>
+        <a href="/workspace" class="see-all">View all courses <span aria-hidden="true">↗</span></a>
+      </div>
+
+      <section class="subject-grid" aria-label="Learning subjects">
+        <a class="subject-card subject-math" href="/workspace"><span class="subject-icon" aria-hidden="true">∑</span><span class="subject-tag">LOGIC &amp; NUMBERS</span><strong>Mathematics</strong><span class="subject-copy">Patterns, equations, and problem solving</span><span class="subject-foot">Explore lessons <span aria-hidden="true">↗</span></span></a>
+        <a class="subject-card subject-science" href="/workspace"><span class="subject-icon" aria-hidden="true">⚛</span><span class="subject-tag">DISCOVER &amp; OBSERVE</span><strong>Science</strong><span class="subject-copy">The world, from tiny atoms to distant stars</span><span class="subject-foot">Explore lessons <span aria-hidden="true">↗</span></span></a>
+        <a class="subject-card subject-literature" href="/workspace"><span class="subject-icon" aria-hidden="true">✎</span><span class="subject-tag">READ &amp; CREATE</span><strong>Language Arts</strong><span class="subject-copy">Stories, writing, and creative thinking</span><span class="subject-foot">Explore lessons <span aria-hidden="true">↗</span></span></a>
+        <a class="subject-card subject-history" href="/workspace"><span class="subject-icon" aria-hidden="true">◎</span><span class="subject-tag">PEOPLE &amp; PLACES</span><strong>World History</strong><span class="subject-copy">Ideas and events that shaped our world</span><span class="subject-foot">Explore lessons <span aria-hidden="true">↗</span></span></a>
+      </section>
+
+      <section class="bottom-grid" aria-label="Additional study resources">
+        <div class="resources-panel">
+          <div class="panel-heading"><div><span class="section-kicker">RECOMMENDED FOR YOU</span><h2>Study resources</h2></div><a href="/workspace">Browse library <span aria-hidden="true">↗</span></a></div>
+          <a class="resource-row" href="/workspace"><span class="resource-icon resource-icon-lavender" aria-hidden="true">▣</span><span class="resource-info"><strong>Understanding linear equations</strong><small>Mathematics · Guided reading</small></span><span class="resource-arrow" aria-hidden="true">↗</span></a>
+          <a class="resource-row" href="/workspace"><span class="resource-icon resource-icon-peach" aria-hidden="true">◉</span><span class="resource-info"><strong>The scientific method, simplified</strong><small>Science · Study notes</small></span><span class="resource-arrow" aria-hidden="true">↗</span></a>
+          <a class="resource-row" href="/workspace"><span class="resource-icon resource-icon-green" aria-hidden="true">☷</span><span class="resource-info"><strong>Writing a stronger opening paragraph</strong><small>Language Arts · Writing guide</small></span><span class="resource-arrow" aria-hidden="true">↗</span></a>
+        </div>
+        <a class="tip-panel" href="/workspace">
+          <div class="tip-header"><span class="section-kicker">A NOTE TO REMEMBER</span><span aria-hidden="true">✳</span></div>
+          <div class="tip-quote">“The more that you read, the more things you will know.”</div>
+          <div class="tip-divider"></div>
+          <div class="tip-bottom"><span>KEEP EXPLORING</span><span class="tip-visit" aria-hidden="true">↗</span></div>
+        </a>
+      </section>
+
+      <footer class="page-footer"><span>© Brightpath Learning · A space for curious minds</span><a href="/workspace">Learning resources <span aria-hidden="true">↗</span></a></footer>
+    </main>
+  </div>
+</div>
+</body>
+</html>

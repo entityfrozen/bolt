@@ -59,6 +59,8 @@ jobs:
           test -f node_modules/dompurify/dist/purify.min.js
       - name: Test registration and admin approvals
         run: node --test test/auth.test.mjs
+      - name: Test educational portal and access routing
+        run: node --test test/learning-portal.test.mjs
       - name: Test account profiles, DMs and cross-device history
         run: node --test test/account-space.test.mjs
       - name: Test compact nickname labels

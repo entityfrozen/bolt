@@ -30,7 +30,7 @@ document.getElementById("accountForm").addEventListener("submit",async event=>{
       password:document.getElementById("loginPassword").value
     });
     const invite=new URLSearchParams(location.search).get("invite");
-    location.replace(invite&&/^[a-f0-9]{32}$/.test(invite)?"/?invite="+invite:"/");
+    location.replace(invite&&/^[a-f0-9]{32}$/.test(invite)?"/workspace?invite="+invite:"/workspace");
   } catch(error) { errorBox.textContent=error.message;button.disabled=false; }
 });
 document.getElementById("registerForm").addEventListener("submit",async event=>{
