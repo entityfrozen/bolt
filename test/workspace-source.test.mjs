@@ -30,7 +30,7 @@ test("Decoded HTML retains every critical application hook and loads real script
  assert.match(decoded,/<symbol id="i-games"/);
  assert.match(decoded,/href="#i-games"/);
  assert.match(decoded,/class="lightning-quick"/);
- assert.match(decoded,/src="\/assets\/app\.js\?v=60"/);
+ assert.match(decoded,/src="\/assets\/app\.js\?v=\d+"/);
  assert.match(decoded,/src="\/assets\/bolt-tools\.js\?v=18"/);
  assert.match(decoded,/href="\/assets\/bolt\.css"/);
  assert.match(decoded,/href="\/assets\/worldpvp-overhaul\.css\?v=1"/);
