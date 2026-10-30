@@ -3,7 +3,8 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 
 const css = fs.readFileSync(new URL("../public/assets/bolt-v6.css", import.meta.url), "utf8");
-const html = fs.readFileSync(new URL("../views/app.html", import.meta.url), "utf8");
+const html = fs.readFileSync(new URL("../views/app.html", import.meta.url), "utf8")
+  .replace(/&#(\d+);/g,(_,code)=>String.fromCodePoint(Number(code)));
 const toolsCss = fs.readFileSync(new URL("../public/assets/bolt-tools.css", import.meta.url), "utf8");
 const themeCss = fs.readFileSync(new URL("../public/assets/theme-cleanup.css", import.meta.url), "utf8");
 const toolsJs = fs.readFileSync(new URL("../public/assets/bolt-tools.js", import.meta.url), "utf8");
