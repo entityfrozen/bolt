@@ -18,6 +18,7 @@ const port = Number(process.env.PORT || 3030);
 const dataDir = path.resolve(here, process.env.BOLT_DATA_DIR || "data");
 const dataFile = path.join(dataDir, "bolt.json");
 const sessionHours = Math.max(1, Number(process.env.BOLT_SESSION_TTL_HOURS || 168));
+const sessionIdleMinutes = Math.max(5, Number(process.env.BOLT_SESSION_IDLE_MINUTES || 30));
 let accountSpace=null;
 
 fs.mkdirSync(dataDir, { recursive: true });
@@ -150,7 +151,8 @@ function activeUser(user) {
 }
 
 function identityForSession(session) {
-  if (!session || session.expiresAt <= now()) return null;
+  if (!session || session.expiresAt <= now() ||
+      now() - Number(session.lastSeenAt || session.createdAt || 0) >= sessionIdleMinutes * 60000) return null;
 
   if (session.userId) {
     const user = state.users.find(item => item.id === session.userId);
@@ -168,6 +170,8 @@ function sessionFromHeaders(headers) {
   const session = state.sessions.find(item => item.tokenHash === hash);
   const identity = identityForSession(session);
   if (!identity) return null;
+  // Count authorized HTTP requests and WebSocket activity as session activity.
+  session.lastSeenAt = now();
   return { session, identity, raw };
 }
 
@@ -178,6 +182,15 @@ function sessionFromRequest(req) {
 function cleanup() {
   const time = now();
   state.sessions = state.sessions.filter(session => session.expiresAt > time && identityForSession(session));
+  // Older installs allowed multiple logins. Keep only the most recent valid
+  // session per account when loading or saving their existing state.
+  const seen = new Set();
+  state.sessions = state.sessions.slice().sort((a,b)=>b.createdAt-a.createdAt).filter(session=>{
+    if(!session.userId)return true;
+    if(seen.has(session.userId))return false;
+    seen.add(session.userId);
+    return true;
+  });
   state.passes = []; // Access codes were retired; previously issued codes never authorize sessions.
   if (state.audit.length > 600) state.audit = state.audit.slice(-600);
 }
@@ -293,6 +306,7 @@ function ensureFirstAdmin() {
 }
 
 ensureFirstAdmin();
+cleanup();
 
 const { routeRequest, routeUpgrade } = await bootstrap();
 const app = express();
@@ -370,6 +384,18 @@ app.post("/api/login", sameOrigin, authLimit, (req, res) => {
   }
   if (user.approved === false) return res.status(403).json({ error: "Your account is waiting for admin approval.", status: "pending" });
   if (!activeUser(user)) return res.status(403).json({ error: "Account disabled. Contact an admin." });
+
+  cleanup();
+  const existing = state.sessions.find(session=>session.userId===user.id && identityForSession(session));
+  if(existing){
+    const current = sessionFromRequest(req);
+    if(current?.session.id===existing.id)
+      return res.json({ok:true,user:publicUser(user),alreadySignedIn:true});
+    return res.status(409).json({
+      error:"This account is already signed in on another device. Sign out there first, or ask an admin to end that session. Inactive sessions expire after 30 minutes.",
+      code:"ACCOUNT_ALREADY_SIGNED_IN"
+    });
+  }
 
   const created = createSession({ userId: user.id, expiresAt: user.expiresAt || 0, req });
   setSessionCookies(req, res, created.raw, created.session.expiresAt);

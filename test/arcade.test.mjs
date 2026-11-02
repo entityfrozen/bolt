@@ -26,7 +26,7 @@ test("arcade labels stay minimal and do not repeat the product name",()=>{
 test("Uma Versus is linked to the creator's browser game",()=>{
   assert.match(arcade,/title:"Uma Versus"/);
   assert.match(arcade,/action:"umaView"/);
-  assert.match(arcade,/https:\/\/tiramisuzu701\.github\.io\/uma-versus\//);
+  assert.match(arcade,/https:\/\/umaversus\.lol\//);
   assert.match(arcade,/Open in new tab/);
   assert.match(arcade,/fighting","Fighting"/);
 });

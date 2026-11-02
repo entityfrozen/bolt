@@ -42,9 +42,9 @@ export function installArcade(Hub){
     this.$("#hubContent").innerHTML=
       '<section class="uma-stage">'+
         '<header class="uma-stage-bar"><div class="uma-stage-identity"><i>FIGHTING</i><strong>Uma Versus</strong></div>'+
-        '<div class="uma-stage-actions"><a href="https://tiramisuzu701.github.io/uma-versus/" target="_blank" rel="noopener noreferrer">Open in new tab ↗</a>'+
+        '<div class="uma-stage-actions"><a href="https://umaversus.lol/" target="_blank" rel="noopener noreferrer">Open in new tab ↗</a>'+
         '<button type="button" data-act="umaBack">← Arcade</button></div></header>'+
-        '<div class="uma-stage-frame"><iframe id="umaGameFrame" title="Uma Versus fighting game" src="https://tiramisuzu701.github.io/uma-versus/" allow="fullscreen; gamepad" allowfullscreen loading="eager" referrerpolicy="strict-origin-when-cross-origin"></iframe></div>'+
+        '<div class="uma-stage-frame"><iframe id="umaGameFrame" title="Uma Versus fighting game" src="https://umaversus.lol/" allow="fullscreen; gamepad" allowfullscreen loading="eager" referrerpolicy="strict-origin-when-cross-origin"></iframe></div>'+
         '<p class="uma-stage-footer">Game by tiramisuzu701 · If the embedded version or online sign-in is blocked, use Open in new tab.</p>'+
       '</section>';
   };
