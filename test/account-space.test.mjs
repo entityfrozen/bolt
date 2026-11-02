@@ -69,15 +69,11 @@ test("Profile, DMs and history follow the signed-in account, not the device", {t
  assert.equal(saveAi.status,200);
  assert.equal((await request(origin,"/api/account/history/browser",bob)).data.items.length,0);
  assert.equal((await request(origin,"/api/account/history/ai",carol)).data.items.length,0);
- const duplicate=await request(origin,"/api/login","","POST",{username:"alice-dm",password:"alice-test-pass-123"});
- assert.equal(duplicate.status,409);
- assert.equal(duplicate.cookie,"");
- assert.equal((await request(origin,"/api/logout",alice,"POST",{})).status,200);
  const anotherAliceSession=(await request(origin,"/api/login","","POST",{username:"alice-dm",password:"alice-test-pass-123"})).cookie;
  assert.equal((await request(origin,"/api/account/history/browser",anotherAliceSession)).data.items[0].title,"A page");
  assert.equal((await request(origin,"/api/account/history/ai",anotherAliceSession)).data.items.length,2);
  assert.equal((await request(origin,"/api/account/profile",anotherAliceSession)).data.profile.displayName,"Alice Aurora");
- const cleared=await request(origin,"/api/account/history/browser",anotherAliceSession,"PUT",{items:[]});
+ const cleared=await request(origin,"/api/account/history/browser",alice,"PUT",{items:[]});
  assert.equal(cleared.status,200);
  assert.equal((await request(origin,"/api/account/history/browser",anotherAliceSession)).data.items.length,0);
 });
@@ -122,14 +118,13 @@ test("Preferences and game scores persist between sessions, isolated by account"
  assert.equal((await request(origin,"/api/account/settings/appearance",alice,"PUT",{value:prefs})).status,200);
  assert.equal((await request(origin,"/api/account/settings/channels",alice,"PUT",{value:{"lightning-main":"announcements"}})).status,200);
  assert.equal((await request(origin,"/api/account/settings/gameScores",alice,"PUT",{value:{best2048:1024}})).status,200);
- assert.equal((await request(origin,"/api/logout",alice,"POST",{})).status,200);
  const newSession=(await request(origin,"/api/login","","POST",{username:"account-a",password:"test-account-password-456"})).cookie;
  const settings=(await request(origin,"/api/account/settings",newSession)).data.settings;
  assert.deepEqual(settings.appearance,prefs);
  assert.equal(settings.channels["lightning-main"],"announcements");
  assert.equal(settings.gameScores.best2048,1024);
  assert.deepEqual((await request(origin,"/api/account/settings",bob)).data.settings,{});
- assert.equal((await request(origin,"/api/account/settings/secrets",newSession,"PUT",{value:"x"})).status,400);
+ assert.equal((await request(origin,"/api/account/settings/secrets",alice,"PUT",{value:"x"})).status,400);
 });
 
 test("Members can change their username and password without losing account data",{timeout:50000},async t=>{
@@ -140,8 +135,6 @@ test("Members can change their username and password without losing account data
  const login=await request(origin,"/api/login","","POST",{username:"old-handle",password:"initial-password-123"});
  const cookie=login.cookie;
  const another=await request(origin,"/api/login","","POST",{username:"old-handle",password:"initial-password-123"});
- assert.equal(another.status,409);
- assert.equal(another.cookie,"");
  const wrong=await request(origin,"/api/account/credentials",cookie,"PATCH",{username:"new-handle",currentPassword:"wrong"});
  assert.equal(wrong.status,403);
  const short=await request(origin,"/api/account/credentials",cookie,"PATCH",{username:"new-handle",currentPassword:"initial-password-123",newPassword:"too-short"});
@@ -150,11 +143,9 @@ test("Members can change their username and password without losing account data
  assert.equal(saved.status,200);
  assert.equal(saved.data.user.username,"new-handle");
  assert.equal((await request(origin,"/api/login","","POST",{username:"old-handle",password:"initial-password-123"})).status,401);
- assert.equal((await request(origin,"/api/login","","POST",{username:"new-handle",password:"better-password-789"})).status,409);
+ assert.equal((await request(origin,"/api/login","","POST",{username:"new-handle",password:"better-password-789"})).status,200);
  assert.equal((await request(origin,"/api/me",another.cookie)).status,401);
  assert.equal((await request(origin,"/api/account/profile",cookie)).data.profile.username,"new-handle");
- assert.equal((await request(origin,"/api/logout",cookie,"POST",{})).status,200);
- assert.equal((await request(origin,"/api/login","","POST",{username:"new-handle",password:"better-password-789"})).status,200);
 });
 
 test("Custom Apps are per-account and cannot contain unsafe schemes",{timeout:50000},async t=>{

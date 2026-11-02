@@ -657,6 +657,14 @@ function toggleBookmark(){
 }
 
 function openPanel(name){
+  if(name==="admin"){
+    closePanel();
+    void import("/assets/admin-console.js?v=1").then(module=>module.openAdminConsole({
+      api,me,notify:toast,onSettings:settings=>{config=settings;},
+      onCommunity:()=>openLightningHub("room")
+    })).catch(error=>toast(error.message||"Could not open staff console"));
+    return;
+  }
   panelName=name;
   dom.workarea.classList.add("panel-open");
   dom.workarea.classList.toggle("panel-wide",name==="admin");
@@ -665,7 +673,7 @@ function openPanel(name){
   if(name==="history")renderHistoryPanel();
   if(name==="music")renderMusicPanel();
   if(name==="settings")renderSettingsPanel();
-  if(name==="admin")renderAdminPanel();
+
 }
 
 function closePanel(){
@@ -1019,241 +1027,7 @@ function settingSwitch(key,title,copy,on){
 }
 
 
-async function renderAdminPanel(){
-  panelHead("STAFF","Staff console");
-  dom.panelBody.innerHTML='<div class="empty-row">Loading staff tools…</div>';
-  try{
-    const data=await api("/api/admin/state"),rights=new Set(data.permissions||[]);
-    if(data.settings)config=data.settings;
-    const tabs=[
-      ["users","Accounts",rights.has("accounts.read")],
-      ["community","Community",rights.has("community.moderate")],
-      ["controls","Controls",rights.has("settings.manage")],
-      ["sessions","Sessions",rights.has("sessions.read")],
-      ["audit","Audit",rights.has("audit.read")]
-    ].filter(row=>row[2]);
-    if(!tabs.length)throw Error("No tools assigned to this staff role.");
-    const title=({admin:"Administrator",account_manager:"Account Manager",community_manager:"Community Manager",moderator:"Moderator",support_agent:"Support Agent"})[me.role]||"Staff";
-    const description={
-      admin:"Full platform access, including staff roles and global settings.",
-      account_manager:"Manage regular accounts and approvals, without access to staff credentials.",
-      community_manager:"Manage joined communities, channels, roles and messages.",
-      moderator:"Remove inappropriate messages without access to account administration.",
-      support_agent:"Review account statuses without making changes."
-    }[me.role]||"Staff workspace";
-    dom.panelBody.innerHTML='<section class="panel-section"><h3>'+escapeHtml(title)+'</h3><p class="panel-copy">'+escapeHtml(description)+'</p></section>'+
-      '<div class="admin-tabs">'+tabs.map(([key,name],i)=>'<button type="button" class="admin-tab'+(!i?" active":"")+'" data-admin-tab="'+key+'">'+name+'</button>').join("")+'</div>'+
-      tabs.map(([key],i)=>'<div class="admin-view'+(!i?" active":"")+'" data-admin-view="'+key+'"></div>').join("");
-    $$(".admin-tab").forEach(button=>button.addEventListener("click",()=>{
-      $$(".admin-tab").forEach(item=>item.classList.toggle("active",item===button));
-      $$(".admin-view").forEach(item=>item.classList.toggle("active",item.dataset.adminView===button.dataset.adminTab));
-    }));
-    if(rights.has("accounts.read"))renderAdminUsers(data);
-    if(rights.has("community.moderate")){
-      const container=$('[data-admin-view="community"]');
-      container.innerHTML='<section class="panel-section"><h3>Community tools</h3><p class="panel-copy">'+
-        (rights.has("community.manage")?"Manage channels, community roles and messages in the communities you join.":"You can remove messages from joined communities. Server settings stay protected.")+
-        '</p><button class="button primary" type="button" id="staffCommunity">Open community</button></section>';
-      $("#staffCommunity").addEventListener("click",()=>openLightningHub("room"));
-    }
-    if(rights.has("settings.manage"))renderAdminControls(data);
-    if(rights.has("sessions.read"))renderAdminSessions(data);
-    if(rights.has("audit.read"))renderAdminAudit(data);
-  }catch(error){
-    dom.panelBody.innerHTML='<div class="empty-row">'+escapeHtml(error.message)+'</div>';
-  }
-}
-
-
-function renderAdminUsers(data){
- const view=$('[data-admin-view="users"]');if(!view)return;
- const rights=new Set(data.permissions||[]),write=rights.has("accounts.manage"),assign=rights.has("roles.assign");
- const roles=data.roles||[];
- const labels={user:"Member",admin:"Administrator",account_manager:"Account Manager",
-  community_manager:"Community Manager",moderator:"Moderator",support_agent:"Support Agent"};
- const options=selected=>roles.map(role=>'<option value="'+escapeHtml(role.id)+'"'+
-  (selected===role.id?" selected":"")+'>'+escapeHtml(role.label)+'</option>').join("");
- view.innerHTML=(write?
-  '<section class="panel-section"><h3>Create account</h3>'+
-   '<div class="field"><span>Username</span><input class="input" id="newUserName"></div>'+
-   '<div class="field"><span>Password</span><input class="input" type="password" id="newUserPass" autocomplete="new-password"></div>'+
-   (assign?'<div class="field"><span>Staff role</span><select class="select" id="newUserRole">'+options("user")+'</select></div>':'')+
-   '<div class="field"><span>Access length</span><select class="select" id="newUserExpiry">'+
-   '<option value="0">No expiry</option><option value="60">1 hour</option><option value="1440">1 day</option>'+
-   '<option value="10080">7 days</option><option value="43200">30 days</option></select></div>'+
-   '<div class="button-row"><button class="button primary" id="createUser" type="button">Create account</button></div></section>':'')+
-  '<section class="panel-section"><h3>Pending approval <span id="pendingCount"></span></h3><div id="pendingApprovals"></div></section>'+
-  '<section class="panel-section"><h3>Accounts</h3><div id="adminUserTable"></div></section>'+
-  (assign?'<section class="panel-section"><h3>What staff roles can do</h3>'+
-   roles.filter(role=>role.id!=="user").map(role=>
-    '<p class="panel-copy"><strong>'+escapeHtml(role.label)+': </strong>'+escapeHtml(role.description)+'</p>').join("")+
-    '</section>':'');
- if(write)$("#createUser").addEventListener("click",async()=>{
-  const minutes=Number($("#newUserExpiry").value);
-  try{
-   await api("/api/admin/users",{method:"POST",body:JSON.stringify({
-    username:$("#newUserName").value,password:$("#newUserPass").value,
-    role:assign?$("#newUserRole").value:"user",
-    expiresAt:minutes?Date.now()+minutes*60000:null
-   })});
-   toast("Account created");renderAdminPanel();
-  }catch(error){toast(error.message)}
- });
- const pending=(data.users||[]).filter(user=>user.approved===false);
- $("#pendingCount").textContent="("+pending.length+")";
- const pendingPanel=$("#pendingApprovals");
- if(!pending.length)pendingPanel.innerHTML='<div class="empty-row">No pending accounts.</div>';
- for(const user of pending){
-  const row=document.createElement("div");row.className="history-item";
-  const description=document.createElement("div");
-  description.innerHTML='<strong>'+escapeHtml(user.username)+'</strong><span>Requested '+formatDate(user.createdAt)+'</span>';
-  row.append(description);
-  if(write){
-   const actions=document.createElement("div");actions.className="row-actions";
-   actions.append(actionButton("Approve",()=>adminPatchUser(user.id,{approved:true})),
-    actionButton("Reject",()=>adminDeleteUser(user),true));row.append(actions);
-  }
-  pendingPanel.append(row);
- }
- const table=document.createElement("table");table.className="admin-table";
- table.innerHTML='<thead><tr><th>User</th><th>Access</th><th>Role</th>'+(write?'<th>Actions</th>':'')+'</tr></thead>';
- const body=document.createElement("tbody");
- for(const user of (data.users||[]).slice().sort((a,b)=>Number(a.approved!==false)-Number(b.approved!==false))){
-  const row=document.createElement("tr");
-  row.innerHTML='<td><span class="admin-user">'+escapeHtml(user.username)+'</span></td>'+
-   '<td>'+(user.approved===false?"Awaiting approval":user.enabled?(user.expiresAt?formatDate(user.expiresAt):"Active"):"Disabled")+'</td>'+
-   '<td>'+(assign?'<select class="select" data-role-select aria-label="Role for '+escapeHtml(user.username)+'">'+options(user.role)+'</select>':
-      '<span class="admin-badge '+(user.role==="admin"?"admin":"")+'">'+escapeHtml(labels[user.role]||user.role)+'</span>')+'</td>'+
-   (write?'<td><div class="row-actions"></div></td>':'');
-  const select=row.querySelector("[data-role-select]");
-  select?.addEventListener("change",()=>adminPatchUser(user.id,{role:select.value}));
-  if(write&&(assign||(user.role==="user"&&user.id!==me.id))){
-   row.querySelector(".row-actions").append(
-    ...(user.approved===false?[actionButton("Approve",()=>adminPatchUser(user.id,{approved:true}))]:[]),
-    actionButton(user.enabled?"Disable":"Enable",()=>adminPatchUser(user.id,{enabled:!user.enabled})),
-    actionButton("Expiry",()=>adminSetExpiry(user)),
-    actionButton("Password",()=>adminResetPassword(user)),
-    actionButton("Revoke",()=>adminRevokeUser(user.id)),
-    actionButton("Delete",()=>adminDeleteUser(user),true)
-   );
-  }
-  body.append(row);
- }
- table.append(body);$("#adminUserTable").append(table);
-}
-
-function actionButton(label,handler,danger=false){
-  const button=document.createElement("button");
-  button.type="button";
-  button.className=`button ghost${danger?" danger":""}`;
-  button.style.height="26px";
-  button.style.padding="0 6px";
-  button.textContent=label;
-  button.addEventListener("click",handler);
-  return button;
-}
-
-async function adminPatchUser(id,patch){
-  try{
-    await api(`/api/admin/users/${id}`,{method:"PATCH",body:JSON.stringify(patch)});
-    renderAdminPanel();
-  }catch(error){toast(error.message)}
-}
-
-function adminResetPassword(user){
-  const password=prompt(`New password for ${user.username}.`);
-  if(password===null)return;
-  if(password.length<8)return toast("Use at least 8 characters");
-  adminPatchUser(user.id,{password});
-}
-
-function adminSetExpiry(user){
-  const raw=prompt(`Hours from now for ${user.username}. Use 0 for no expiry.`,user.expiresAt?String(Math.max(1,Math.round((user.expiresAt-Date.now())/3600000))):"0");
-  if(raw===null)return;
-  const hours=Number(raw);
-  if(!Number.isFinite(hours)||hours<0)return toast("Use a number of hours");
-  adminPatchUser(user.id,{expiresAt:hours?Date.now()+hours*3600000:null});
-}
-
-async function adminRevokeUser(id){
-  try{
-    await api(`/api/admin/users/${id}/revoke`,{method:"POST",body:"{}"});
-    toast("Sessions revoked");
-    renderAdminPanel();
-  }catch(error){toast(error.message)}
-}
-
-async function adminDeleteUser(user){
-  if(!confirm(`${user.approved===false?"Reject access and delete":"Delete"} ${user.username}?`))return;
-  try{
-    await api(`/api/admin/users/${user.id}`,{method:"DELETE"});
-    toast("Account deleted");
-    renderAdminPanel();
-  }catch(error){toast(error.message)}
-}
-
-function renderAdminControls(data){
-  const view=$('[data-admin-view="controls"]');
-  view.innerHTML=`
-    <section class="panel-section">
-      <h3>Global controls</h3>
-      ${adminSwitch("maintenance","Maintenance mode","Blocks regular users from Lightning",data.settings.maintenance)}
-      ${adminSwitch("proxy","Web browsing","Scramjet + Wisp access",data.settings.features.proxy)}
-      ${adminSwitch("music","Music","SoundCloud and local player",data.settings.features.music)}
-      ${adminSwitch("ai","Lightning AI","Floating assistant",data.settings.features.ai)}
-    </section>
-    <section class="panel-section"><h3>Sessions</h3><p class="panel-copy">Sign every regular user out immediately. Admin sessions stay alive.</p><button class="button danger" id="revokeUsers" type="button">Revoke all user sessions</button></section>`;
-  $$('[data-admin-switch]').forEach(button=>button.addEventListener("click",()=>toggleAdminControl(button.dataset.adminSwitch,button)));
-  $("#revokeUsers").addEventListener("click",async()=>{
-    if(!confirm("Sign out every regular user and guest?"))return;
-    try{await api("/api/admin/sessions/revoke-users",{method:"POST",body:"{}"});toast("User sessions revoked");renderAdminPanel()}catch(error){toast(error.message)}
-  });
-}
-
-function adminSwitch(key,title,copy,on){
-  return `<div class="setting-row"><div class="setting-copy"><strong>${title}</strong><span>${copy}</span></div><button class="switch${on?" on":""}" type="button" data-admin-switch="${key}"><i></i></button></div>`;
-}
-
-async function toggleAdminControl(key,button){
-  const next=!button.classList.contains("on");
-  const payload=key==="maintenance"?{maintenance:next}:{features:{[key]:next}};
-  try{
-    const result=await api("/api/admin/settings",{method:"PATCH",body:JSON.stringify(payload)});
-    config=result.settings;
-    button.classList.toggle("on",next);
-    toast(`${key} ${next?"on":"off"}`);
-  }catch(error){toast(error.message)}
-}
-
-function renderAdminSessions(data){
-  const view=$('[data-admin-view="sessions"]');
-  if(!data.sessions.length){view.innerHTML='<div class="empty-row">No sessions.</div>';return}
-  const list=document.createElement("div");
-  data.sessions.forEach(session=>{
-    const row=document.createElement("div");
-    row.className="history-item";
-    row.innerHTML=`<div><strong>${escapeHtml(session.username)}${session.temporary?" · temp":""}</strong><span>${escapeHtml(session.ip||"unknown ip")} · ${escapeHtml((session.userAgent||"").slice(0,70))}</span></div><time>${relativeTime(session.lastSeenAt)}</time>`;
-    if(session.id!==me.sessionId){
-      const kill=actionButton("kill",async()=>{
-        try{await api(`/api/admin/sessions/${session.id}`,{method:"DELETE"});renderAdminPanel()}catch(error){toast(error.message)}
-      },true);
-      row.append(kill);
-    }
-    list.append(row);
-  });
-  view.append(list);
-}
-
-function renderAdminAudit(data){
-  const view=$('[data-admin-view="audit"]');
-  if(!data.audit.length){view.innerHTML='<div class="empty-row">No audit events.</div>';return}
-  data.audit.forEach(event=>{
-    const row=document.createElement("div");
-    row.className="audit-row";
-    row.innerHTML=`<time>${new Date(event.at).toLocaleString()}</time><div><strong>${escapeHtml(event.actor)} · ${escapeHtml(event.action)}</strong><span>${escapeHtml([event.target,event.detail].filter(Boolean).join(" · "))}</span></div>`;
-    view.append(row);
-  });
-}
+// Staff management lives in a separate, full-screen workspace.
 
 function relativeTime(value){
   const delta=Math.max(0,Date.now()-Number(value||0));

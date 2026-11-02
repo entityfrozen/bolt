@@ -1,6 +1,23 @@
 // Small, consistent outline icon set, based on the public Lucide SVG icon style.
 // These icons are presentation-only. Actions and accessible names live on buttons.
 const PATHS={
+ "layout-dashboard":'<rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/>',
+ "messages-square":'<path d="M4 4h16a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H8l-5 3V6a2 2 0 0 1 2-2Z"/><path d="M8 10h9M8 14h7"/>',
+ "scroll-text":'<path d="M8 21h12a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H8v14a4 4 0 0 1-4 4"/><path d="M8 17H3a2 2 0 0 0 0 4h5M12 8h6M12 12h6"/>',
+ "arrow-left":'<path d="M19 12H5M12 19l-7-7 7-7"/>',
+ "refresh-cw":'<path d="M20 7a8 8 0 0 0-14-2L4 7M4 2v5h5M4 17a8 8 0 0 0 14 2l2-2M20 22v-5h-5"/>',
+ "x":'<path d="m18 6-12 12M6 6l12 12"/>',
+ "user-check":'<circle cx="9" cy="8" r="3"/><path d="M2 21v-2a7 7 0 0 1 14 0M17 11l2 2 3-4"/>',
+ "clock-3":'<circle cx="12" cy="12" r="9"/><path d="M12 6v6h5"/>',
+ "check-circle":'<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>',
+ "plus-circle":'<circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/>',
+ "user-plus":'<circle cx="9" cy="8" r="3"/><path d="M2 21v-2a7 7 0 0 1 14 0M19 8v8M15 12h8"/>',
+ "shield-alert":'<path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z"/><path d="M12 7v6M12 17h.01"/>',
+ "shield-off":'<path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z"/><path d="m4 4 16 16"/>',
+ "globe":'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c-6 6-6 12 0 18M12 3c6 6 6 12 0 18"/>',
+ "headphones":'<path d="M4 13v-2a8 8 0 0 1 16 0v2M4 13H3v6h4v-6H4ZM20 13h1v6h-4v-6h3Z"/>',
+ "inbox":'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 13h5l2 3h4l2-3h5"/>',
+
  "bolt":'<path d="m13 2-3 8H4l10 12 1-8h5L13 2Z"/>',
  "youtube":'<rect x="2" y="5" width="20" height="14" rx="4"/><path d="m10 9 5 3-5 3V9Z"/>',
  "link":'<path d="M10 13a5 5 0 0 0 7.1 0l3-3a5 5 0 0 0-7.1-7.1L11.3 4.6M14 11a5 5 0 0 0-7.1 0l-3 3a5 5 0 0 0 7.1 7.1l1.7-1.7"/>',
