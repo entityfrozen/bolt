@@ -48,7 +48,7 @@ test("Staff control center is a standalone, accessible dialog with role-scoped p
   assert.match(app.innerHTML,/data-ac-page="sessions"/);
   assert.match(app.innerHTML,/data-ac-page="activity"/);
   assert.match(app.innerHTML,/data-ac-action="close"/);
-  assert.match(app.innerHTML,/Pending/);
+  assert.match(app.innerHTML,/Awaiting approval/);
   assert.equal(calls,1);
   const click=events.get("click");
   const button={disabled:false,dataset:{acPage:"accounts"},closest(){return this}};
