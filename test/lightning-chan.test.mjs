@@ -78,7 +78,7 @@ test("Companion tour, theme, HUD and existing AI integration are connected",()=>
  assert.match(js,/state\.seen=true/);
  assert.match(js,/data-chan-theme/);
  assert.match(js,/data-chan-side/);
- assert.match(js,/data-chan-motion/);
+ assert.match(js,/dataset\.chanMotion/);
  assert.match(js,/\/api\/chan\/voices/);
  assert.match(js,/\/api\/chan\/speech/);
  assert.match(js,/lightning:ai-answer/);
