@@ -28,6 +28,7 @@ jobs:
           node --check chan-voice.js
           node --check public/assets/lightning-chan.js
           node --check public/assets/lightning-chan-v4.js
+          node --check public/assets/lightning-v6.js
           node --check public/assets/lightning-v5.js
           node --check ai-stream.js
           node --check ai-provider.js
@@ -85,8 +86,8 @@ jobs:
         run: node --test test/admin-console.test.mjs
       - name: Test Lightning-chan and Voice.ai bridge
         run: node --test test/lightning-chan.test.mjs
-      - name: Test V5 visual novel, selective mascot placement, and sprite lip sync
-        run: node --test test/lightning-v5.test.mjs
+      - name: Test rebuilt V6 shell, visual-novel onboarding and mouth states
+        run: node --test test/lightning-v6.test.mjs
       - name: Test interface copy
         run: node --test test/copy.test.mjs
       - name: Test web search
