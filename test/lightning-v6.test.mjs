@@ -85,6 +85,8 @@ test('New Home, navigation, editor and AI reuse actual application services', ()
   assert.match(app, /\['browse', '◎', 'Browse'/);
   assert.match(app, /function openEditor\(/);
   assert.match(app, /function openAi\(/);
+  assert.match(app, /function hideHub\(/);
+  assert.match(app, /mount\.hidden = true/);
   assert.match(app, /\/api\/chan\/voices/);
   assert.match(app, /\/api\/chan\/speech/);
   assert.match(app, /lightning:ai-answer/);

@@ -290,3 +290,8 @@ body[data-ln-actions="off"] #hubMount .ln-home-actions{display:none!important}
 body.app-page .ln-main{grid-template-columns:minmax(0,1fr)!important}
 body.app-page .ln-stage,body.app-page #hubMount,body.app-page #hubMount .v3-shell,body.app-page #hubMount .v2-main,body.app-page #hubMount .hub-content,body.app-page #hubMount .v5-dashboard-inner{min-width:0!important;max-width:100%!important}
 body.app-page #hubMount .ln-home-lead,body.app-page #hubMount .ln-home-actions{max-width:100%!important;min-width:0!important}
+
+/* Keep the official vector logo instead of a font-only approximation. */
+.ln-brand-mark{display:grid;place-items:center;width:45px;height:45px;flex:none}
+.ln-brand-mark img{width:42px;height:42px;object-fit:contain;filter:drop-shadow(0 0 10px #b773ff80)}
+@media(max-width:790px){.ln-brand-mark{width:40px;height:40px}.ln-brand-mark img{width:36px;height:36px}}

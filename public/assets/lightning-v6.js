@@ -429,7 +429,13 @@
     }
   }
 
+  function hideHub() {
+    const mount = $('#hubMount');
+    if (mount) mount.hidden = true;
+  }
+
   function showBrowser() {
+    hideHub();
     $('#newTabBtn')?.click();
     setPage('browser');
   }
@@ -628,7 +634,10 @@
 
   document.addEventListener('lightning:account-settings-loaded', initialize);
   document.addEventListener('submit', event => {
-    if (event.target?.matches?.('#newtabForm, #addressForm')) setPage('browser');
+    if (event.target?.matches?.('#newtabForm, #addressForm')) {
+      hideHub();
+      setPage('browser');
+    }
   }, true);
   document.addEventListener('lightning:ai-answer', event => {
     if (event.detail?.text && prefs.voice) void speak(event.detail.text);
@@ -640,7 +649,16 @@
     const button = event.target.closest('button');
     if (!button) return;
 
-    if (button.id === 'newTabBtn') { setPage('browser'); return; }
+    if (button.id === 'newTabBtn') {
+      hideHub();
+      setPage('browser');
+      return;
+    }
+    if (button.closest('#tabs')) {
+      hideHub();
+      setPage('browser');
+      return;
+    }
     if (button.dataset.lnAction) {
       switch (button.dataset.lnAction) {
         case 'browse': showBrowser(); break;
