@@ -25,6 +25,8 @@ jobs:
       - name: Check app and live scripts
         run: |
           node --check server.js
+          node --check chan-voice.js
+          node --check public/assets/lightning-chan.js
           node --check ai-stream.js
           node --check ai-provider.js
           node --check web-search-credentials.js
@@ -79,6 +81,8 @@ jobs:
         run: node --test test/staff-roles.test.mjs
       - name: Test independent staff control center
         run: node --test test/admin-console.test.mjs
+      - name: Test Lightning-chan and Voice.ai bridge
+        run: node --test test/lightning-chan.test.mjs
       - name: Test interface copy
         run: node --test test/copy.test.mjs
       - name: Test web search
