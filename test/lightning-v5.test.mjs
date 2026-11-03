@@ -10,8 +10,8 @@ const css=read("public/assets/lightning-v5.css");
 const novelCss=read("public/assets/lightning-v5-novel.css");
 
 test("V5 replaces V4 overlay assets, preserving real browser, account and staff hooks",()=>{
- assert.match(decoded,/lightning-v5\.js\?v=1/);
- assert.match(decoded,/lightning-v5\.css\?v=1/);
+ assert.match(decoded,/lightning-v5\.js\?v=2/);
+ assert.match(decoded,/lightning-v5\.css\?v=2/);
  assert.match(decoded,/lightning-v5-novel\.css\?v=1/);
  assert.doesNotMatch(decoded,/src="\/assets\/lightning-chan-v4\.js/);
  assert.doesNotMatch(decoded,/href="\/assets\/lightning-v4\.css/);
@@ -98,4 +98,6 @@ test("V5 HUD editor controls theme, sidebar, mascot pages and shortcuts",()=>{
  assert.match(source,/\/api\/chan\/voices/);
  assert.match(source,/\/api\/chan\/speech/);
  assert.match(source,/lightning:ai-answer/);
+ assert.match(source,/button\.hasAttribute\(\x27data-v4-tour\x27\)/);
+ assert.match(source,/if \(button\.dataset\.l5Go\)/);
 });

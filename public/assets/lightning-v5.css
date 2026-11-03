@@ -247,3 +247,13 @@ html[data-l5-motion="no"] :is(.l5-character,.l5-character-art,.rail-button,.l5-q
  .l5-library-hello{padding:14px 16px}
  .l5-library-character{right:0;opacity:.75}
 }
+/* Layout QA fixes: readable sidebar branding and single-column mobile cards. */
+body.app-page .v4-sidebar-brand>div{display:grid;gap:4px;min-width:0}
+body.app-page .v4-sidebar-brand small{display:block;letter-spacing:.09em;white-space:nowrap}
+@media(max-width:780px){
+ body.app-page #hubMount .v5-lead-grid,
+ body.app-page #hubMount .v5-middle-grid{display:grid!important;grid-template-columns:minmax(0,1fr)!important}
+ body.app-page #hubMount .v5-announcement-card,
+ body.app-page #hubMount .v5-channels-card,
+ body.app-page #hubMount .v5-content-card{min-width:0!important;width:100%!important}
+}

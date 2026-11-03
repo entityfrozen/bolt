@@ -542,8 +542,18 @@
   document.addEventListener('click', event => {
     const button = event.target.closest('button');
     if (!button || ui.contains(button)) return;
+    // Home's real quick-action buttons live in the hub, not the companion root.
+    if (button.dataset.l5Go) {
+      const action = button.dataset.l5Go;
+      if (action === 'browser') showBrowser();
+      else if (action === 'tour') startTour();
+      else if (action === 'hud') openEditor();
+      else if (action === 'community') openHub('chat');
+      else if (action === 'library') openHub('games');
+      return;
+    }
     if (button.dataset.v4Theme) { setTheme(button.dataset.v4Theme); return; }
-    if (button.dataset.v4Tour || button.hasAttribute('data-chan-open')) { startTour(); return; }
+    if (button.hasAttribute('data-v4-tour') || button.hasAttribute('data-chan-open')) { startTour(); return; }
     if (button.dataset.v4Hud !== undefined) { openEditor(); return; }
     if (button.dataset.v4Ai !== undefined) { showAi(); return; }
     if (button.dataset.v4Home !== undefined) { showHome(); return; }
