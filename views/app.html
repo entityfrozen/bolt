@@ -23,21 +23,23 @@
 <link rel="stylesheet" href="/assets/dashboard-refine.css?v=1">
 <link rel="stylesheet" href="/assets/glass-settings.css?v=2">
 <link rel="stylesheet" href="/assets/admin-console.css?v=1">
-<link rel="stylesheet" href="/assets/&#108;ightning-chan.css?v=1">
-<link rel="stylesheet" href="/assets/&#108;ightning-chan-pages.css?v=1">
+
 <link rel="stylesheet" href="/assets/account-refine.css?v=4">
 <link rel="stylesheet" href="/assets/workspace-interactions.css?v=1">
 <link rel="stylesheet" href="/assets/&#119;orldpvp-overhaul.css?v=1">
 <link rel="stylesheet" href="/assets/theme-cleanup.css?v=2">
 <link rel="stylesheet" href="/assets/&#97;pps-v5.css?v=3">
+<link rel="stylesheet" href="/assets/&#108;ightning-v4.css?v=1">
+<link rel="stylesheet" href="/assets/&#108;ightning-v4-tour.css?v=1">
+<link rel="stylesheet" href="/assets/&#108;ightning-v4-editor.css?v=1">
 <script src="/bootstrap-init.js"></script>
 
 <script defer src="/assets/name-label.js?v=1"></script>
 <script defer src="/assets/glass-settings.js?v=7"></script>
 <script defer src="/assets/account-space-ui.js?v=6"></script>
-<script defer src="/assets/app.js?v=64"></script>
+<script defer src="/assets/app.js?v=65"></script>
 <script defer src="/assets/&#98;olt-tools.js?v=19"></script>
-<script defer src="/assets/&#108;ightning-chan.js?v=1"></script>
+<script defer src="/assets/&#108;ightning-chan-v4.js?v=1"></script>
 <script defer src="/assets/web-search-settings.js?v=3"></script>
 </head>
 <body class="app-page">
@@ -76,6 +78,14 @@
     <div class="tabs" id="tabs"></div>
     <button class="tab-new" id="newTabBtn" type="button" title="New tab"><svg><use href="#i-plus"/></svg></button>
     <div class="account-zone">
+      <div class="v4-top-actions" aria-label="Workspace controls">
+        <span class="v4-status-pill"><i></i> SYSTEM ONLINE</span>
+        <div class="v4-theme-switch" id="v4ThemeSwitch" role="group" aria-label="Theme">
+          <button type="button" id="v4Light" data-v4-theme="light" title="Light theme" aria-label="Light theme">☀</button>
+          <button type="button" id="v4Dark" data-v4-theme="dark" title="Dark theme" aria-label="Dark theme">☾</button>
+        </div>
+        <button type="button" class="v4-header-action" id="v4Help" data-v4-tour title="Start guided tour" aria-label="Start guided tour">?</button>
+      </div>
       <span class="role-chip" id="roleChip"></span>
       <button class="account-button" id="accountButton" type="button"><span id="accountInitial">L</span></button>
     </div>
@@ -97,16 +107,23 @@
   </div>
 
   <div class="workarea">
-    <nav class="rail">
-      <button class="rail-button active" data-action="newtab" type="button" title="Home"><svg><use href="#i-home"/></svg></button>
-      <button class="rail-button" data-panel="history" type="button" title="History"><svg><use href="#i-clock"/></svg></button>
-      <div class="rail-spacer"></div>
-      <button class="rail-button" data-hub="&#99;hat" type="button" title="Community &#99;hat"><svg><use href="#i-&#99;hat"/></svg></button>
-      <button class="rail-button" data-hub="&#103;ames" type="button" title="Library"><svg><use href="#i-&#103;ames"/></svg></button>
-      <button class="rail-button" data-hub="updates" type="button" title="Update log"><svg><use href="#i-clock"/></svg></button>
-      <button class="rail-button" data-chan-open type="button" title="&#76;ightning-chan studio" aria-label="Open &#76;ightning-chan">✦</button>
-      <button class="rail-button" data-glass-settings type="button" title="Customize appearance & settings"><svg><use href="#i-settings"/></svg></button>
-      <button class="rail-button admin-only" data-panel="admin" type="button" title="Admin"><svg><use href="#i-users"/></svg></button>
+    <nav class="rail" aria-label="Main workspace navigation">
+      <div class="v4-sidebar-brand"><span class="v4-sidebar-glyph">ϟ</span><div><strong>&#76;ightning</strong><small>YOUR WORKSPACE</small></div></div>
+      <span class="v4-rail-caption">MAIN MENU</span>
+      <button class="rail-button active" id="v4NavHome" data-v4-home type="button" title="Home"><svg><use href="#i-home"/></svg><span class="v4-nav-label">Home</span></button>
+      <button class="rail-button" id="v4NavBrowser" data-v4-browser type="button" title="Browser"><svg><use href="#i-search"/></svg><span class="v4-nav-label">Browser</span></button>
+      <button class="rail-button" data-panel="history" type="button" title="History"><svg><use href="#i-clock"/></svg><span class="v4-nav-label">History</span></button>
+      <div class="v4-rail-divider"></div><span class="v4-rail-caption">EXPLORE</span>
+      <button class="rail-button" id="v4NavCommunity" data-hub="&#99;hat" type="button" title="Community &#99;hat"><svg><use href="#i-&#99;hat"/></svg><span class="v4-nav-label">Community</span></button>
+      <button class="rail-button" id="v4NavLibrary" data-hub="&#103;ames" type="button" title="Library"><svg><use href="#i-&#103;ames"/></svg><span class="v4-nav-label">Library</span></button>
+      <button class="rail-button" id="v4NavUpdates" data-hub="updates" type="button" title="Announcements and updates"><svg><use href="#i-clock"/></svg><span class="v4-nav-label">Announcements</span><span class="v4-nav-dot"></span></button>
+      <div class="v4-rail-divider"></div><span class="v4-rail-caption">PERSONALIZE</span>
+      <button class="rail-button" id="v4NavAI" data-v4-ai type="button" title="AI assistant"><span class="v4-nav-icon">✧</span><span class="v4-nav-label">AI Assistant</span></button>
+      <button class="rail-button" id="v4NavHUD" data-v4-hud type="button" title="HUD editor"><span class="v4-nav-icon">▣</span><span class="v4-nav-label">HUD Editor</span></button>
+      <button class="rail-button" id="v4NavGuide" data-chan-open type="button" title="&#76;ightning-chan guide" aria-label="Open &#76;ightning-chan"><span class="v4-nav-icon">✦</span><span class="v4-nav-label">&#76;ightning-chan</span></button>
+      <button class="rail-button" id="v4NavSettings" data-glass-settings type="button" title="Customize appearance & settings"><svg><use href="#i-settings"/></svg><span class="v4-nav-label">Settings</span></button>
+      <button class="rail-button admin-only" data-panel="admin" type="button" title="Admin"><svg><use href="#i-users"/></svg><span class="v4-nav-label">Staff console</span></button>
+      <div class="v4-sidebar-foot"><i></i><span>ALL SYSTEMS NOMINAL<small>V4.0 · POWERED UP</small></span></div>
     </nav>
 
     <main class="browser-stage" id="browserStage">
