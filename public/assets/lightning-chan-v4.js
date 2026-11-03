@@ -368,7 +368,6 @@ function openAi(){
 }
 function endTourIfNeeded(){if(openTour)endTour()}
 function openHud(){
- endTourIfNeeded();
  if(!editor.open)editor.showModal();
  apply();
 }
@@ -423,6 +422,9 @@ root.addEventListener("input",event=>{
 });
 document.addEventListener("click",event=>{
  const button=event.target.closest("button");if(!button||root.contains(button))return;
+ if(button.classList.contains("rail-button")){
+  $(".rail .rail-button").forEach(item=>item.classList.toggle("active",item===button));
+ }
  if(button.hasAttribute("data-v4-theme")){setTheme(button.dataset.v4Theme);return;}
  if(button.hasAttribute("data-v4-tour")){openGuide();return;}
  if(button.hasAttribute("data-v4-hud")){openHud();return;}
@@ -437,7 +439,7 @@ document.addEventListener("keydown",event=>{
  if((event.ctrlKey||event.metaKey)&&event.shiftKey&&event.key.toLowerCase()==="l"){
   event.preventDefault();openGuide();
  }
- if(event.key==="Escape"&&openTour)endTour();
+ if(event.key==="Escape"&&openTour&&!voiceEditor.open&&!editor.open)endTour();
 });
 // The editor and live HUD share the same account-backed drag coordinates.
 function attachDrag(handle,area,commit){

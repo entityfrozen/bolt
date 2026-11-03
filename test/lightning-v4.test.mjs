@@ -16,16 +16,17 @@ test("The real Lightning workspace includes the complete purple V4 chrome",()=>{
   "v4NavGuide","v4Help","hubMount","addressForm"]){
   assert.ok(decoded.includes('id="'+id+'"'),"Missing functional control "+id);
  }
- assert.match(decoded,/lightning-v4\.css\?v=1/);
+ assert.match(decoded,/lightning-v4\.css\?v=2/);
  assert.match(decoded,/lightning-v4-tour\.css\?v=1/);
  assert.match(decoded,/lightning-v4-editor\.css\?v=1/);
- assert.match(decoded,/lightning-chan-v4\.js\?v=1/);
+ assert.match(decoded,/lightning-chan-v4\.js\?v=2/);
  assert.doesNotMatch(decoded,/src="\/assets\/lightning-chan\.js\?v=1"/);
  assert.match(chrome,/--v4-sidebar:205px/);
  assert.match(chrome,/#hubMount:has\(\.v5-dashboard\)/);
  assert.match(chrome,/\.v5-announcement-card/);
  assert.match(chrome,/data-chan-theme="light"/);
  assert.match(chrome,/data-chan-theme="dark"/);
+ assert.match(chrome,/\.rail \.rail-button\.admin-only\{display:none!important\}/);
 });
 
 test("Guided tutorial highlights actual UI elements and uses the requested dialogue",()=>{

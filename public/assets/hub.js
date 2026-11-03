@@ -426,7 +426,7 @@ function ensureHubStyles(){
      const cleanup=document.createElement("link");cleanup.id="lightningThemeCleanup";cleanup.rel="stylesheet";cleanup.href="/assets/theme-cleanup.css?v=1";document.head.append(cleanup);
      const apps=document.createElement("link");apps.id="lightningAppsCss";apps.rel="stylesheet";apps.href="/assets/apps-v5.css?v=2";document.head.append(apps);
      const logStyle=document.createElement("link");logStyle.id="lightningUpdateLogCss";logStyle.rel="stylesheet";logStyle.href="/assets/update-log.css?v=1";document.head.append(logStyle);
-     const v4=document.createElement("link");v4.id="lightningV4HubTheme";v4.rel="stylesheet";v4.href="/assets/lightning-v4.css?v=1";document.head.append(v4);
+     const v4=document.createElement("link");v4.id="lightningV4HubTheme";v4.rel="stylesheet";v4.href="/assets/lightning-v4.css?v=2";document.head.append(v4);
  }
 }
 export function openHub(view="chat"){

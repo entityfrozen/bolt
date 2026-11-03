@@ -203,3 +203,5 @@ html[data-chan-theme="light"] body.app-page .bolt-ai-msg.assistant{background:#e
  body.app-page #hubMount .v3-inspector{display:none}
 }
 @media(prefers-reduced-motion:reduce){body.app-page :is(.tab,.rail-button,.tool-button){transition:none!important}}
+
+body.app-page:not(.admin-mode) .rail .rail-button.admin-only{display:none!important}
