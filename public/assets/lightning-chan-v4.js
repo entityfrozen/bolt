@@ -217,8 +217,8 @@ function stepFeature(item){
  if(current===0)return '<div class="v4-intro-grid"><div class="v4-tour-stat"><span>01</span><strong>Explore</strong><small>Everything in one place</small></div>'+
   '<div class="v4-tour-stat"><span>02</span><strong>Customize</strong><small>Your theme, your HUD</small></div>'+
   '<div class="v4-tour-stat"><span>03</span><strong>Ask</strong><small>Your own AI companion</small></div></div>';
- if(current===steps.length-1)return '<div class="v4-ready-card"><span>✦</span><strong>You're ready, Commander!</strong>'+
-  '<p>Dark or light, the workspace is yours. I'll be right here when you need me.</p></div>';
+ if(current===steps.length-1)return '<div class="v4-ready-card"><span>✦</span><strong>You are ready, Commander!</strong>'+
+  '<p>Dark or light, the workspace is yours. I will be right here when you need me.</p></div>';
  const pointers=[
   ["→ Open the navigation", "Everything important stays within one click."],
   ["→ Read the latest news", "This is connected to actual announcements."],
