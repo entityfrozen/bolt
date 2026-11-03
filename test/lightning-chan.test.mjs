@@ -82,7 +82,7 @@ test("Companion tour, theme, HUD and existing AI integration are connected",()=>
  assert.match(js,/\/api\/chan\/voices/);
  assert.match(js,/\/api\/chan\/speech/);
  assert.match(js,/lightning:ai-answer/);
- assert.match(html,/&#108;ightning-chan\.js\?v=1/);
+ assert.match(html,/&#108;ightning-chan-v4\.js\?v=1/);
  assert.match(html,/data-chan-open/);
  assert.match(client,/new CustomEvent\("lightning:ai-answer"/);
  assert.match(server,/installChanVoice\(/);
