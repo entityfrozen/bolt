@@ -68,22 +68,23 @@ test("Missing keys, invalid requests, and rate limits are handled safely",async 
  assert.equal((await noKey.request("/api/chan/speech",{text:"Hello!"})).status,503);
 });
 
-test("Companion tour, theme, HUD and existing AI integration are connected",()=>{
- const js=text("public/assets/lightning-chan.js");
+test("Chapter VI companion uses the existing AI and keeps provider credentials on the server",()=>{
+ const js=text("public/assets/lightning-v6.js");
  const html=text("views/app.html");
  const client=text("public/assets/bolt-tools.js");
  const server=text("server.js");
- assert.match(js,/const steps=\[/);
+ assert.match(js,/const tour = \[/);
  assert.match(js,/lightning:account-settings-loaded/);
- assert.match(js,/state\.seen=true/);
- assert.match(js,/data-chan-theme/);
- assert.match(js,/data-chan-side/);
- assert.match(js,/dataset\.chanMotion/);
+ assert.match(js,/prefs\.tourVersion = TOUR_VERSION/);
+ assert.match(js,/data-ln-theme/);
+ assert.match(js,/homeMascot/);
+ assert.match(js,/libraryMascot/);
+ assert.match(js,/aiMascot/);
  assert.match(js,/\/api\/chan\/voices/);
  assert.match(js,/\/api\/chan\/speech/);
  assert.match(js,/lightning:ai-answer/);
  assert.match(html,/&#108;ightning-v6\.js\?v=1/);
- assert.match(html,/data-chan-open/);
+ assert.match(html,/data-ln-guide/);
  assert.match(client,/new CustomEvent\("lightning:ai-answer"/);
  assert.match(server,/installChanVoice\(/);
  assert.doesNotMatch(js,/process\.env|Authorization[^\n]*Bearer/);
