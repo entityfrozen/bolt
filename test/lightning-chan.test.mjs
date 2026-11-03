@@ -86,5 +86,5 @@ test("Companion tour, theme, HUD and existing AI integration are connected",()=>
  assert.match(html,/data-chan-open/);
  assert.match(client,/new CustomEvent\("lightning:ai-answer"/);
  assert.match(server,/installChanVoice\(/);
- assert.doesNotMatch(js,/VOICEAI_API_KEY|Bearer .*VOICEAI/);
+ assert.doesNotMatch(js,/process\.env|Authorization[^\n]*Bearer/);
 });
