@@ -146,7 +146,7 @@ export function registerAccountSpace({app,dataDir,mustBeSignedIn,sameOrigin,list
  // Account settings include appearance, tabs, bookmarks, server-channel choice,
  // game favorites and scores. Device storage is not the source of truth.
  const allowedSettings=new Set(["bolt.prefs","bolt.tabs","bolt.bookmarks","bolt.soundcloud","appearance",
-  "favorites","theme","inspector","dock","channels","gameScores","customApps","chan.settings"]);
+  "favorites","theme","inspector","dock","channels","gameScores","customApps"]);
  const cleanSettings=record=>Object.fromEntries(Object.entries(record||{})
   .filter(([key])=>allowedSettings.has(key)));
  // Shared apps are managed centrally, never by changing a personal preference.

@@ -23,22 +23,18 @@
 <link rel="stylesheet" href="/assets/dashboard-refine.css?v=1">
 <link rel="stylesheet" href="/assets/glass-settings.css?v=2">
 <link rel="stylesheet" href="/assets/admin-console.css?v=1">
-
 <link rel="stylesheet" href="/assets/account-refine.css?v=4">
 <link rel="stylesheet" href="/assets/workspace-interactions.css?v=1">
 <link rel="stylesheet" href="/assets/&#119;orldpvp-overhaul.css?v=1">
 <link rel="stylesheet" href="/assets/theme-cleanup.css?v=2">
 <link rel="stylesheet" href="/assets/&#97;pps-v5.css?v=3">
-<link rel="stylesheet" href="/assets/&#108;ightning-v6.css?v=1">
-
 <script src="/bootstrap-init.js"></script>
 
 <script defer src="/assets/name-label.js?v=1"></script>
 <script defer src="/assets/glass-settings.js?v=7"></script>
 <script defer src="/assets/account-space-ui.js?v=6"></script>
-<script defer src="/assets/app.js?v=68"></script>
-<script defer src="/assets/&#98;olt-tools.js?v=19"></script>
-<script defer src="/assets/&#108;ightning-v6.js?v=1"></script>
+<script defer src="/assets/app.js?v=64"></script>
+<script defer src="/assets/&#98;olt-tools.js?v=18"></script>
 <script defer src="/assets/web-search-settings.js?v=3"></script>
 </head>
 <body class="app-page">
@@ -68,62 +64,105 @@
   <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="11" height="11" rx="2"/><path d="M16 8V5H5v11h3"/></symbol>
 </svg>
 
-
-<div class="&#98;olt-shell ln-shell" id="&#98;oltShell">
- <div class="workarea ln-layout">
-  <nav class="rail ln-sidebar" aria-label="Main navigation">
-   <div class="ln-sidebar-top"><button id="homeMark" class="&#98;olt-brand ln-brand" title="Home" type="button"><span class="ln-brand-mark"><img src="/assets/&#108;ightning-mark.svg?v=1" alt="" aria-hidden="true"></span><span class="ln-brand-copy"><strong>&#76;ightning</strong><small>THE NEXT CHAPTER</small></span></button><span class="ln-version">V 6.0</span></div>
-   <div class="ln-sidebar-scroll">
-    <div class="ln-group">YOUR SPACE <span>01</span></div>
-    <button type="button" class="rail-button ln-item active" id="v4NavHome" data-ln-home title="Home"><svg><use href="#i-home"/></svg><span class="ln-label">Home</span></button>
-    <button type="button" class="rail-button ln-item " id="v4NavBrowser" data-ln-browser title="Browse"><svg><use href="#i-search"/></svg><span class="ln-label">Browse</span></button>
-    <button type="button" class="rail-button ln-item " id="v4NavLibrary" data-hub="&#103;ames" title="Library"><svg><use href="#i-&#103;ames"/></svg><span class="ln-label">Library</span></button>
-    <button type="button" class="rail-button ln-item " id="v4NavAI" data-ln-ai title="AI Assistant"><svg><use href="#i-star"/></svg><span class="ln-label">AI Assistant</span></button>
-    <button type="button" class="rail-button ln-item " id="v4NavCommunity" data-hub="&#99;hat" title="Community"><svg><use href="#i-&#99;hat"/></svg><span class="ln-label">Community</span></button>
-    <div class="ln-group">DISCOVER <span>02</span></div>
-    <button type="button" class="rail-button ln-item " id="v4NavUpdates" data-hub="updates" title="Announcements"><svg><use href="#i-clock"/></svg><span class="ln-label">Announcements</span></button>
-    <button type="button" class="rail-button ln-item " id="lnHistory" data-panel="history" title="History"><svg><use href="#i-clock"/></svg><span class="ln-label">History</span></button>
-    <div class="ln-group">PERSONALIZE <span>03</span></div>
-    <button type="button" class="rail-button ln-item " id="v4NavHUD" data-ln-hud title="HUD Editor"><svg><use href="#i-menu"/></svg><span class="ln-label">HUD Editor</span></button>
-    <button type="button" class="rail-button ln-item " id="v4NavGuide" data-ln-guide title="Guided tour"><svg><use href="#i-star"/></svg><span class="ln-label">Guided tour</span></button>
-    <button type="button" class="rail-button ln-item " id="v4NavSettings" data-glass-settings title="Settings"><svg><use href="#i-settings"/></svg><span class="ln-label">Settings</span></button>
-    <button type="button" class="rail-button ln-item admin-only" data-panel="admin" title="Staff console"><svg><use href="#i-users"/></svg><span class="ln-label">Staff console</span></button>
-   </div>
-   <div class="ln-sidebar-foot"><div class="ln-online"><i></i> SYSTEM ONLINE</div><button type="button" class="ln-member-card" data-ln-account><span class="ln-member-avatar">✦</span><span><strong>&#76;ightning member</strong><small>Personal workspace</small></span><b>···</b></button></div>
-  </nav>
-  <div class="ln-main">
-   <header class="tabbar ln-topbar">
-    <div class="ln-crumb"><i>ϟ</i><strong>Workspace</strong><span>/</span><em id="lnPageName">Home</em></div>
-    <div class="tabs ln-tabs" id="tabs"></div>
-    <button type="button" class="tab-new" id="newTabBtn" title="New tab"><svg><use href="#i-plus"/></svg></button>
-    <div class="account-zone ln-account">
-     <div class="ln-theme-switch" id="v4ThemeSwitch" role="group" aria-label="Theme"><button id="v4Light" data-ln-theme="light" type="button" title="Light mode">☀</button><button id="v4Dark" data-ln-theme="dark" type="button" title="Dark mode">☾</button></div>
-     <button type="button" id="v4Help" data-ln-guide class="ln-help" title="Re&#112;lay guided tour">?</button>
-     <span class="role-chip" id="roleChip"></span>
-     <button type="button" class="account-button ln-profile" id="accountButton" title="Account"><span id="accountInitial">L</span></button>
+<div class="&#98;olt-shell" id="&#98;oltShell">
+  <header class="tabbar">
+    <button class="&#98;olt-brand" id="homeMark" type="button" title="&#76;ightning — New tab">
+      <span class="brand-symbol"><img class="&#108;ightning-mark" src="/assets/&#108;ightning-mark.svg?v=1" alt="" aria-hidden="true"></span>
+      <span class="brand-name">&#108;ightning<em>.</em></span>
+    </button>
+    <div class="tabs" id="tabs"></div>
+    <button class="tab-new" id="newTabBtn" type="button" title="New tab"><svg><use href="#i-plus"/></svg></button>
+    <div class="account-zone">
+      <span class="role-chip" id="roleChip"></span>
+      <button class="account-button" id="accountButton" type="button"><span id="accountInitial">L</span></button>
     </div>
-   </header>
-   <div class="toolbar ln-toolbar">
-     <div class="ln-browse-tools"><button type="button" class="tool-button" id="backBtn" title="Back"><svg><use href="#i-back"/></svg></button><button type="button" class="tool-button" id="forwardBtn" title="Forward"><svg><use href="#i-forward"/></svg></button><button type="button" class="tool-button" id="reloadBtn" title="Reload"><svg><use href="#i-reload"/></svg></button></div>
-     <form class="address-form ln-address" id="addressForm"><span class="address-state"><svg><use href="#i-lock"/></svg></span><input id="addressInput" autocomplete="off" spellcheck="false" placeholder="Search the web or type an address"><button type="submit" class="address-go"><svg><use href="#i-search"/></svg></button></form>
-     <button class="tool-button" id="bookmarkBtn" type="button" title="Bookmark"><svg><use href="#i-star"/></svg></button><button class="tool-button" id="menuBtn" type="button" title="Menu"><svg><use href="#i-menu"/></svg></button>
-   </div>
-   <main class="browser-stage ln-stage" id="browserStage">
-    <section class="newtab ln-newtab" id="newtabView">
-     <div class="ln-browser-welcome">
-      <span class="ln-eyebrow">✦ A FRESH START</span><h1>New tab.<span>Where to?</span></h1><p>Everything begins with a good idea. Or a really specific search.</p>
-      <form class="newtab-search ln-newtab-form" id="newtabForm"><svg><use href="#i-search"/></svg><input id="newtabInput" autocomplete="off" spellcheck="false" placeholder="Search or enter a web address"><span>ENTER ↵</span></form>
-      <span class="ln-section-label">QUICK ACCESS</span>
-      <nav class="&#108;ightning-shortcuts ln-shortcuts" aria-label="Quick destinations"><button type="button" class="&#108;ightning-quick" data-hub="overview">⌂ Overview</button><button type="button" class="&#108;ightning-quick" data-hub="&#99;hat"># Community</button><button type="button" class="&#108;ightning-quick" data-hub="&#103;ames">▣ Library</button><button type="button" class="&#108;ightning-quick" data-research-link="https://www.google.com/">Google</button><button type="button" class="&#108;ightning-quick" data-research-link="https://www.wikipedia.org/">Wikipedia</button></nav>
-      <div class="ln-browser-lists"><section><h2>RECENT PAGES</h2><div class="recent-list" id="recentList"></div></section><section><h2>YOUR BOOKMARKS</h2><div class="recent-list" id="bookmarkList"></div></section></div>
-      <button type="button" class="ln-suggest" id="&#108;ightningSuggestionButton">✦ Suggest a feature</button>
-     </div>
-    </section>
-    <div class="frame-stack" id="frameStack"></div><div id="hubMount" hidden></div><div class="stage-status" id="stageStatus"></div>
-   </main>
+  </header>
+
+  <div class="toolbar">
+    <div class="nav-cluster">
+      <button class="tool-button" id="backBtn" type="button" title="Back"><svg><use href="#i-back"/></svg></button>
+      <button class="tool-button" id="forwardBtn" type="button" title="Forward"><svg><use href="#i-forward"/></svg></button>
+      <button class="tool-button" id="reloadBtn" type="button" title="Reload"><svg><use href="#i-reload"/></svg></button>
+    </div>
+    <form class="address-form" id="addressForm">
+      <span class="address-state"><svg><use href="#i-lock"/></svg></span>
+      <input id="addressInput" autocomplete="off" spellcheck="false" placeholder="Search or enter address">
+      <button class="address-go" type="submit">Go</button>
+    </form>
+    <button class="tool-button" id="bookmarkBtn" type="button" title="Bookmark"><svg><use href="#i-star"/></svg></button>
+    <button class="tool-button" id="menuBtn" type="button" title="Menu"><svg><use href="#i-menu"/></svg></button>
   </div>
-  <aside class="side-panel" id="sidePanel" aria-hidden="true"><div class="panel-head"><div><span class="meta-label" id="panelKicker">PANEL</span><h2 id="panelTitle"></h2></div><button type="button" class="panel-close" id="panelClose"><svg><use href="#i-x"/></svg></button></div><div class="panel-body" id="panelBody"></div></aside>
- </div>
+
+  <div class="workarea">
+    <nav class="rail">
+      <button class="rail-button active" data-action="newtab" type="button" title="Home"><svg><use href="#i-home"/></svg></button>
+      <button class="rail-button" data-panel="history" type="button" title="History"><svg><use href="#i-clock"/></svg></button>
+      <div class="rail-spacer"></div>
+      <button class="rail-button" data-hub="&#99;hat" type="button" title="Community &#99;hat"><svg><use href="#i-&#99;hat"/></svg></button>
+      <button class="rail-button" data-hub="&#103;ames" type="button" title="Library"><svg><use href="#i-&#103;ames"/></svg></button>
+      <button class="rail-button" data-hub="updates" type="button" title="Update log"><svg><use href="#i-clock"/></svg></button>
+      <button class="rail-button" data-glass-settings type="button" title="Customize appearance & settings"><svg><use href="#i-settings"/></svg></button>
+      <button class="rail-button admin-only" data-panel="admin" type="button" title="Admin"><svg><use href="#i-users"/></svg></button>
+    </nav>
+
+    <main class="browser-stage" id="browserStage">
+      <section class="newtab v3-browser-home" id="newtabView">
+        <div class="v3-browser-dashboard">
+          <div class="v3-browser-body">
+            <span class="v3-browser-kicker">NEW TAB</span>
+            <h1 class="v3-browser-title">New tab.<span>Where to?</span></h1>
+            <p class="v3-browser-description">Search the web or open a saved page.</p>
+            <form class="newtab-search" id="newtabForm">
+              <svg><use href="#i-search"/></svg>
+              <input id="newtabInput" autocomplete="off" spellcheck="false" placeholder="Search or enter a web address" aria-label="Search or enter a web address">
+              <span class="newtab-keycap">ENTER ↵</span>
+            </form>
+            <nav class="&#108;ightning-shortcuts v3-browser-shortcuts" aria-label="Quick destinations">
+              <button type="button" class="&#108;ightning-quick" data-hub="overview">⌂ Overview</button>
+              <button type="button" class="&#108;ightning-quick" data-hub="&#99;hat"># Community</button>
+              <button type="button" class="&#108;ightning-quick" data-hub="&#103;ames">▣ Library</button>
+              <button type="button" class="&#108;ightning-quick" data-research-link="https://www.google.com/">Google</button>
+                            <button type="button" class="&#108;ightning-quick" data-research-link="https://www.wikipedia.org/">Wikipedia</button>
+            </nav>
+            <button class="newtab-eyebrow &#108;ightning-suggest-button v3-browser-suggestion" id="&#108;ightningSuggestionButton" type="button" title="Suggest a feature">Suggest a feature</button>
+          </div>
+          <aside class="v3-browser-sidebar">
+            <section class="v3-browser-feature">
+              <span>QUICK ACCESS</span>
+              <strong>Recent spaces</strong>
+              <p>Pick up where you left off.</p>
+              <button type="button" data-hub="overview">Open home</button>
+            </section>
+            <section class="v3-browser-guide">
+              <strong>OPEN</strong>
+              <button type="button" data-hub="&#99;hat"><span>#</span> &#67;hat channels</button>
+              <button type="button" data-hub="&#103;ames"><span>▣</span> Library</button>
+              <button type="button" data-hub="overview"><span>⌂</span> Home</button>
+            </section>
+          </aside>
+          <div class="v3-browser-history">
+            <div><span class="meta-label">RECENT PAGES</span><div class="recent-list" id="recentList"></div></div>
+            <div><span class="meta-label">YOUR BOOKMARKS</span><div class="recent-list" id="bookmarkList"></div></div>
+          </div>
+          <footer class="v3-browser-footer"><span>KEYBOARD SHORTCUTS</span><span>Ctrl+L for address bar · Ctrl+T for new tab</span></footer>
+        </div>
+      </section>
+      <div class="frame-stack" id="frameStack"></div>
+      <div id="hubMount" hidden></div>
+      <div class="stage-status" id="stageStatus"></div>
+    </main>
+
+    <aside class="side-panel" id="sidePanel" aria-hidden="true">
+      <div class="panel-head">
+        <div><span class="meta-label" id="panelKicker">PANEL</span><h2 id="panelTitle"></h2></div>
+        <button class="panel-close" id="panelClose" type="button"><svg><use href="#i-x"/></svg></button>
+      </div>
+      <div class="panel-body" id="panelBody"></div>
+    </aside>
+  </div>
 </div>
-<div class="popover" id="accountPopover" hidden></div><div class="toast" id="toast"></div>
-</body></html>
+
+<div class="popover" id="accountPopover" hidden></div>
+<div class="toast" id="toast"></div>
+</body>
+</html>

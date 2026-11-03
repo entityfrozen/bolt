@@ -1060,7 +1060,7 @@ async function logout(){
 
 function openLightningHub(view){
   closePanel();
-  import("/assets/hub.js?v=48").then(hub=>hub.openHub(view)).catch(()=>toast("Could not open the Lightning hub."));
+  import("/assets/hub.js?v=45").then(hub=>hub.openHub(view)).catch(()=>toast("Could not open the Lightning hub."));
 }
 
 function bindUi(){
@@ -1085,7 +1085,7 @@ function bindUi(){
   },true);
   $("#lightningSuggestionButton")?.addEventListener("click",()=>openLightningHub("suggestions"));
   document.querySelectorAll(".lightning-quick").forEach(button=>button.addEventListener("click",()=>navigate(button.dataset.researchLink)));
-  dom.homeMark.addEventListener("click",()=>openLightningHub("overview"));
+  dom.homeMark.addEventListener("click",()=>newTab());
   dom.addressForm.addEventListener("submit",event=>{event.preventDefault();navigate(dom.address.value)});
   dom.newtabForm.addEventListener("submit",event=>{event.preventDefault();navigate(dom.newtabInput.value);dom.newtabInput.value=""});
   dom.back.addEventListener("click",()=>{
@@ -1107,7 +1107,7 @@ function bindUi(){
   $$(".rail-button[data-panel]").forEach(button=>button.addEventListener("click",()=>{
     if(panelName===button.dataset.panel)closePanel();else openPanel(button.dataset.panel);
   }));
-  $(".rail-button[data-action='newtab']")?.addEventListener("click",()=>newTab());
+  $(".rail-button[data-action='newtab']").addEventListener("click",()=>newTab());
   dom.accountButton.addEventListener("click",()=>dom.accountPopover.hidden?accountPopover():dom.accountPopover.hidden=true);
   document.addEventListener("pointerdown",event=>{
     if(dom.accountPopover.hidden)return;
@@ -1182,10 +1182,9 @@ async function start(){
   restoreTabs();
   void pollDirectMessages();
   setInterval(()=>void pollDirectMessages(),8000);
-  import("/assets/hub.js?v=48").then(hub=>{
+  import("/assets/hub.js?v=45").then(hub=>{
     hub.startHubNotifications();
     if(new URL(location.href).searchParams.get("view")!=="browser")hub.openHub("overview");
-    document.dispatchEvent(new Event("lightning:workspace-ready"));
   }).catch(error=>console.warn("Workspace unavailable:",error));
   const goto=new URL(location.href).searchParams.get("goto");
   if(goto){

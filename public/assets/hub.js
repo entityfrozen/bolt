@@ -426,7 +426,6 @@ function ensureHubStyles(){
      const cleanup=document.createElement("link");cleanup.id="lightningThemeCleanup";cleanup.rel="stylesheet";cleanup.href="/assets/theme-cleanup.css?v=1";document.head.append(cleanup);
      const apps=document.createElement("link");apps.id="lightningAppsCss";apps.rel="stylesheet";apps.href="/assets/apps-v5.css?v=2";document.head.append(apps);
      const logStyle=document.createElement("link");logStyle.id="lightningUpdateLogCss";logStyle.rel="stylesheet";logStyle.href="/assets/update-log.css?v=1";document.head.append(logStyle);
-     // The V5 visual system is loaded by the workspace shell once.
  }
 }
 export function openHub(view="chat"){
