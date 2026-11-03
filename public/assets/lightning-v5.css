@@ -1,0 +1,249 @@
+/* Lightning V5 — cohesive home, navigation and 2D mascot system.
+   Existing data and backend features are intentionally left intact. */
+:root {
+  --l5-rail: 235px;
+  --l5-purple: #a250ee;
+  --l5-purple-bright: #c080ff;
+  --l5-ink: #2d174d;
+  --l5-muted: #695281;
+  --l5-border: #c39af3;
+  --l5-surface: rgba(255,250,255,.91);
+  --l5-backdrop: #f1e2ff;
+  --l5-glow: 0 9px 32px rgba(112,43,188,.14), 0 0 0 1px rgba(165,94,235,.17);
+  --l5-character-scale:1;
+}
+html[data-l5-theme="dark"] {
+  --l5-ink: #f8ecff;
+  --l5-muted: #c5abdf;
+  --l5-border: #774fae;
+  --l5-surface: rgba(44,24,75,.93);
+  --l5-backdrop: #17102b;
+  --l5-glow: 0 14px 32px rgba(5,1,15,.35), 0 0 0 1px rgba(176,94,240,.16);
+}
+body.app-page,body.app-page #boltShell {color:var(--l5-ink)!important;background:var(--l5-backdrop)!important}
+body.app-page #boltShell{grid-template-rows:54px 54px minmax(0,1fr)!important}
+body.app-page .tabbar{background:linear-gradient(105deg,#25113e,#3e1d5c 57%,#29113d)!important;
+  border-bottom:2px solid #b577ea!important;box-shadow:0 3px 18px rgba(50,12,94,.22);
+  padding:0 15px!important;z-index:30}
+body.app-page .bolt-brand{width:var(--l5-rail)!important;min-width:var(--l5-rail)!important;
+  color:#fff!important;gap:8px!important;padding:0 15px!important}
+body.app-page .brand-symbol{width:35px;height:35px;border:0!important;background:transparent!important;box-shadow:none!important}
+body.app-page .brand-symbol img{width:37px;height:37px;filter:drop-shadow(0 0 9px #c48aff)}
+body.app-page .brand-name{font-size:26px!important;font-style:italic;font-weight:850!important;
+  letter-spacing:-.06em;color:#fff!important;text-shadow:0 0 12px #a15de3}
+body.app-page .brand-name em{color:#e6c0ff!important}
+body.app-page .tabs{padding:0 7px;gap:7px!important}
+body.app-page .tab{height:36px;background:#ffffff0c!important;border:1px solid #ca9aee3d!important;
+  color:#ceb4e4!important;border-radius:10px!important}
+body.app-page .tab.active{background:#a765e641!important;border-color:#d6a8ff93!important;color:#fff!important}
+body.app-page .tab-new{color:#ead2ff!important}
+body.app-page .account-zone{gap:10px!important;padding:0 8px!important}
+body.app-page .role-chip{border-color:#c79aeeaa!important;color:#dcb8f5!important}
+body.app-page .account-button{background:linear-gradient(135deg,#ac66e7,#6a358e)!important;
+  border:1px solid #e2b7ff!important;color:#fff!important}
+.v4-top-actions{gap:9px!important}
+.v4-status-pill{color:#e2c4f1!important}
+.v4-theme-switch{background:#1f1036!important;border:1px solid #a96de2!important;border-radius:12px!important}
+.v4-theme-switch button{color:#cfadee!important}
+.v4-theme-switch button[aria-pressed="true"]{background:#c080ec!important;color:#301244!important;box-shadow:0 0 12px #df9dff!important}
+.v4-header-action{color:#f4e0ff!important;background:#754199!important;border:1px solid #bb86e9!important}
+body.app-page .toolbar{background:linear-gradient(100deg,#e5d1f6,#f7efff)!important;border-bottom:1px solid #cfa8ec!important;
+  padding:6px 17px!important;z-index:23}
+body.app-page .tool-button{color:#5e3285!important;background:#ffffff8a!important;border:1px solid #cc9ff0!important;border-radius:10px!important}
+body.app-page .tool-button:hover{background:#e1c0f5!important;color:#56257a!important}
+body.app-page .address-form{background:#fffaff!important;border:1px solid #bd8bf0!important;
+  border-radius:13px!important;box-shadow:0 2px 8px #9351d21c!important}
+body.app-page .address-form input{color:#40225e!important;font-weight:530!important}
+body.app-page .address-form input::placeholder{color:#9c84b6!important}
+body.app-page .address-go{background:linear-gradient(135deg,#b46bf1,#8751da)!important;border:0!important;color:#fff!important}
+html[data-l5-theme="dark"] body.app-page .toolbar{background:#281740!important;border-color:#68438e!important}
+html[data-l5-theme="dark"] body.app-page .address-form{background:#1d1133!important;border-color:#8656af!important}
+html[data-l5-theme="dark"] body.app-page .address-form input{color:#f4e5ff!important}
+html[data-l5-theme="dark"] body.app-page .tool-button{background:#45265f!important;color:#f1d9ff!important;border-color:#8855bc!important}
+body.app-page .workarea,body.app-page .workarea.panel-open{grid-template-columns:var(--l5-rail) minmax(0,1fr) 0!important;
+  min-height:0!important;background:var(--l5-backdrop)!important}
+body.app-page .workarea.panel-open{grid-template-columns:var(--l5-rail) minmax(0,1fr) var(--panel-width)!important}
+body.app-page .rail{width:var(--l5-rail)!important;min-width:0!important;padding:17px 12px 16px!important;
+  display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:7px!important;
+  overflow-y:auto;overflow-x:hidden;background:linear-gradient(175deg,#4b276e 0%,#2e184d 59%,#241239 100%)!important;
+  border-right:2px solid #ae71e2!important;scrollbar-width:thin;scrollbar-color:#a46bcc transparent}
+body.app-page .v4-sidebar-brand{display:flex;align-items:center;min-height:80px;border-bottom:1px solid #c48aea57;
+  margin:0 5px 13px!important;padding:5px 6px 18px!important}
+body.app-page .v4-sidebar-glyph{font:italic 43px Georgia;color:#edd0ff;text-shadow:0 0 17px #cf85ff}
+body.app-page .v4-sidebar-brand strong{color:#fff!important;font-size:18px!important;letter-spacing:-.04em}
+body.app-page .v4-sidebar-brand small{color:#d2b4ed!important}
+.v4-rail-caption{color:#b698d6!important;font:740 9px ui-monospace,monospace;letter-spacing:.14em;padding:7px 13px 3px!important}
+.v4-rail-divider{height:1px;margin:9px 12px 8px!important;background:#b98bea66!important}
+body.app-page .rail .rail-button{display:flex!important;flex:none!important;align-items:center!important;
+  width:100%!important;height:45px!important;justify-content:flex-start!important;gap:14px!important;
+  padding:0 15px!important;border:1px solid #ac7dce82!important;border-radius:12px!important;
+  background:linear-gradient(105deg,#6b488b4e,#6c3f8a2b)!important;color:#f5e9ff!important;
+  text-align:left!important;transition:background .17s,transform .17s,box-shadow .17s}
+body.app-page .rail .rail-button:hover{background:linear-gradient(105deg,#a96ed0ad,#8451ae94)!important;transform:translateX(2px)}
+body.app-page .rail .rail-button.active{color:#fff!important;background:linear-gradient(110deg,#ba6dea,#8d46cc)!important;
+  border-color:#f0bbff!important;box-shadow:0 0 16px #c679ff70,inset 3px 0 #ffecff!important}
+body.app-page .rail .rail-button svg{height:20px!important;width:20px!important;flex:none}
+body.app-page .v4-nav-icon{color:#edcaff!important;font-size:22px;width:20px}
+body.app-page .v4-nav-label{color:inherit!important;font-weight:740;font-size:12.5px!important;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body.app-page .v4-sidebar-foot{margin-top:auto;color:#e9d8f5!important;font-size:9px}
+body.app-page .v4-sidebar-foot small{color:#b996d6!important}
+body.app-page .rail .rail-button.admin-only{display:none!important}
+body.app-page.admin-mode .rail .rail-button.admin-only{display:flex!important}
+body.app-page .browser-stage{overflow:hidden!important;min-width:0;
+  background:linear-gradient(135deg,var(--l5-backdrop),#dac2f8)!important;color:var(--l5-ink)!important}
+html[data-l5-theme="dark"] body.app-page .browser-stage{background:linear-gradient(135deg,#1b1032,#2d1945)!important}
+body.app-page #hubMount{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;z-index:13!important;
+  background:radial-gradient(circle at 85% 20%,#d8b2ff7f,transparent 46%),linear-gradient(145deg,#f9efff,#dfc7fa)!important;
+  color:var(--l5-ink)!important}
+html[data-l5-theme="dark"] body.app-page #hubMount{background:radial-gradient(circle at 85% 20%,#6d3c9b38,transparent 45%),linear-gradient(145deg,#22153d,#150e27)!important}
+body.app-page #hubMount:has(.v5-dashboard) .v3-shell{grid-template-columns:minmax(0,1fr)!important;grid-template-rows:minmax(0,1fr)!important;min-height:100%!important}
+body.app-page #hubMount:has(.v5-dashboard) .v4-nav-shell,
+body.app-page #hubMount:has(.v5-dashboard) .v3-dock,
+body.app-page #hubMount:has(.v5-dashboard) .v3-inspector{display:none!important}
+body.app-page #hubMount:has(.v5-dashboard) .v2-main{grid-column:1/-1!important;grid-row:1/-1!important;
+  width:100%!important;height:100%!important;margin:0!important;min-width:0!important;min-height:0!important;
+  border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important}
+body.app-page #hubMount:has(.v5-dashboard) .v2-topbar{display:none!important}
+body.app-page #hubMount:has(.v5-dashboard) .hub-content{height:100%!important;overflow:auto!important;scrollbar-color:#b77bea transparent}
+body.app-page #hubMount .v5-dashboard-inner{max-width:1440px!important;margin:0 auto!important;padding:22px 26px 65px!important}
+body.app-page #hubMount .v5-welcome{display:none!important}
+.l5-welcome-banner{position:relative;isolation:isolate;overflow:hidden;min-height:285px;display:flex;
+  align-items:center;border-radius:21px;border:2px solid #c391f5;
+  background:linear-gradient(110deg,#fbf3ff 3%,#e2c6fc 68%,#c99cf5 100%);
+  box-shadow:var(--l5-glow);margin:0 0 13px;padding:28px 35px}
+.l5-welcome-banner:before{content:"";position:absolute;inset:0;z-index:-1;
+  background:radial-gradient(circle at 78% 49%,#ae6cf294,transparent 35%),
+  repeating-linear-gradient(135deg,transparent 0 40px,#fff6 41px 42px,transparent 43px 80px)}
+.l5-welcome-banner:after{content:"ϟ";position:absolute;right:24%;top:-70px;font:italic 290px Georgia;
+  color:#af70e54d;transform:rotate(14deg);z-index:-1}
+.l5-hero-copy{max-width:65%;position:relative;z-index:2}
+.l5-eyebrow{font:740 10px ui-monospace,monospace;letter-spacing:.15em;color:#8a47c2}
+.l5-hero-copy h1{font-family:"Instrument Sans",system-ui,sans-serif!important;font-size:clamp(34px,4.7vw,64px);
+  letter-spacing:-.064em;font-weight:860;line-height:1.07;color:#432169;margin:13px 0 11px}
+.l5-hero-copy h1 em{font-style:italic;color:#8b3fcd}
+.l5-hero-copy p{color:#694385;line-height:1.58;font-size:13px;max-width:490px;font-weight:620}
+.l5-hero-buttons{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}
+.l5-hero-buttons button{padding:12px 16px;border-radius:11px;font-weight:760;font-size:12px;cursor:pointer}
+.l5-hero-buttons button:first-child{background:linear-gradient(115deg,#ad5aee,#8140d1);color:#fff;border:1px solid #d99eff;box-shadow:0 4px 14px #a35be67a}
+.l5-hero-buttons button:last-child{background:#fff7;color:#6f3b9d;border:1px solid #c58ce7}
+.l5-hero-foot{display:block;margin-top:18px;color:#9866b8;font:700 9px ui-monospace,monospace;letter-spacing:.12em}
+.l5-hero-glow{position:absolute;right:0;bottom:0;top:0;width:42%;background:radial-gradient(ellipse,#e2b7ff,transparent 67%);pointer-events:none}
+.l5-character{position:relative;display:block;flex:none;aspect-ratio:449/724;width:260px;pointer-events:none;
+  filter:drop-shadow(0 12px 13px #5a287d45);transform:scale(var(--l5-character-scale));transform-origin:center bottom}
+.l5-character[hidden]{display:none!important}
+.l5-character-art{position:absolute;inset:0;background-image:url('/assets/lightning-chan-v5-sprites.webp');
+  background-repeat:no-repeat;background-size:500% 200%;background-position-y:0%;image-rendering:auto}
+.l5-character[data-speaking="true"] .l5-character-art{background-position-y:100%}
+.l5-character[data-pose="0"] .l5-character-art{background-position-x:0%}
+.l5-character[data-pose="1"] .l5-character-art{background-position-x:25%}
+.l5-character[data-pose="2"] .l5-character-art{background-position-x:50%}
+.l5-character[data-pose="3"] .l5-character-art{background-position-x:75%}
+.l5-character[data-pose="4"] .l5-character-art{background-position-x:100%}
+.l5-hero-character{position:absolute!important;z-index:1!important;width:min(27vw,292px);right:5%;bottom:-162px}
+.l5-quickbar{display:grid;grid-template-columns:1.2fr repeat(4,1fr);gap:10px;align-items:stretch;margin:15px 0 18px}
+.l5-quickbar>span{display:grid;align-content:center;gap:4px;padding:0 11px}
+.l5-quickbar>span b{font:790 10px ui-monospace,monospace;letter-spacing:.14em;color:#7443a2}
+.l5-quickbar>span small{font-size:12px;color:#88739f}
+.l5-quickbar button{display:flex;justify-content:center;align-items:center;gap:8px;padding:13px 7px;
+  min-height:53px;border-radius:12px;background:#fff8;color:#693492;border:1px solid #c19af0;
+  box-shadow:var(--l5-glow);font-size:19px;cursor:pointer;transition:transform .18s}
+.l5-quickbar button:hover{transform:translateY(-3px);background:#f7e8ff}
+.l5-quickbar button strong{font-size:12px}
+body.app-page #hubMount .v5-lead-grid,body.app-page #hubMount .v5-middle-grid{gap:15px!important}
+body.app-page #hubMount :is(.v5-announcement-card,.v5-channels-card,.v5-content-card,.v5-game-section){
+  color:var(--l5-ink)!important;border:1px solid var(--l5-border)!important;
+  background:var(--l5-surface)!important;border-radius:17px!important;
+  box-shadow:var(--l5-glow)!important;min-width:0}
+body.app-page #hubMount .v5-announcement-card{background:linear-gradient(110deg,#f9edff,#ebd6fa)!important;border:2px solid #b980eb!important}
+body.app-page #hubMount :is(.v5-announcement-card h2,.v5-card-header h2,.v5-section-label,.v5-channel-name strong,.v5-latest p){color:var(--l5-ink)!important}
+body.app-page #hubMount :is(.v5-eyebrow,.v5-section-label){color:#9051c8!important}
+body.app-page #hubMount :is(.v5-no-news,.v5-message-preview,.v5-channel-name small,.v5-server-detail small){color:var(--l5-muted)!important}
+body.app-page #hubMount .v5-announcement-foot{background:#f2ddff!important;border-top:1px solid #c895f0!important}
+body.app-page #hubMount :is(.v5-channel-shortcut,.v5-game-launch){background:#f5e7ffad!important;border-color:#d0aaf0!important;color:var(--l5-ink)!important}
+body.app-page #hubMount :is(.v5-channel-shortcut,.v5-game-launch):hover{background:#e7cafa!important}
+html[data-l5-theme="dark"] .l5-welcome-banner{background:linear-gradient(110deg,#392059,#6a389c 75%,#3c255c)!important;border-color:#9959d0}
+html[data-l5-theme="dark"] .l5-hero-copy h1{color:#f6e8ff}
+html[data-l5-theme="dark"] .l5-hero-copy h1 em{color:#dfacff}
+html[data-l5-theme="dark"] .l5-hero-copy p{color:#dfc4f1}
+html[data-l5-theme="dark"] .l5-eyebrow,html[data-l5-theme="dark"] .l5-hero-foot{color:#d29af1}
+html[data-l5-theme="dark"] .l5-quickbar button{background:#3b245e;color:#edd2ff;border-color:#8257b5}
+html[data-l5-theme="dark"] #hubMount .v5-announcement-card{background:#422361!important;border-color:#8050b3!important}
+html[data-l5-theme="dark"] #hubMount .v5-announcement-foot{background:#301849!important;border-color:#684092!important}
+html[data-l5-theme="dark"] #hubMount :is(.v5-eyebrow,.v5-section-label){color:#dcb8ff!important}
+html[data-l5-theme="dark"] #hubMount :is(.v5-channel-shortcut,.v5-game-launch){background:#4c3272!important;color:#ebdafa!important;border-color:#8a5bbb!important}
+/* Non-dashboard hub views keep their existing working shells, with matching surfaces. */
+body.app-page #hubMount:not(:has(.v5-dashboard)) :is(.v3-shell,.v2-main,.v4-nav-shell,.v3-apps-page){color:var(--l5-ink)!important}
+body.app-page #hubMount .v3-apps-page{padding-bottom:30px}
+.l5-library-hello{display:flex;position:relative;justify-content:space-between;align-items:center;overflow:hidden;
+  margin:12px 0 22px;padding:18px 28px;min-height:160px;
+  border:1px solid #b582e0;border-radius:16px;background:linear-gradient(105deg,#7845ab,#432466);color:#fff;
+  box-shadow:0 11px 30px #26094746}
+.l5-library-hello>div:first-child{max-width:67%}
+.l5-library-hello span{font:740 10px ui-monospace,monospace;color:#eac2ff;letter-spacing:.08em}
+.l5-library-hello strong{display:block;margin:10px 0 6px;font-size:24px;font-weight:820}
+.l5-library-hello p{font-size:12px;line-height:1.5;color:#e9d3f7}
+.l5-library-character{position:absolute;width:128px;right:40px;bottom:-80px}
+/* AI mascot is placed only inside the actual AI panel, never across browsing pages. */
+#boltAiPanel{background:var(--l5-surface)!important;color:var(--l5-ink)!important;border:1px solid var(--l5-border)!important}
+#boltAiPanel .bolt-aux-head{background:linear-gradient(100deg,#8e4bc5,#543177)!important;color:#fff!important}
+.l5-ai-banner{display:flex;align-items:center;gap:10px;overflow:hidden;min-height:87px;padding:9px 15px;
+  background:linear-gradient(115deg,#eee0fa,#dec5f7);border-bottom:1px solid #c08cf0;color:#3c1d5b}
+.l5-ai-banner[hidden]{display:none}
+.l5-ai-character{width:64px;height:90px;overflow:hidden;align-self:end;margin-bottom:-13px}
+.l5-ai-banner>div:last-child{display:grid;gap:3px}
+.l5-ai-banner span{font:780 8px ui-monospace,monospace;letter-spacing:.1em;color:#8955b5}
+.l5-ai-banner strong{font-size:18px;color:#47206b}
+.l5-ai-banner small{font-size:10px;color:#76518f;line-height:1.5}
+/* Direct browsing remains deliberately mascot-free. */
+body.app-page .newtab{background:linear-gradient(130deg,#f4e6ff,#dfcaf5)!important;color:#371953!important}
+body.app-page .v3-browser-title{color:#3c1b5c!important}
+body.app-page .v3-browser-title span{color:#9a50ce!important}
+body.app-page .v3-browser-description{color:#7b6096!important}
+body.app-page .newtab-search{background:#fff9ff!important;border:1px solid #b783e9!important}
+body.app-page .newtab-search input{color:#432466!important}
+html[data-l5-theme="dark"] body.app-page .newtab{background:#1c1132!important;color:#f8e4ff!important}
+html[data-l5-theme="dark"] body.app-page .v3-browser-title{color:#fff1ff!important}
+html[data-l5-theme="dark"] body.app-page .newtab-search{background:#39234f!important}
+html[data-l5-theme="dark"] body.app-page .newtab-search input{color:#f8e4ff!important}
+body[data-l5-announcements="no"] #hubMount .v5-announcement-card{display:none!important}
+body[data-l5-shortcuts="no"] #hubMount .l5-quickbar{display:none!important}
+body[data-l5-sidebar="compact"]{--l5-rail:77px}
+body[data-l5-sidebar="compact"] .v4-nav-label,body[data-l5-sidebar="compact"] .v4-rail-caption,
+body[data-l5-sidebar="compact"] .v4-sidebar-brand,body[data-l5-sidebar="compact"] .v4-sidebar-foot,
+body[data-l5-sidebar="compact"] .v4-rail-divider{display:none!important}
+body[data-l5-sidebar="compact"] .rail{padding:12px 8px!important;align-items:center!important}
+body[data-l5-sidebar="compact"] .rail .rail-button{width:53px!important;padding:0!important;justify-content:center!important}
+html[data-l5-motion="no"] :is(.l5-character,.l5-character-art,.rail-button,.l5-quickbar button){animation:none!important;transition:none!important}
+@media(max-width:1160px){:root{--l5-rail:191px}
+ .l5-hero-copy{max-width:68%}.l5-hero-character{width:230px;right:0;bottom:-128px}
+ .l5-quickbar{grid-template-columns:repeat(4,1fr)}.l5-quickbar>span{display:none}
+ body.app-page .v4-sidebar-brand strong{font-size:15px!important}
+}
+@media(max-width:780px){:root{--l5-rail:64px}
+ body.app-page #boltShell{grid-template-rows:48px 49px minmax(0,1fr)!important}
+ body.app-page .bolt-brand{width:52px!important;min-width:52px!important;padding:0!important}
+ body.app-page .brand-name{display:none!important}
+ body.app-page .rail{padding:9px 6px!important;align-items:center!important}
+ body.app-page .v4-sidebar-brand,body.app-page .v4-rail-caption,body.app-page .v4-rail-divider,
+ body.app-page .v4-nav-label,body.app-page .v4-sidebar-foot{display:none!important}
+ body.app-page .rail .rail-button{width:48px!important;height:46px!important;justify-content:center!important;padding:0!important}
+ body.app-page .toolbar{padding:5px 7px!important;gap:6px!important}
+ .v4-status-pill{display:none!important}
+ .v4-theme-switch button{width:27px!important}
+ body.app-page #hubMount .v5-dashboard-inner{padding:13px 10px 35px!important}
+ .l5-welcome-banner{min-height:230px;padding:20px 18px;border-radius:14px}
+ .l5-hero-copy{max-width:78%}
+ .l5-hero-copy h1{font-size:clamp(27px,6vw,40px)}
+ .l5-hero-copy p{font-size:11px}
+ .l5-hero-foot{display:none}
+ .l5-hero-character{width:170px;right:-31px;bottom:-94px}
+ .l5-quickbar{grid-template-columns:repeat(2,1fr)}
+ .l5-quickbar button{min-height:44px}
+}
+@media(max-width:450px){.l5-hero-copy{max-width:86%}.l5-hero-character{width:145px;right:-48px;bottom:-86px;opacity:.85}
+ .l5-hero-buttons button{padding:10px 9px;font-size:10px}
+ .l5-eyebrow{font-size:8px}
+ .l5-welcome-banner{min-height:240px}
+ .l5-library-hello{padding:14px 16px}
+ .l5-library-character{right:0;opacity:.75}
+}
