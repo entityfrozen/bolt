@@ -118,12 +118,16 @@ test("Preferences and game scores persist between sessions, isolated by account"
  assert.equal((await request(origin,"/api/account/settings/appearance",alice,"PUT",{value:prefs})).status,200);
  assert.equal((await request(origin,"/api/account/settings/channels",alice,"PUT",{value:{"lightning-main":"announcements"}})).status,200);
  assert.equal((await request(origin,"/api/account/settings/gameScores",alice,"PUT",{value:{best2048:1024}})).status,200);
+ const chan={seen:true,theme:"light",voice:true,engine:"browser",hud:{side:"left",scale:95,motion:false}};
+ assert.equal((await request(origin,"/api/account/settings/chan.settings",alice,"PUT",{value:chan})).status,200);
  const newSession=(await request(origin,"/api/login","","POST",{username:"account-a",password:"test-account-password-456"})).cookie;
  const settings=(await request(origin,"/api/account/settings",newSession)).data.settings;
  assert.deepEqual(settings.appearance,prefs);
  assert.equal(settings.channels["lightning-main"],"announcements");
  assert.equal(settings.gameScores.best2048,1024);
+ assert.deepEqual(settings["chan.settings"],chan);
  assert.deepEqual((await request(origin,"/api/account/settings",bob)).data.settings,{});
+ assert.equal((await request(origin,"/api/account/settings",bob)).data.settings["chan.settings"],undefined);
  assert.equal((await request(origin,"/api/account/settings/secrets",alice,"PUT",{value:"x"})).status,400);
 });
 
