@@ -45,6 +45,10 @@ test("Guided tutorial highlights actual UI elements and uses the requested dialo
  assert.match(tour,/const VERSION=4|VERSION=4/);
  assert.match(tour,/tourVersion=VERSION/);
  assert.match(tour,/lightning:account-settings-loaded/);
+ assert.match(tour,/lightning-chan-v4\.avif/);
+ const sprite=fs.readFileSync(new URL("../public/assets/lightning-chan-v4.avif",import.meta.url));
+ assert.ok(sprite.length>30000&&sprite.length<150000,"Mascot image should be optimized for the browser.");
+ assert.equal(sprite.toString("ascii",4,8),"ftyp");
  assert.match(guideCss,/\.v4-tour-spotlight/);
  assert.match(guideCss,/\.v4-character-dialogue/);
  assert.match(guideCss,/@media\(max-width:830px\)/);

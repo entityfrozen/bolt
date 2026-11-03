@@ -55,7 +55,7 @@ const root=document.createElement("div");
 root.id="v4CompanionRoot";
 root.innerHTML=
  '<button id="v4Companion" type="button" aria-label="Open Lightning-chan guide" title="Lightning-chan · click for help">'+
- '<img src="/assets/lightning-chan.svg" alt=""><b>✦</b></button>'+
+ '<img src="/assets/lightning-chan-v4.avif" alt=""><b>✦</b></button>'+
  '<div id="v4HudWidget" class="v4-hud-widget" hidden><div class="v4-hud-heading" id="v4HudDrag"><span>✦ LIGHTNING HUD</span>'+
  '<button id="v4HudClose" type="button" aria-label="Hide HUD">×</button></div><strong id="v4HudClock">--:--</strong>'+
  '<span>YOUR WORKSPACE</span><div><button type="button" data-v4-jump="announcements">Announcements</button>'+
@@ -73,7 +73,7 @@ root.innerHTML=
  '<button id="v4TourBack" type="button" class="v4-btn-quiet">← Back</button>'+
  '<button id="v4TourNext" type="button" class="v4-btn-primary">Next →</button></div></footer></section>'+
  '<aside class="v4-tour-character"><span class="v4-character-kicker">✧ SYSTEM COMPANION / ONLINE</span>'+
- '<div class="v4-character-orbit"></div><img id="v4TourArt" src="/assets/lightning-chan.svg" alt="Lightning-chan, your 2D anime guide">'+
+ '<div class="v4-character-orbit"></div><img id="v4TourArt" src="/assets/lightning-chan-v4.avif" alt="Lightning-chan, your 2D anime guide">'+
  '<div class="v4-character-dialogue"><div class="v4-dialogue-title"><strong>ϟ Lightning-chan</strong>'+
  '<button id="v4LinePlay" type="button" title="Play this voiceline">▶ Listen</button></div>'+
  '<p id="v4TourLine" aria-live="polite"></p><div class="v4-voice-row"><label>'+
