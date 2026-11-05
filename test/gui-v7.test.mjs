@@ -28,6 +28,22 @@ test("Three completely different shell arrangements are available",()=>{
   assert.match(noir,/backdrop-filter:none/);
 });
 
+test("Home screens do not render decorative GUI numbers or status banners",()=>{
+  const removed=[
+    "YOUR DESKTOP","AURA — 01/03","YOUR SPACE IS READY",
+    "NOVA / PERSONAL COMMAND DECK","ALL SYSTEMS OPEN","THE NEXT CHAPTER / 02",
+    "LIGHTNING SYSTEM","SESSION ACTIVE","MINIMAL WORKBENCH"
+  ];
+  for(const label of removed)assert.ok(!engine.includes(label),"Decorative heading still present: "+label);
+  for(const cls of ["ln7-aura-top","ln7-status","ln7-nova-head","ln7-nova-label",
+    "ln7-noir-top","ln7-noir-number","ln7-noir-eyebrow"]){
+    for(const source of [engine,aura,nova,noir])
+      assert.ok(!source.includes(cls),"Unused label class still present: "+cls);
+  }
+  for(const name of ["form","recent","saved","quick","suggestion"])
+    assert.match(engine,new RegExp('data-ln7="'+name+'"'));
+});
+
 test("Native controls are relocated rather than replaced by mockups",()=>{
   for(const id of ["newtabForm","recentList","bookmarkList","lightningSuggestionButton"])
     assert.ok(engine.includes('$("#'+id+'")'),"missing native control "+id);
