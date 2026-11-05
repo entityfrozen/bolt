@@ -58,6 +58,13 @@ export function installCommunityUI(Hub){
     const c=s.channels.find(c=>c.id===b.dataset.channel);if(!c)return;
     this.send({type:"v2EditChannel",serverId:s.id,channel:c.id,[action==="readonly"?"readOnly":"staffOnly"]:!(action==="readonly"?c.readOnly:c.staffOnly)});
    }
+   if(action==="clear-channel"){
+    const channel=s.channels.find(c=>c.id===b.dataset.channel);
+    if(!channel)return;
+    const answer=prompt('Delete all messages in #'+channel.name+'? Type CLEAR to confirm.');
+    if(answer==="CLEAR")this.send({type:"v2ClearChannel",serverId:s.id,channel:channel.id});
+    return;
+   }
    if(action==="rename-channel"){
     const c=s.channels.find(c=>c.id===b.dataset.channel),name=c&&prompt("Channel name",c.name);
     if(name?.trim())this.send({type:"v2EditChannel",serverId:s.id,channel:c.id,name:name.trim()});
@@ -118,6 +125,10 @@ export function installCommunityUI(Hub){
   });
   this.root.addEventListener("change",event=>{
    const el=event.target;
+   if(el.id==="dcClearChannelSelect"){
+    const control=this.$("#dcClearChannelButton");if(control)control.dataset.channel=el.value;
+    return;
+   }
    if(el.id==="cmChannelSelect"){
     const server=this.currentCommunity();
     if(!server?.channels.some(c=>c.id===el.value))return;
@@ -264,6 +275,14 @@ export function installCommunityUI(Hub){
      (s.inviteOnly?'<div class="cm-invite-row"><code>'+esc(s.inviteCode||"Generating…")+'</code><button type="button" data-cm="copy-invite">Copy invite</button><button type="button" data-cm="rotate-invite">Reset link</button></div>':"")+
      '</section><section class="cm-card cm-danger-zone"><h3>Delete server</h3><p>Deletes all its channels, roles and messages. This cannot be undone.</p>'+
      '<button type="button" data-cm="delete-server">'+icon("trash-2")+' Delete '+esc(s.name)+'</button></section>');
+  }
+  if(this.manageTab==="channels"){
+   html+='<section class="cm-card"><h3>Channel moderation</h3>'+
+    '<p>Clear a channel without deleting the channel, its roles or its members. This cannot be undone.</p>'+
+    '<div class="dc-manager-danger"><p>Choose a channel to clear its message history.</p>'+
+    '<select id="dcClearChannelSelect" aria-label="Channel to clear">'+
+    s.channels.map(c=>'<option value="'+esc(c.id)+'"># '+esc(c.name)+'</option>').join("")+
+    '</select><button data-cm="clear-channel" data-channel="'+esc(this.v2Channel)+'" id="dcClearChannelButton">Clear messages</button></div></section>';
   }
   this.$("#cmContent").innerHTML=html;
   this.$("#cmContent").scrollTop=previousScroll;
