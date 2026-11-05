@@ -1,0 +1,232 @@
+/* NOVA — full-bleed observatory, upper command bar and bottom application dock. */
+html[data-ln7-gui=nova] body.app-page{
+ --ln7-bg:#080a23;--ln7-fg:#faf7ff;--ln7-dim:#b9add3;--ln7-accent:#d1a4ff;
+ --ln7-line:#cfabff4c;--ln7-card:#141034b3;
+}
+html[data-ln7-gui=nova] body.app-page .bolt-shell{
+ grid-template-columns:minmax(0,1fr)!important;
+ grid-template-rows:74px 50px minmax(0,1fr) 76px!important;
+ grid-template-areas:"toolbar" "tabbar" "stage" "rail"!important;
+ background:radial-gradient(ellipse 36% 52% at 82% 18%,#8d46d765,transparent 82%),
+ radial-gradient(ellipse 52% 49% at 22% 86%,#2d7ec657,transparent 78%),
+ linear-gradient(136deg,#0b0d31,#100a2e 56%,#101330)!important;
+}
+html[data-ln7-gui=nova] body.app-page .toolbar{
+ margin:13px 22px 5px!important;height:auto!important;padding:0 18px!important;
+ border:1px solid #e8caff63!important;border-radius:18px!important;
+ background:linear-gradient(110deg,#ffffff24,#b984ff0d 43%,#ffffff18),rgba(15,12,42,.57)!important;
+ backdrop-filter:blur(33px) saturate(170%)!important;-webkit-backdrop-filter:blur(33px) saturate(170%)!important;
+ box-shadow:inset 0 1px #ffffff77,0 16px 34px #0006!important;
+}
+html[data-ln7-gui=nova] body.app-page .toolbar:before{
+ content:"NOVA  ◈";color:#efdaff;font:800 11px "IBM Plex Mono",monospace;letter-spacing:.16em;white-space:nowrap;margin-right:15px;
+}
+html[data-ln7-gui=nova] body.app-page .toolbar .address-form{
+ max-width:870px!important;margin-inline:auto!important;height:40px!important;
+ border-radius:999px!important;background:#03071b8c!important;
+ border:1px solid #d5b5ff53!important;
+}
+html[data-ln7-gui=nova] body.app-page .toolbar .address-go{border-radius:99px!important}
+html[data-ln7-gui=nova] body.app-page .toolbar .nav-cluster{order:0}
+html[data-ln7-gui=nova] body.app-page .toolbar #bookmarkBtn{order:2}
+html[data-ln7-gui=nova] body.app-page .toolbar .gx-launch{order:3}
+html[data-ln7-gui=nova] body.app-page .toolbar #menuBtn{order:5}
+html[data-ln7-gui=nova] body.app-page .ln7-toolbar-switch{display:none!important}
+html[data-ln7-gui=nova] body.app-page .tabbar{
+ margin:3px 22px 5px!important;padding:0 5px!important;
+ border:0!important;border-radius:12px!important;background:transparent!important;
+ backdrop-filter:none!important;-webkit-backdrop-filter:none!important;box-shadow:none!important;
+}
+html[data-ln7-gui=nova] body.app-page .bolt-brand{
+ width:165px!important;min-width:130px!important;height:37px!important;border:0!important;padding:0 10px!important;
+ background:transparent!important;
+}
+html[data-ln7-gui=nova] body.app-page .bolt-brand .brand-symbol{background:#ffffff12!important;border:1px solid #ffffff42!important}
+html[data-ln7-gui=nova] body.app-page .tab{
+ border-radius:999px!important;border:1px solid #caa2ff41!important;
+ background:#a8a0ff0e!important;color:#d9c9ee!important;height:34px!important;
+}
+html[data-ln7-gui=nova] body.app-page .tab.active{
+ background:#bd9df92f!important;color:#fff!important;border:1px solid #eacbff75!important;
+ box-shadow:0 0 18px #ad69ef2b,inset 0 1px #fff5!important;
+}
+html[data-ln7-gui=nova] body.app-page .tab-new{border:1px solid #ffffff2c!important;border-radius:50%!important;height:34px!important;width:34px!important}
+html[data-ln7-gui=nova] body.app-page .ln7-tab-switch{display:none!important}
+html[data-ln7-gui=nova] body.app-page .rail{
+ margin:6px auto 16px!important;width:max-content!important;max-width:calc(100% - 26px)!important;
+ height:60px!important;align-self:center;justify-self:center;
+ flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:5px!important;
+ border-radius:21px!important;padding:6px 9px!important;overflow-x:auto;overflow-y:hidden;
+ background:linear-gradient(145deg,#ffffff30,#ffffff08 49%),rgba(26,16,63,.64)!important;
+ border:1px solid #e9cdff6a!important;
+ backdrop-filter:blur(37px) saturate(185%)!important;-webkit-backdrop-filter:blur(37px) saturate(185%)!important;
+ box-shadow:inset 0 1px #ffffff80,0 18px 42px #0008,0 0 41px #7c50bf3b!important;
+}
+html[data-ln7-gui=nova] body.app-page .ln7-rail-brand,
+html[data-ln7-gui=nova] body.app-page .ln7-nav-kicker,
+html[data-ln7-gui=nova] body.app-page .ln7-rail-end{display:none!important}
+html[data-ln7-gui=nova] body.app-page .ln7-nav-group,
+html[data-ln7-gui=nova] body.app-page .ln7-nav-main,
+html[data-ln7-gui=nova] body.app-page .ln7-tools-nav{
+ display:flex!important;flex-direction:row!important;align-items:center;gap:4px;
+}
+html[data-ln7-gui=nova] body.app-page .ln7-nav-group-tools{
+ margin-left:9px;padding-left:9px;border-left:1px solid #ffffff35
+}
+html[data-ln7-gui=nova] body.app-page .rail .rail-button:not(.admin-only){
+ width:48px!important;height:44px!important;padding:0!important;justify-content:center!important;
+ border-radius:14px!important;color:#dfceee!important;
+}
+html[data-ln7-gui=nova] body.app-page .rail .rail-button.active{
+ background:#cfaaff32!important;border:1px solid #e7ccff80!important;color:#fff!important;
+ box-shadow:inset 0 1px #ffffff58,0 8px 18px #0004!important;
+}
+html[data-ln7-gui=nova] body.app-page .rail .rail-button:hover{background:#ffffff25!important;color:#fff!important}
+html[data-ln7-gui=nova] body.app-page .rail .ln7-nav-label{display:none!important}
+html[data-ln7-gui=nova] body.app-page .ln7-rail-switch{
+ width:49px;height:44px;min-width:49px;padding:0!important;margin-left:5px;
+}
+html[data-ln7-gui=nova] body.app-page .ln7-rail-switch b{display:none}
+html[data-ln7-gui=nova] body.app-page .browser-stage{
+ margin:3px 22px 1px!important;border-radius:23px!important;
+ border:1px solid #c6afff2d!important;
+ background:linear-gradient(115deg,#ffffff0b,#190a3c42)!important;
+ box-shadow:inset 0 1px #ffffff20,0 18px 50px #0005!important;
+}
+html[data-ln7-gui=nova] body.app-page .ln7-home{
+ background:radial-gradient(ellipse at 73% 15%,#7843e444,transparent 62%),linear-gradient(160deg,#080d2c66,#120b3477)!important;
+}
+html[data-ln7-gui=nova] .ln7-nova{width:100%;min-height:100%;padding:26px clamp(24px,4vw,62px) 32px;position:relative}
+html[data-ln7-gui=nova] .ln7-nova-head{color:#c7b8e6;font:700 10px "IBM Plex Mono",monospace;letter-spacing:.13em;padding-bottom:14px;border-bottom:1px solid #ffffff22}
+html[data-ln7-gui=nova] .ln7-nova-head b{color:#77ffce;font-size:13px}
+html[data-ln7-gui=nova] .ln7-nova-hero{position:relative;min-height:390px;display:grid;place-items:center;isolation:isolate;padding:40px 8px 28px}
+html[data-ln7-gui=nova] .ln7-nova-orbit{
+ position:absolute;inset:-85px 0 auto;left:50%;top:-72px;width:650px;height:580px;
+ transform:translateX(-50%);pointer-events:none;z-index:-1;display:grid;place-items:center;
+ filter:drop-shadow(0 0 55px #b054e64c);
+}
+html[data-ln7-gui=nova] .ln7-nova-orbit:before{
+ content:"";position:absolute;inset:105px 164px 145px;border-radius:50%;
+ background:radial-gradient(circle at 35% 31%,#f4ceffcc,#cf69fe99 25%,#7035c49c 56%,#28105b 82%);
+ border:1px solid #f3c5ff7d;box-shadow:inset 12px 22px 47px #ffffff31,inset -19px -25px 47px #0f0a568c,0 0 110px #a957ea99;
+}
+html[data-ln7-gui=nova] .ln7-nova-orbit i{
+ position:absolute;border:1px solid #e4b3ff47;border-radius:50%;
+ transform:rotateX(54deg) rotateZ(-18deg);box-shadow:0 0 28px #da9cfb1d;
+}
+html[data-ln7-gui=nova] .ln7-nova-orbit i:nth-child(1){width:570px;height:560px}
+html[data-ln7-gui=nova] .ln7-nova-orbit i:nth-child(2){width:650px;height:420px;transform:rotateX(59deg) rotateZ(30deg)}
+html[data-ln7-gui=nova] .ln7-nova-orbit i:nth-child(3){width:420px;height:630px;transform:rotateY(69deg) rotateZ(21deg)}
+html[data-ln7-gui=nova] .ln7-nova-orbit span{
+ position:relative;z-index:1;font-size:98px;color:#ffffffbc;text-shadow:0 0 60px #ffe2ff88;mix-blend-mode:screen;
+}
+html[data-ln7-gui=nova] .ln7-nova-content{text-align:center;min-width:0;z-index:1;width:min(765px,96%)}
+html[data-ln7-gui=nova] .ln7-nova-label{
+ display:block;margin-bottom:14px;color:#f3e8ff;font:800 10px "IBM Plex Mono",monospace;letter-spacing:.22em;
+}
+html[data-ln7-gui=nova] .ln7-nova-content h1{
+ color:white!important;font-weight:760!important;letter-spacing:-.083em!important;
+ font-size:clamp(57px,7.3vw,109px)!important;line-height:.96!important;margin:0 0 16px!important;
+ text-shadow:0 9px 35px #150c3f9e;
+}
+html[data-ln7-gui=nova] .ln7-nova-content h1 em{
+ color:#e3bdff;display:block;font-style:normal;font-weight:650;text-shadow:0 0 45px #ad5de565;
+}
+html[data-ln7-gui=nova] .ln7-nova-content>p{font-size:13px;color:#e4d8f1;margin:0 0 28px}
+html[data-ln7-gui=nova] .ln7-nova-query{
+ width:100%;padding:7px;border:1px solid #ffffff73;border-radius:24px;
+ background:linear-gradient(120deg,#ffffff2c,#ffffff0b),rgba(23,11,56,.48);
+ backdrop-filter:blur(34px) saturate(185%);-webkit-backdrop-filter:blur(34px) saturate(185%);
+ box-shadow:inset 0 1px #ffffff8e,0 17px 45px #0008,0 0 53px #a167e638;
+}
+html[data-ln7-gui=nova] .ln7-nova-query .ln7-search-form{
+ height:53px!important;background:#0709237e!important;border-color:#ffffff42!important;
+ border-radius:18px!important;
+}
+html[data-ln7-gui=nova] .ln7-nova-query .ln7-search-form input{font-size:15px!important}
+html[data-ln7-gui=nova] .ln7-nova-actions{justify-content:center;margin-top:19px}
+html[data-ln7-gui=nova] .ln7-nova-actions .lightning-quick{
+ color:#f6edff!important;background:rgba(63,31,111,.36)!important;
+ border:1px solid #d9abff59!important;border-radius:999px!important;
+ backdrop-filter:blur(15px);
+}
+html[data-ln7-gui=nova] .ln7-nova-actions .lightning-quick:hover{background:#a759ec5c!important}
+html[data-ln7-gui=nova] .ln7-nova-floating{
+ display:flex;flex-direction:column;gap:7px;position:absolute;right:-9px;top:80px;
+ width:166px;padding:17px;border:1px solid #e8c8ff6a;border-radius:18px;
+ background:linear-gradient(130deg,#ffffff2b,#ffffff06),rgba(36,17,80,.46);
+ backdrop-filter:blur(30px);box-shadow:inset 0 1px #fff7,0 20px 43px #0005;
+ transform:rotate(4deg);
+}
+html[data-ln7-gui=nova] .ln7-nova-floating span{font:650 9px "IBM Plex Mono",monospace;color:#d7b8ff;letter-spacing:.1em}
+html[data-ln7-gui=nova] .ln7-nova-floating strong{font-size:19px}
+html[data-ln7-gui=nova] .ln7-nova-floating b{font-size:20px}
+html[data-ln7-gui=nova] .ln7-nova-floating p{font-size:10px;color:#d7c7e9;margin:0}
+html[data-ln7-gui=nova] .ln7-nova-floating button{
+ background:#e9baff;color:#251041;border:0;border-radius:9px;padding:9px;margin-top:6px;font-size:11px;font-weight:760
+}
+html[data-ln7-gui=nova] .ln7-nova-panels{
+ display:grid;grid-template-columns:1fr 1fr 1fr;gap:13px;margin-top:12px;
+}
+html[data-ln7-gui=nova] .ln7-nova-panels>section{
+ min-width:0;min-height:157px;padding:18px 19px;border:1px solid #d2acff47;border-radius:17px;
+ background:linear-gradient(130deg,#ffffff1b,#ffffff04),rgba(20,16,61,.52);
+ backdrop-filter:blur(23px);-webkit-backdrop-filter:blur(23px);
+ box-shadow:inset 0 1px #ffffff4d,0 15px 35px #0005;
+}
+html[data-ln7-gui=nova] .ln7-nova-panels header{
+ color:#c997ff;font:700 11px "IBM Plex Mono",monospace;letter-spacing:.08em;
+ margin-bottom:12px;justify-content:flex-start;gap:12px;
+}
+html[data-ln7-gui=nova] .ln7-nova-panels header span{color:#e3d9f3;font-size:10px}
+html[data-ln7-gui=nova] .ln7-nova-intro strong{font-size:17px;display:block;margin:5px 0 6px}
+html[data-ln7-gui=nova] .ln7-nova-intro p{font-size:11px;color:#c6bad9;margin:0}
+html[data-ln7-gui=nova] .ln7-nova-intro button{
+ margin-top:12px;background:#cba8f4;border:0;color:#241136;border-radius:9px;padding:8px 12px;font-size:11px;font-weight:750
+}
+html[data-ln7-gui=nova] .ln7-nova-intro .lightning-suggest-button{margin-top:12px!important}
+html[data-ln7-gui=nova] #hubMount{
+ background:radial-gradient(ellipse at 67% 30%,#7938b85e,transparent 63%),radial-gradient(ellipse at 27% 83%,#2f5fa65d,transparent 68%),#0b0922!important;
+}
+html[data-ln7-gui=nova] #hubMount .v3-shell>.v4-nav-shell,
+html[data-ln7-gui=nova] #hubMount .v3-shell>.v2-main,
+html[data-ln7-gui=nova] #hubMount .v3-shell>.v3-inspector{
+ background:linear-gradient(126deg,#e5baff25,#ffffff05),rgba(23,11,57,.54)!important;
+ border-color:#dbb0ff5b!important;border-radius:19px!important;
+ backdrop-filter:blur(30px) saturate(180%)!important;-webkit-backdrop-filter:blur(30px) saturate(180%)!important;
+ box-shadow:inset 0 1px #ffffff6c,0 22px 60px #0008,0 0 35px #a54fd624!important;
+}
+@media(max-width:1130px){
+ html[data-ln7-gui=nova] .ln7-nova-floating{display:none}
+ html[data-ln7-gui=nova] .ln7-nova-panels{grid-template-columns:1fr 1fr}
+ html[data-ln7-gui=nova] .ln7-nova-intro{grid-column:1/-1}
+}
+@media(max-width:720px){
+ html[data-ln7-gui=nova] body.app-page .bolt-shell{grid-template-rows:58px 42px minmax(0,1fr) 71px!important}
+ html[data-ln7-gui=nova] body.app-page .toolbar{margin:5px 8px 3px!important;padding:0 8px!important;gap:5px!important;border-radius:12px!important}
+ html[data-ln7-gui=nova] body.app-page .toolbar:before{display:none}
+ html[data-ln7-gui=nova] body.app-page .toolbar #forwardBtn{display:none}
+ html[data-ln7-gui=nova] body.app-page .tabbar{margin:1px 8px 3px!important}
+ html[data-ln7-gui=nova] body.app-page .bolt-brand{width:39px!important;min-width:39px!important;padding:0!important}
+ html[data-ln7-gui=nova] body.app-page .bolt-brand .brand-name{display:none}
+ html[data-ln7-gui=nova] body.app-page .rail{height:54px!important;max-width:calc(100% - 12px)!important;margin:3px auto 9px!important;border-radius:17px!important}
+ html[data-ln7-gui=nova] body.app-page .rail .rail-button:not(.admin-only){width:40px!important;height:39px!important}
+ html[data-ln7-gui=nova] body.app-page .ln7-rail-switch{min-width:40px;width:40px;height:39px}
+ html[data-ln7-gui=nova] body.app-page .browser-stage{margin:3px 8px!important;border-radius:14px!important}
+ html[data-ln7-gui=nova] .ln7-nova{padding:23px 15px}
+ html[data-ln7-gui=nova] .ln7-nova-hero{min-height:325px;padding:25px 0}
+ html[data-ln7-gui=nova] .ln7-nova-orbit{width:450px;height:430px;top:-40px}
+ html[data-ln7-gui=nova] .ln7-nova-orbit:before{inset:70px 100px 95px}
+ html[data-ln7-gui=nova] .ln7-nova-orbit i:nth-child(1){width:400px;height:370px}
+ html[data-ln7-gui=nova] .ln7-nova-orbit i:nth-child(2){width:420px;height:300px}
+ html[data-ln7-gui=nova] .ln7-nova-orbit i:nth-child(3){width:330px;height:420px}
+ html[data-ln7-gui=nova] .ln7-nova-content h1{font-size:clamp(45px,10vw,75px)!important}
+ html[data-ln7-gui=nova] .ln7-nova-panels{grid-template-columns:1fr}
+ html[data-ln7-gui=nova] .ln7-nova-intro{grid-column:auto}
+}
+@media(max-width:480px){
+ html[data-ln7-gui=nova] body.app-page .rail{gap:2px!important;padding:5px!important}
+ html[data-ln7-gui=nova] body.app-page .ln7-nav-group-tools{padding-left:4px;margin-left:4px}
+ html[data-ln7-gui=nova] body.app-page .rail .rail-button:not(.admin-only){width:35px!important}
+ html[data-ln7-gui=nova] body.app-page .ln7-rail-switch{width:36px;min-width:36px;padding:0!important}
+}
