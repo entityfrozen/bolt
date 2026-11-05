@@ -109,7 +109,6 @@
   function drawLesson(index) {
     const dialog=createGuide();
     const lesson=lessons[index] || lessons[0];
-    $$("button",".gx-guide-aside"===0?document:dialog); // No framework: chapter buttons are ordinary DOM nodes.
     $$(".gx-guide-aside button",dialog).forEach((btn,i)=>{btn.classList.toggle("active",i===index);btn.setAttribute("aria-current",i===index?"page":"false");});
     const content=$(".gx-guide-main",dialog);
     content.innerHTML='<div class="gx-guide-graphic"><span>'+escapeHtml(lesson.art)+'</span></div>'+
@@ -284,6 +283,9 @@
     if(index<0){closeTour();return;}
     if(index>=steps.length){closeTour(true);return;}
     tourIndex=index;
+    // Keep navigation visible even after clicking a Community or Library tour target.
+    const hub=$("#hubMount");
+    if(hub && !hub.hidden)hub.hidden=true;
     createTour();
     updateTourCard();
     positionTour();
