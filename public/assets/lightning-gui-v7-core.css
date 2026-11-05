@@ -1,0 +1,252 @@
+/* Lightning v7 — shared mechanics for three real layouts.
+ * The native browser, account and hub are unchanged. Only their shell is rearranged. */
+html[data-ln7-gui]{color-scheme:dark}
+html[data-ln7-gui] body.app-page{
+ --ln7-fg:#f4f6ff;--ln7-dim:#aeb7cb;--ln7-accent:#9cc5ff;
+ --ln7-line:#ffffff36;--ln7-bg:#101726;--ln7-card:#151e34c9;
+ background:var(--ln7-bg)!important;color:var(--ln7-fg)!important;
+}
+html[data-ln7-gui] body.app-page .bolt-shell{
+ display:grid!important;width:100%!important;height:100dvh!important;
+ max-width:100%!important;min-height:0!important;overflow:hidden;
+ background:transparent!important;gap:0!important;
+}
+html[data-ln7-gui] body.app-page .workarea{
+ display:contents!important;
+}
+html[data-ln7-gui] body.app-page .tabbar,
+html[data-ln7-gui] body.app-page .toolbar,
+html[data-ln7-gui] body.app-page .rail,
+html[data-ln7-gui] body.app-page .browser-stage{
+ position:relative;min-width:0;min-height:0;box-sizing:border-box;
+}
+html[data-ln7-gui] body.app-page .tabbar{
+ grid-area:tabbar;display:flex!important;align-items:center!important;
+ height:auto!important;min-height:0!important;gap:10px;
+}
+html[data-ln7-gui] body.app-page .toolbar{
+ grid-area:toolbar;display:flex!important;align-items:center!important;
+ height:auto!important;min-height:0!important;gap:10px;
+}
+html[data-ln7-gui] body.app-page .toolbar .nav-cluster{display:flex;gap:3px}
+html[data-ln7-gui] body.app-page .toolbar .address-form{
+ flex:1;min-width:0!important;width:auto!important;max-width:none;
+}
+html[data-ln7-gui] body.app-page .rail{
+ grid-area:rail;display:flex!important;overflow:auto;min-width:0!important;width:auto!important;
+}
+html[data-ln7-gui] body.app-page .browser-stage{
+ grid-area:stage;overflow:hidden!important;
+}
+html[data-ln7-gui] body.app-page .side-panel{
+ position:fixed!important;right:15px!important;top:90px!important;bottom:15px!important;
+ z-index:800!important;width:min(var(--panel-width,405px),calc(100vw - 30px))!important;
+ height:auto!important;max-height:none!important;transform:translateX(calc(100% + 40px));
+ opacity:0!important;pointer-events:none!important;border-radius:16px!important;
+ transition:transform .23s ease,opacity .23s ease;
+}
+html[data-ln7-gui] body.app-page .workarea.panel-open .side-panel{
+ opacity:1!important;transform:translateX(0);pointer-events:auto!important
+}
+html[data-ln7-gui] body.app-page .frame-stack{pointer-events:none}
+html[data-ln7-gui] body.app-page .frame-stack>.proxy-frame.active{pointer-events:auto}
+html[data-ln7-gui] body.app-page .bolt-brand{
+ display:flex;align-items:center;gap:9px;min-width:0;height:auto!important;
+}
+html[data-ln7-gui] body.app-page .bolt-brand .brand-name{font-size:15px;white-space:nowrap}
+html[data-ln7-gui] body.app-page .tabs{
+ display:flex!important;min-width:0;min-height:0;align-items:center!important;
+ flex:1;overflow-x:auto;overflow-y:hidden;gap:5px;
+}
+html[data-ln7-gui] body.app-page .tab{
+ min-width:115px;max-width:195px;min-height:35px;height:36px!important;
+ border-radius:10px!important;
+}
+html[data-ln7-gui] body.app-page .tab.active:after{display:none}
+html[data-ln7-gui] body.app-page .rail .ln7-nav-label{
+ display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+ font:600 12px/1.2 "Instrument Sans",system-ui,sans-serif;
+}
+html[data-ln7-gui] body.app-page .rail .ln7-nav-group,
+html[data-ln7-gui] body.app-page .rail .ln7-main-nav,
+html[data-ln7-gui] body.app-page .rail .ln7-tools-nav{min-width:0}
+html[data-ln7-gui] body.app-page .rail .ln7-nav-heading,
+html[data-ln7-gui] body.app-page .rail .ln7-nav-kicker{
+ display:block;font:700 9px "IBM Plex Mono",monospace;letter-spacing:.14em;color:var(--ln7-dim);margin-bottom:10px;
+}
+html[data-ln7-gui] body.app-page .rail .rail-button:not(.admin-only){
+ display:flex!important;align-items:center;justify-content:flex-start;gap:12px;
+ padding:0 14px!important;min-width:0;width:100%!important;height:42px!important;
+ border:1px solid transparent;flex:none;
+}
+html[data-ln7-gui] body.app-page .rail .rail-button.admin-only{display:none!important}
+html[data-ln7-gui] body.app-page.admin-mode .rail .rail-button.admin-only{
+ display:flex!important;align-items:center;justify-content:flex-start;gap:12px;
+ padding:0 14px!important;min-width:0;width:100%!important;height:42px!important;flex:none;
+}
+html[data-ln7-gui] body.app-page .rail-button svg{flex:none}
+html[data-ln7-gui] body.app-page .ln7-rail-brand{
+ display:flex;align-items:center;gap:12px;min-width:0;
+}
+html[data-ln7-gui] body.app-page .ln7-rail-brand img{width:38px;height:38px;object-fit:contain;flex:none}
+html[data-ln7-gui] body.app-page .ln7-rail-brand span{min-width:0;display:flex;flex-direction:column;gap:4px}
+html[data-ln7-gui] body.app-page .ln7-rail-brand strong{font-size:21px;letter-spacing:-.065em;font-weight:780}
+html[data-ln7-gui] body.app-page .ln7-rail-brand small{font:650 8px "IBM Plex Mono",monospace;letter-spacing:.16em;color:var(--ln7-dim)}
+html[data-ln7-gui] body.app-page .ln7-nav-main,
+html[data-ln7-gui] body.app-page .ln7-tools-nav{display:flex;gap:5px}
+html[data-ln7-gui] body.app-page .ln7-rail-end{
+ display:flex;align-items:center;gap:10px;font-size:11px;font-weight:650;
+}
+html[data-ln7-gui] body.app-page .ln7-rail-end small{display:block;margin-top:3px;color:var(--ln7-dim);font-size:10px;font-weight:500}
+html[data-ln7-gui] body.app-page .ln7-rail-orbit{font-size:22px;color:var(--ln7-accent)}
+html[data-ln7-gui] body.app-page .ln7-switch{
+ display:inline-flex!important;align-items:center;justify-content:center;gap:8px;
+ padding:0 13px;height:37px;flex:none;white-space:nowrap;
+ font:660 11px "Instrument Sans",system-ui,sans-serif;
+ border-radius:11px;border:1px solid var(--ln7-line);
+ background:#ffffff12;color:var(--ln7-fg);
+ cursor:pointer;transition:background .16s ease,transform .16s ease;
+}
+html[data-ln7-gui] body.app-page .ln7-switch:hover{background:#ffffff29;transform:translateY(-1px)}
+html[data-ln7-gui] body.app-page .ln7-switch span{font-size:18px;font-weight:450}
+html[data-ln7-gui] body.app-page .ln7-hub-switcher{
+ position:fixed!important;z-index:450!important;right:18px;top:14px;
+ background:rgba(27,31,55,.88)!important;backdrop-filter:blur(14px)!important;
+}
+html[data-ln7-gui] body.app-page .ln7-home{
+ position:absolute;inset:0;display:block!important;
+ background:none!important;overflow-y:auto!important;overflow-x:hidden!important;
+ color:var(--ln7-fg)!important;scrollbar-width:thin;
+}
+html[data-ln7-gui] body.app-page .ln7-home::before,
+html[data-ln7-gui] body.app-page .ln7-home::after{display:none!important}
+html[data-ln7-gui] body.app-page .ln7-home h1,
+html[data-ln7-gui] body.app-page .ln7-home h2,
+html[data-ln7-gui] body.app-page .ln7-home h3{font-family:"Instrument Sans",system-ui,sans-serif}
+html[data-ln7-gui] body.app-page .ln7-home p{line-height:1.65}
+html[data-ln7-gui] body.app-page .ln7-home button{cursor:pointer}
+html[data-ln7-gui] body.app-page .ln7-home header{
+ display:flex;align-items:center;justify-content:space-between;gap:12px;
+}
+html[data-ln7-gui] body.app-page .ln7-home header small{color:var(--ln7-dim);font-size:10px;letter-spacing:.06em}
+html[data-ln7-gui] body.app-page .ln7-home .ln7-search-form{
+ width:100%!important;max-width:none!important;
+ display:grid!important;grid-template-columns:44px minmax(0,1fr) auto!important;
+ height:58px!important;margin:0!important;padding:0 8px!important;
+ border-radius:14px!important;border:1px solid var(--ln7-line)!important;
+ align-items:center!important;
+}
+html[data-ln7-gui] body.app-page .ln7-home .ln7-search-form input{
+ width:100%;height:100%;min-width:0;color:var(--ln7-fg)!important;font-size:14px!important;
+}
+html[data-ln7-gui] body.app-page .ln7-home .ln7-search-form svg{width:20px}
+html[data-ln7-gui] body.app-page .ln7-home .newtab-keycap{white-space:nowrap}
+html[data-ln7-gui] body.app-page .ln7-home .ln7-shortcuts,
+html[data-ln7-gui] body.app-page .ln7-home .ln7-nova-actions{display:flex;flex-wrap:wrap;gap:9px}
+html[data-ln7-gui] body.app-page .ln7-home .lightning-quick{
+ display:inline-flex;align-items:center;justify-content:center;min-height:39px;
+ height:auto!important;padding:10px 14px!important;border-radius:10px!important;
+ font-size:11px!important;font-weight:660!important;cursor:pointer;
+}
+html[data-ln7-gui] body.app-page .ln7-home .recent-list{
+ display:grid;gap:2px;margin-top:10px;max-height:230px;overflow-y:auto;
+}
+html[data-ln7-gui] body.app-page .ln7-home .history-item,
+html[data-ln7-gui] body.app-page .ln7-home .recent-row{
+ min-width:0;color:var(--ln7-fg);border-color:var(--ln7-line);
+}
+html[data-ln7-gui] body.app-page .ln7-home .empty-row{color:var(--ln7-dim);font-size:11px}
+html[data-ln7-gui] body.app-page .ln7-home .lightning-suggest-button{
+ font-size:10px;margin:8px 0;color:var(--ln7-dim)!important;text-align:left;
+}
+html[data-ln7-gui] body.app-page .ln7-home [data-ln7-action],
+html[data-ln7-gui] body.app-page .ln7-home [data-ln7-route]{cursor:pointer}
+/* The gallery is a true GUI selection surface, not an appearance swatch. */
+.ln7-gallery{
+ position:fixed;inset:0;margin:auto;padding:0;width:min(1100px,calc(100vw - 28px));
+ max-width:none;max-height:calc(100dvh - 28px);overflow:auto;border-radius:25px;
+ border:1px solid #ffffff75;background:#121828ed;color:#f7f8ff;
+ box-shadow:0 40px 130px #000b;z-index:9999;
+ -webkit-backdrop-filter:blur(32px) saturate(140%);backdrop-filter:blur(32px) saturate(140%);
+ font:13px "Instrument Sans",system-ui,sans-serif;
+}
+.ln7-gallery[open]{display:block}
+.ln7-gallery::backdrop{background:#02050cd9;backdrop-filter:blur(9px)}
+.ln7-gallery *{box-sizing:border-box}
+.ln7-gallery-head{display:flex;justify-content:space-between;gap:16px;padding:30px 32px 22px;border-bottom:1px solid #ffffff2a}
+.ln7-gallery-head span{font:750 10px "IBM Plex Mono",monospace;letter-spacing:.14em;color:#a9d1ff}
+.ln7-gallery-head h2{font-size:clamp(28px,4vw,43px);margin:10px 0 4px;letter-spacing:-.07em}
+.ln7-gallery-head p{color:#bbc4d7;font-size:13px;margin:0}
+.ln7-gallery-head button{flex:none;width:40px;height:40px;border:1px solid #ffffff45;border-radius:13px;background:#ffffff12;color:#fff;font-size:24px}
+.ln7-gallery-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;padding:23px 27px}
+.ln7-layout-choice{
+ display:flex;flex-direction:column;gap:11px;text-align:left;padding:17px;min-width:0;
+ background:linear-gradient(140deg,#ffffff15,#ffffff05);color:#fff;
+ border:1px solid #ffffff39;border-radius:18px;cursor:pointer;
+ transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;
+}
+.ln7-layout-choice:hover{transform:translateY(-4px);border-color:#ffffff88}
+.ln7-layout-choice.active{border:2px solid #a8c9ff;padding:16px;box-shadow:0 0 0 3px #a4caff25}
+.ln7-gallery-num{display:flex;justify-content:space-between;color:#a1b2cc;font:700 10px "IBM Plex Mono",monospace}
+.ln7-gallery-num b{font-size:15px;font-family:"Instrument Sans",sans-serif}
+.ln7-gallery-mini{position:relative;display:block;aspect-ratio:1.65;border-radius:12px;overflow:hidden;border:1px solid #ffffff25}
+.ln7-gallery-mini i{position:absolute;display:block}
+.ln7-mini-side{left:4%;top:6%;bottom:6%;width:18%;background:#ffffff26;border-radius:5px}
+.ln7-mini-top{left:25%;top:6%;right:4%;height:13%;background:#ffffff2c;border-radius:4px}
+.ln7-mini-center{left:25%;top:23%;right:4%;bottom:6%;background:#ffffff12;border-radius:6px}
+.ln7-mini-center i:nth-child(1){left:8%;top:12%;width:60%;height:10%;background:#ffffff60;border-radius:4px}
+.ln7-mini-center i:nth-child(2){left:8%;top:32%;width:84%;height:24%;background:#ffffff29;border-radius:5px}
+.ln7-mini-center i:nth-child(3){left:8%;top:62%;width:39%;height:25%;background:#ffffff19;border-radius:5px}
+.ln7-mini-extra{display:none!important}
+.ln7-choice-aura .ln7-gallery-mini{background:radial-gradient(circle at 85% 13%,#9c98ffe0,transparent 57%),#253f66}
+.ln7-choice-nova .ln7-gallery-mini{background:radial-gradient(circle at 50% 45%,#ba60e777,transparent 48%),#100e33}
+.ln7-choice-nova .ln7-mini-side{left:18%;right:18%;bottom:5%;top:auto;width:auto;height:16%;border-radius:18px}
+.ln7-choice-nova .ln7-mini-top{left:7%;top:5%;right:7%;height:13%;border-radius:18px}
+.ln7-choice-nova .ln7-mini-center{left:12%;right:12%;top:23%;bottom:26%;border-radius:45%}
+.ln7-choice-noir .ln7-gallery-mini{background:#11120e}
+.ln7-choice-noir .ln7-mini-side{left:4%;top:5%;bottom:5%;width:31%;background:#7b8b432e;border:1px solid #a2ba6e70}
+.ln7-choice-noir .ln7-mini-top{left:38%;right:4%;top:5%;height:15%;background:#d4e1b628}
+.ln7-choice-noir .ln7-mini-center{left:38%;right:4%;top:24%;bottom:5%;background:#ffffff08}
+.ln7-gallery-tag{color:#b1bede;font-size:11px}
+.ln7-layout-choice strong{font-size:30px;line-height:1;letter-spacing:-.06em}
+.ln7-layout-choice small{font-size:12px;color:#c2cada;line-height:1.6;min-height:60px}
+.ln7-gallery-use{margin-top:auto;padding-top:13px;border-top:1px solid #ffffff31;display:flex;justify-content:space-between;font-weight:690}
+.ln7-gallery-use b{font-weight:500}
+.ln7-gallery-footer{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:17px 30px;border-top:1px solid #ffffff27;color:#b8c7da;font-size:11px}
+.ln7-gallery-footer button{padding:9px 20px;border:1px solid #ffffff61;border-radius:10px;background:#ffffff20;color:#fff}
+:where(.ln7-gallery,.ln7-home,.ln7-navigation) button:focus-visible{outline:2px solid var(--ln7-accent,#aed1ff)!important;outline-offset:3px}
+@media(max-width:820px){
+ .ln7-gallery-cards{grid-template-columns:1fr;gap:10px}
+ .ln7-gallery-mini{aspect-ratio:2.5}
+ .ln7-layout-choice small{min-height:0}
+ .ln7-gallery-head{padding:22px}
+ .ln7-gallery-cards{padding:16px}
+ .ln7-gallery-footer{padding:15px 18px}
+}
+@media(max-width:600px){
+ html[data-ln7-gui] body.app-page .toolbar{gap:3px!important}
+ html[data-ln7-gui] body.app-page .toolbar .nav-cluster{gap:0}
+ html[data-ln7-gui] body.app-page .toolbar .tool-button{width:30px;height:34px}
+ html[data-ln7-gui] body.app-page .toolbar .address-form{min-width:66px!important}
+ html[data-ln7-gui] body.app-page .toolbar .address-go{display:none}
+ html[data-ln7-gui] body.app-page .toolbar .ln7-switch b{display:none}
+ html[data-ln7-gui] body.app-page .toolbar .ln7-switch{padding:0 8px}
+ html[data-ln7-gui] body.app-page .toolbar .gx-launch{height:34px;width:32px;min-width:32px}
+ html[data-ln7-gui] body.app-page .tabbar .role-chip{display:none}
+ html[data-ln7-gui] body.app-page .tabbar .ln7-switch b{display:none}
+ html[data-ln7-gui] body.app-page .tabbar .ln7-switch{padding:0 9px;height:33px}
+ .ln7-gallery-head h2{font-size:28px}
+}
+@media(prefers-reduced-motion:reduce){
+ html[data-ln7-gui] *,html[data-ln7-gui] *::before,html[data-ln7-gui] *::after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important}
+}
+@media(prefers-reduced-transparency:reduce){
+ html[data-ln7-gui] body.app-page .tabbar,
+ html[data-ln7-gui] body.app-page .toolbar,
+ html[data-ln7-gui] body.app-page .rail{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;background:#1d263cfa!important}
+}
+@supports not (backdrop-filter:blur(1px)){
+ html[data-ln7-gui] body.app-page .tabbar,
+ html[data-ln7-gui] body.app-page .toolbar,
+ html[data-ln7-gui] body.app-page .rail{background:#1d263cf5!important}
+}
