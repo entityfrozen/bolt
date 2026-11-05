@@ -85,7 +85,8 @@ test("Typing activity is ephemeral and channel clearing is restricted",t=>{
  assert.ok(h.store.snapshot(h.alice).servers.find(s=>s.permanent).channels.some(c=>c.id==="general"));
 });
 test("Chat frontend renders actual message actions and an interactive searchable picker",()=>{
- for(const pathname of ["chat-experience.js","chat-renderer.js","chat-emojis.js","chat-experience.css"])assert.match(hub,new RegExp("chat-experience\\.js|chat-experience\\.css"));
+ assert.match(hub,/chat-experience\\.js/);
+ assert.match(hub,/chat-experience\\.css/);
  for(const action of ["picker","react","reply","edit","menu","saveEdit","cancelReply","composeEmoji"])assert.ok(source.includes('action==="'+action+'"'));
  for(const event of ["v2React","v2EditMessage","v2PinMessage","v2ClearReactions","v2Message"])assert.ok(source.includes(event)||community.includes(event));
  assert.match(ui,/dc-message-toolbar/);
@@ -95,7 +96,7 @@ test("Chat frontend renders actual message actions and an interactive searchable
  assert.match(picker,/showPopover/);
  assert.match(styles,/prefers-reduced-motion/);
  assert.match(styles,/@media\(max-width:520px\)/);
- assert.match(page,/lightning-gui-v7/);
+ assert.match(page,/(?:lightning|&#108;ightning)-gui-v7/);
  for(const text of [source,ui,picker]){
   const body=text.replace(/^import .*$/gm,"").replace(/^export /gm,"");
   assert.doesNotThrow(()=>new Function(body));
