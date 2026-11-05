@@ -108,12 +108,6 @@ html[data-ln7-gui=noir] body.app-page .ln7-home{
  linear-gradient(145deg,#161a15,#111410 75%)!important;
 }
 html[data-ln7-gui=noir] .ln7-noir{width:100%;min-height:100%;padding:26px clamp(24px,4.5vw,70px) 45px}
-html[data-ln7-gui=noir] .ln7-noir-top{
- padding-bottom:15px;border-bottom:1px solid #6d775e72;
- font:720 10px "IBM Plex Mono",monospace;letter-spacing:.16em;color:#bac6a8;
-}
-html[data-ln7-gui=noir] .ln7-noir-top b{color:#67745c}
-html[data-ln7-gui=noir] .ln7-noir-top>span:last-child{color:#c1dba0}
 html[data-ln7-gui=noir] .ln7-noir-columns{
  display:grid;grid-template-columns:minmax(240px,.75fr) minmax(0,1.3fr);
  gap:0;min-height:calc(100dvh - 243px);
@@ -122,18 +116,10 @@ html[data-ln7-gui=noir] .ln7-noir-statement{
  position:relative;display:flex;flex-direction:column;align-items:flex-start;
  padding:34px 35px 24px 0;border-right:1px solid #6d775e55;
 }
-html[data-ln7-gui=noir] .ln7-noir-number{
- font:520 clamp(72px,9vw,136px)/.82 "Instrument Sans",sans-serif;
- color:#d8e7b0;letter-spacing:-.13em;margin-bottom:41px;
-}
-html[data-ln7-gui=noir] .ln7-noir-number span{font:550 13px "IBM Plex Mono",monospace;color:#839578;letter-spacing:0;margin-left:8px}
-html[data-ln7-gui=noir] .ln7-noir-eyebrow{
- font:720 10px "IBM Plex Mono",monospace;letter-spacing:.18em;color:#b0bf9b;
-}
 html[data-ln7-gui=noir] .ln7-noir-statement h1{
  font-size:clamp(55px,6vw,94px)!important;line-height:.98!important;
  font-weight:780!important;letter-spacing:-.084em!important;color:#f1f1e8!important;
- margin:16px 0 20px!important;max-width:450px;
+ margin:0 0 20px!important;max-width:450px;
 }
 html[data-ln7-gui=noir] .ln7-noir-statement h1 em{
  color:#d2e599;font-style:normal;display:block;
