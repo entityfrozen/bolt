@@ -1,0 +1,257 @@
+/* NOIR — structured black/cream workbench, compact split panels, zero decorative blur. */
+html[data-ln7-gui=noir] body.app-page{
+ --ln7-bg:#111310;--ln7-fg:#f5f2e8;--ln7-dim:#989f93;--ln7-accent:#c9df87;
+ --ln7-line:#b5c79b33;--ln7-card:#1a1d18;
+}
+html[data-ln7-gui=noir] body.app-page .bolt-shell{
+ grid-template-columns:258px minmax(0,1fr)!important;
+ grid-template-rows:65px 48px minmax(0,1fr)!important;
+ grid-template-areas:"rail toolbar" "rail tabbar" "rail stage"!important;
+ background:#10130f!important;
+}
+html[data-ln7-gui=noir] body.app-page .rail{
+ flex-direction:column!important;align-items:stretch!important;gap:18px!important;
+ padding:28px 14px 22px!important;margin:0!important;
+ border:0!important;border-right:1px solid #8a96743b!important;border-radius:0!important;
+ background:repeating-linear-gradient(0deg,transparent 0 53px,#ffffff03 54px),#151914!important;
+ box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+}
+html[data-ln7-gui=noir] body.app-page .ln7-rail-brand{
+ margin-bottom:22px;padding:0 8px 26px;border-bottom:1px solid #ffffff25;
+}
+html[data-ln7-gui=noir] body.app-page .ln7-rail-brand img{filter:grayscale(1) brightness(1.6)}
+html[data-ln7-gui=noir] body.app-page .ln7-rail-brand strong{
+ font-size:27px;font-weight:800;letter-spacing:-.075em;color:#f4f3e9;
+}
+html[data-ln7-gui=noir] body.app-page .ln7-rail-brand small{color:#99aa8b}
+html[data-ln7-gui=noir] body.app-page .ln7-nav-group{display:flex;flex-direction:column;gap:10px}
+html[data-ln7-gui=noir] body.app-page .ln7-nav-main,
+html[data-ln7-gui=noir] body.app-page .ln7-tools-nav{flex-direction:column}
+html[data-ln7-gui=noir] body.app-page .ln7-nav-kicker{
+ padding:0 9px;color:#899482;letter-spacing:.17em;font-size:10px;margin-bottom:10px
+}
+html[data-ln7-gui=noir] body.app-page .rail .rail-button{
+ color:#b2bcb0!important;border-radius:6px!important;background:transparent!important;
+ transition:none!important;
+}
+html[data-ln7-gui=noir] body.app-page .rail .rail-button:hover{
+ background:#272d24!important;color:#fff!important;
+}
+html[data-ln7-gui=noir] body.app-page .rail .rail-button.active{
+ background:#cfe39a!important;color:#171e13!important;border-color:#d5e8a6!important;
+ box-shadow:none!important;
+}
+html[data-ln7-gui=noir] body.app-page .rail .rail-button.active svg{color:#171e13!important}
+html[data-ln7-gui=noir] body.app-page .ln7-nav-group-tools{margin-top:auto}
+html[data-ln7-gui=noir] body.app-page .ln7-rail-end{
+ padding:14px 10px;border-top:1px solid #ffffff22;border-bottom:1px solid #ffffff22;
+ font:640 12px "IBM Plex Mono",monospace;
+}
+html[data-ln7-gui=noir] body.app-page .ln7-rail-orbit{color:#d3e3a0}
+html[data-ln7-gui=noir] body.app-page .ln7-rail-switch{
+ justify-content:space-between!important;border-radius:6px!important;
+ border-color:#6d785e!important;background:#20271e!important;color:#dceab9!important;
+ margin-top:0;width:100%;height:43px;
+}
+html[data-ln7-gui=noir] body.app-page .ln7-tab-switch{display:none!important}
+html[data-ln7-gui=noir] body.app-page .ln7-toolbar-switch{display:none!important}
+html[data-ln7-gui=noir] body.app-page .toolbar{
+ margin:0!important;padding:0 20px!important;height:auto!important;
+ border:0!important;border-bottom:1px solid #ffffff27!important;border-radius:0!important;
+ background:#181b16!important;box-shadow:none!important;
+ backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+}
+html[data-ln7-gui=noir] body.app-page .toolbar::before{
+ content:"COMMAND /";font:700 10px "IBM Plex Mono",monospace;color:#c0d4a0;white-space:nowrap;letter-spacing:.09em;
+}
+html[data-ln7-gui=noir] body.app-page .toolbar .address-form{
+ height:37px!important;border-radius:5px!important;border:1px solid #6d796846!important;
+ background:#111510!important;box-shadow:none!important;
+}
+html[data-ln7-gui=noir] body.app-page .toolbar .address-form:focus-within{border-color:#a8c67e!important}
+html[data-ln7-gui=noir] body.app-page .address-go{
+ background:#d4e6a4!important;color:#1a2113!important;border:0!important;border-radius:4px!important;
+ font-weight:720;
+}
+html[data-ln7-gui=noir] body.app-page .tabbar{
+ padding:0 18px!important;margin:0!important;
+ border:0!important;border-bottom:1px solid #ffffff1f!important;border-radius:0!important;
+ background:#161a15!important;
+ backdrop-filter:none!important;-webkit-backdrop-filter:none!important;box-shadow:none!important;
+}
+html[data-ln7-gui=noir] body.app-page .bolt-brand{
+ width:148px!important;min-width:140px!important;padding:0 10px!important;color:#ecf1e2!important
+}
+html[data-ln7-gui=noir] body.app-page .bolt-brand .brand-symbol{
+ background:transparent!important;border:0!important;filter:grayscale(1) brightness(1.6)
+}
+html[data-ln7-gui=noir] body.app-page .bolt-brand .brand-name{font:800 14px "Instrument Sans",sans-serif;letter-spacing:-.065em}
+html[data-ln7-gui=noir] body.app-page .tab{
+ border:0!important;border-radius:5px 5px 0 0!important;background:transparent!important;
+ color:#a1a99a!important;border-bottom:2px solid transparent!important;
+}
+html[data-ln7-gui=noir] body.app-page .tab:hover{background:#252b22!important}
+html[data-ln7-gui=noir] body.app-page .tab.active{
+ border-bottom:2px solid #d4e79e!important;background:#292e26!important;
+ box-shadow:none!important;color:#f2f6e9!important;
+}
+html[data-ln7-gui=noir] body.app-page .tab-new{border-radius:4px!important}
+html[data-ln7-gui=noir] body.app-page .account-button{
+ background:#293126!important;border:1px solid #8798755c!important;border-radius:4px!important;
+}
+html[data-ln7-gui=noir] body.app-page .browser-stage{
+ margin:0!important;border:0!important;border-radius:0!important;
+ background:#11140f!important;box-shadow:none!important;
+}
+html[data-ln7-gui=noir] body.app-page .ln7-home{
+ background:repeating-linear-gradient(0deg,#ffffff05 0 1px,transparent 1px 50px),
+ linear-gradient(145deg,#161a15,#111410 75%)!important;
+}
+html[data-ln7-gui=noir] .ln7-noir{width:100%;min-height:100%;padding:26px clamp(24px,4.5vw,70px) 45px}
+html[data-ln7-gui=noir] .ln7-noir-top{
+ padding-bottom:15px;border-bottom:1px solid #6d775e72;
+ font:720 10px "IBM Plex Mono",monospace;letter-spacing:.16em;color:#bac6a8;
+}
+html[data-ln7-gui=noir] .ln7-noir-top b{color:#67745c}
+html[data-ln7-gui=noir] .ln7-noir-top>span:last-child{color:#c1dba0}
+html[data-ln7-gui=noir] .ln7-noir-columns{
+ display:grid;grid-template-columns:minmax(240px,.75fr) minmax(0,1.3fr);
+ gap:0;min-height:calc(100dvh - 243px);
+}
+html[data-ln7-gui=noir] .ln7-noir-statement{
+ position:relative;display:flex;flex-direction:column;align-items:flex-start;
+ padding:34px 35px 24px 0;border-right:1px solid #6d775e55;
+}
+html[data-ln7-gui=noir] .ln7-noir-number{
+ font:520 clamp(72px,9vw,136px)/.82 "Instrument Sans",sans-serif;
+ color:#d8e7b0;letter-spacing:-.13em;margin-bottom:41px;
+}
+html[data-ln7-gui=noir] .ln7-noir-number span{font:550 13px "IBM Plex Mono",monospace;color:#839578;letter-spacing:0;margin-left:8px}
+html[data-ln7-gui=noir] .ln7-noir-eyebrow{
+ font:720 10px "IBM Plex Mono",monospace;letter-spacing:.18em;color:#b0bf9b;
+}
+html[data-ln7-gui=noir] .ln7-noir-statement h1{
+ font-size:clamp(55px,6vw,94px)!important;line-height:.98!important;
+ font-weight:780!important;letter-spacing:-.084em!important;color:#f1f1e8!important;
+ margin:16px 0 20px!important;max-width:450px;
+}
+html[data-ln7-gui=noir] .ln7-noir-statement h1 em{
+ color:#d2e599;font-style:normal;display:block;
+}
+html[data-ln7-gui=noir] .ln7-noir-statement p{
+ color:#aab7a1;font-size:13px;max-width:335px;margin:0;
+}
+html[data-ln7-gui=noir] .ln7-noir-illustration{
+ position:relative;width:100%;height:174px;margin:42px 0 25px;overflow:hidden;
+ border-top:1px solid #8c9d7566;border-bottom:1px solid #8c9d7566;
+ background:repeating-linear-gradient(90deg,#d4e99e08 0 1px,transparent 1px 38px);
+}
+html[data-ln7-gui=noir] .ln7-noir-illustration i{
+ position:absolute;width:150px;height:150px;border:1px solid #d5ecaa5e;border-radius:50%;top:11px
+}
+html[data-ln7-gui=noir] .ln7-noir-illustration i:nth-child(1){left:8%}
+html[data-ln7-gui=noir] .ln7-noir-illustration i:nth-child(2){left:30%;width:130px;height:130px;top:19px}
+html[data-ln7-gui=noir] .ln7-noir-illustration i:nth-child(3){left:52%;width:110px;height:110px;top:30px}
+html[data-ln7-gui=noir] .ln7-noir-illustration i:nth-child(4){left:73%;width:75px;height:75px;top:49px}
+html[data-ln7-gui=noir] .ln7-noir-statement>button{
+ margin-top:auto;display:flex;align-items:center;justify-content:space-between;width:100%;
+ padding:14px 0;color:#dbe8bf;background:transparent;border:0;border-top:1px solid #879d7e66;
+ font:700 11px "IBM Plex Mono",monospace;letter-spacing:.07em;text-align:left;
+}
+html[data-ln7-gui=noir] .ln7-noir-statement>button:hover{color:#fff}
+html[data-ln7-gui=noir] .ln7-noir-content{padding:30px 0 0 39px;min-width:0}
+html[data-ln7-gui=noir] .ln7-noir-command>span{
+ font:750 10px "IBM Plex Mono",monospace;letter-spacing:.18em;color:#b1c79a;
+}
+html[data-ln7-gui=noir] .ln7-noir-command h2{
+ margin:17px 0!important;font-size:clamp(27px,3.2vw,45px)!important;
+ letter-spacing:-.065em!important;font-weight:720!important;color:#f7f7ee!important;
+}
+html[data-ln7-gui=noir] .ln7-noir-command .ln7-search-form{
+ background:#1e231a!important;border:1px solid #a5b88b6c!important;border-radius:4px!important;
+ box-shadow:none!important;height:60px!important;
+}
+html[data-ln7-gui=noir] .ln7-noir-command .ln7-search-form input{font:540 15px "IBM Plex Mono",monospace!important;color:#eef7dc!important}
+html[data-ln7-gui=noir] .ln7-noir-command .ln7-search-form svg{stroke:#c7e090!important}
+html[data-ln7-gui=noir] .ln7-noir-command>small{
+ display:block;margin-top:11px;color:#9da994;letter-spacing:.12em;font:700 9px "IBM Plex Mono",monospace;
+}
+html[data-ln7-gui=noir] .ln7-noir-directory{margin-top:32px}
+html[data-ln7-gui=noir] .ln7-noir-directory header{
+ font:720 10px "IBM Plex Mono",monospace;letter-spacing:.11em;color:#cddbbc;
+ padding-bottom:12px;border-bottom:1px solid #7d896874;margin-bottom:12px;
+}
+html[data-ln7-gui=noir] .ln7-noir-directory header span{font-size:9px;color:#8b997e}
+html[data-ln7-gui=noir] .ln7-noir-directory .lightning-quick{
+ background:#21271e!important;border:1px solid #6f806153!important;
+ color:#dae5cc!important;border-radius:4px!important;padding:11px 13px!important;
+ font:640 10px "IBM Plex Mono",monospace!important;
+}
+html[data-ln7-gui=noir] .ln7-noir-directory .lightning-quick:hover{border-color:#d2e69e!important;background:#293226!important}
+html[data-ln7-gui=noir] .ln7-noir-tables{margin-top:32px;display:grid;grid-template-columns:1fr 1fr;gap:22px}
+html[data-ln7-gui=noir] .ln7-noir-tables>section{min-width:0;border-top:1px solid #9ead8a;padding-top:14px}
+html[data-ln7-gui=noir] .ln7-noir-tables header{color:#d0dbbd;font:700 10px "IBM Plex Mono",monospace;letter-spacing:.07em}
+html[data-ln7-gui=noir] .ln7-noir-tables header small{color:#869a72;font:700 11px "IBM Plex Mono",monospace}
+html[data-ln7-gui=noir] .ln7-noir-tables .recent-list{
+ display:grid;max-height:260px;overflow-y:auto;border-bottom:1px solid #ffffff17;
+}
+html[data-ln7-gui=noir] .ln7-noir-tables .history-item,
+html[data-ln7-gui=noir] .ln7-noir-tables .recent-row{border-color:#ffffff22;color:#c7d0be!important}
+html[data-ln7-gui=noir] .ln7-noir-content footer{
+ margin-top:25px;padding:18px 0;border-top:1px solid #ffffff21;
+ font:650 9px "IBM Plex Mono",monospace;letter-spacing:.1em;color:#87947c;
+}
+html[data-ln7-gui=noir] .ln7-noir-content .lightning-suggest-button{
+ color:#a4b691!important;font-size:9px!important;font-family:"IBM Plex Mono",monospace!important;
+}
+html[data-ln7-gui=noir] #hubMount{
+ background:#11140f!important;color:#f5f4e7!important;
+}
+html[data-ln7-gui=noir] #hubMount .v3-shell>.v4-nav-shell,
+html[data-ln7-gui=noir] #hubMount .v3-shell>.v2-main,
+html[data-ln7-gui=noir] #hubMount .v3-shell>.v3-inspector,
+html[data-ln7-gui=noir] #hubMount .v3-shell>.v3-dock,
+html[data-ln7-gui=noir] #hubMount .v3-primary-tabs{
+ background:#1e241b!important;border:1px solid #a4bc7a49!important;border-radius:5px!important;
+ backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+ box-shadow:none!important;
+}
+html[data-ln7-gui=noir] #hubMount .v3-shell>.v4-nav-shell{border-radius:0!important}
+html[data-ln7-gui=noir] #hubMount .v3-shell>.v2-main{border-radius:7px!important}
+@media(max-width:1200px){
+ html[data-ln7-gui=noir] .ln7-noir-columns{grid-template-columns:minmax(210px,.7fr) minmax(0,1.3fr)}
+ html[data-ln7-gui=noir] .ln7-noir-content{padding-left:25px}
+ html[data-ln7-gui=noir] .ln7-noir-statement h1{font-size:clamp(46px,6vw,73px)!important}
+}
+@media(max-width:900px){
+ html[data-ln7-gui=noir] body.app-page .bolt-shell{grid-template-columns:204px minmax(0,1fr)!important}
+ html[data-ln7-gui=noir] .ln7-noir-columns{grid-template-columns:1fr}
+ html[data-ln7-gui=noir] .ln7-noir-statement{padding:23px 0 15px;border-right:0;border-bottom:1px solid #879d7e66}
+ html[data-ln7-gui=noir] .ln7-noir-number,.ln7-noir-illustration{display:none}
+ html[data-ln7-gui=noir] .ln7-noir-statement h1{font-size:54px!important}
+ html[data-ln7-gui=noir] .ln7-noir-statement>button{margin-top:16px}
+ html[data-ln7-gui=noir] .ln7-noir-content{padding:25px 0}
+}
+@media(max-width:700px){
+ html[data-ln7-gui=noir] body.app-page .bolt-shell{
+  grid-template-columns:58px minmax(0,1fr)!important;grid-template-rows:53px 45px minmax(0,1fr)!important;
+ }
+ html[data-ln7-gui=noir] body.app-page .rail{padding:13px 5px!important;gap:16px!important}
+ html[data-ln7-gui=noir] body.app-page .ln7-rail-brand{margin:0;padding:0 0 12px;justify-content:center}
+ html[data-ln7-gui=noir] body.app-page .ln7-rail-brand span,
+ html[data-ln7-gui=noir] body.app-page .ln7-nav-kicker,
+ html[data-ln7-gui=noir] body.app-page .ln7-nav-label,
+ html[data-ln7-gui=noir] body.app-page .ln7-rail-end,
+ html[data-ln7-gui=noir] body.app-page .ln7-rail-switch b{display:none!important}
+ html[data-ln7-gui=noir] body.app-page .rail .rail-button:not(.admin-only){width:45px!important;justify-content:center!important;padding:0!important}
+ html[data-ln7-gui=noir] body.app-page .ln7-rail-switch{padding:0!important}
+ html[data-ln7-gui=noir] body.app-page .toolbar{padding:0 8px!important;gap:5px!important}
+ html[data-ln7-gui=noir] body.app-page .toolbar:before{display:none}
+ html[data-ln7-gui=noir] body.app-page .tabbar{padding:0 8px!important}
+ html[data-ln7-gui=noir] body.app-page .bolt-brand{width:38px!important;min-width:38px!important;padding:0!important}
+ html[data-ln7-gui=noir] body.app-page .bolt-brand .brand-name{display:none!important}
+ html[data-ln7-gui=noir] .ln7-noir{padding:18px 15px}
+ html[data-ln7-gui=noir] .ln7-noir-statement h1{font-size:clamp(40px,10vw,61px)!important}
+ html[data-ln7-gui=noir] .ln7-noir-content{padding:20px 0}
+ html[data-ln7-gui=noir] .ln7-noir-tables{grid-template-columns:1fr;gap:19px}
+}
