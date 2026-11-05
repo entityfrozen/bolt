@@ -36,22 +36,8 @@
     group1.append(node("span","ln7-nav-kicker","YOUR SPACE"),main);
     const group2=node("section","ln7-nav-group ln7-nav-group-tools");
     group2.append(node("span","ln7-nav-kicker","TOOLS"),tools);
-    const bottom=node("div","ln7-rail-end");
-    bottom.innerHTML='<span class="ln7-rail-orbit">◈</span><span>Three worlds.<small>One workspace.</small></span>';
-    const switcher=makeSwitch("ln7-rail-switch","Change interface");
-    rail.replaceChildren(brand,group1,group2,bottom,switcher);
+    rail.replaceChildren(brand,group1,group2);
     rail.classList.add("ln7-navigation");
-    const topbar=$(".tabbar"),toolbar=$(".toolbar");
-    topbar.insertBefore(makeSwitch("ln7-tab-switch","Layouts"),$(".account-zone",topbar));
-    toolbar.insertBefore(makeSwitch("ln7-toolbar-switch","Layouts"),$("#menuBtn"));
-  }
-  function makeSwitch(cls,text){
-    const button=node("button","ln7-switch "+cls);
-    button.type="button";
-    button.setAttribute("aria-label","Choose Lightning GUI");
-    button.innerHTML='<span aria-hidden="true">◫</span><b>'+text+'</b>';
-    button.addEventListener("click",openGallery);
-    return button;
   }
   function captureControls(){
     if(controls)return;
@@ -75,14 +61,7 @@
       '<section class="ln7-aura-access"><header><span>IN REACH</span><small>YOUR DESTINATIONS</small></header><div data-ln7="quick"></div></section>',
       '<div class="ln7-aura-bottom"><section class="ln7-aura-list"><header>Recent places <small>HISTORY</small></header><div data-ln7="recent"></div></section>',
       '<section class="ln7-aura-list"><header>Saved for later <small>BOOKMARKS</small></header><div data-ln7="saved"></div></section></div>',
-      '</div><aside class="ln7-aura-aside"><div class="ln7-side-top"><b>◈</b> THE LIGHTNING DESK <span>01</span></div>',
-      '<div class="ln7-aura-art" aria-hidden="true"><i></i><strong>L</strong><small>YOUR NEXT CHAPTER</small></div>',
-      '<span class="ln7-aside-label">YOUR NEXT MOVE</span><h2>Good things start here.</h2>',
-      '<p>Pick up a conversation, discover something new, or explore the workspace.</p>',
-      '<button type="button" data-ln7-route="chat" class="ln7-aside-cta">Open community <b>↗</b></button>',
-      '<button type="button" data-ln7-action="guide" class="ln7-aside-alt">Explore the guide <b>→</b></button>',
-      '<div class="ln7-aside-tip"><small>QUICK TIP</small><p>Press Ctrl + L to focus the browser address bar.</p><div data-ln7="suggestion"></div></div>',
-      '</aside></div>'
+      '</div><div class="ln7-aura-footer"><div data-ln7="suggestion"></div></div></div>'
     ].join("");},
     nova:function(){return [
       '<div class="ln7-nova"><header class="ln7-nova-head"><span>NOVA / PERSONAL COMMAND DECK</span><span>ALL SYSTEMS OPEN <b>●</b></span></header>',
@@ -200,25 +179,11 @@
     });
     if(!dlg.open)dlg.showModal();
   }
-  function hubSwitcher(){
-    const hub=$("#hubMount");
-    if(!hub)return;
-    const sync=()=>{
-      if(hub.hidden||!$(".v3-shell",hub))return;
-      if($(".ln7-hub-switcher",hub))return;
-      const btn=makeSwitch("ln7-hub-switcher","Switch GUI");
-      hub.append(btn);
-    };
-    const observer=new MutationObserver(sync);
-    observer.observe(hub,{childList:true,attributes:true,attributeFilter:["hidden"]});
-    sync();
-  }
   function init(){
     if(!$("#boltShell")||!$("#newtabView"))return;
     decorateNav();captureControls();
     ready=true;
     setMode("aura",{save:false,animated:false});
-    hubSwitcher();
     document.addEventListener("click",e=>{
       const action=e.target.closest("[data-ln7-action]");
       if(action){
