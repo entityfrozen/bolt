@@ -232,6 +232,8 @@ html[data-ln7-gui] body.app-page .ln7-home [data-ln7-route]{cursor:pointer}
 @media(max-width:600px){
  html[data-ln7-gui] body.app-page .toolbar{gap:3px!important}
  html[data-ln7-gui] body.app-page .toolbar .nav-cluster{gap:0}
+ html[data-ln7-gui] body.app-page .toolbar #forwardBtn,
+ html[data-ln7-gui] body.app-page .toolbar #bookmarkBtn{display:none!important}
  html[data-ln7-gui] body.app-page .toolbar .tool-button{width:30px;height:34px}
  html[data-ln7-gui] body.app-page .toolbar .address-form{min-width:66px!important}
  html[data-ln7-gui] body.app-page .toolbar .address-go{display:none}
