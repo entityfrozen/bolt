@@ -49,7 +49,7 @@
     {selector:'.rail-button[data-hub="chat"]',title:"Your community",copy:"Open chat from the left rail. Find channels, friends and community activity here."},
     {selector:'.rail-button[data-hub="games"]',title:"Games and library",copy:"This library button takes you to the games and activities area."},
     {selector:'.rail-button[data-glass-settings]',title:"Shape the interface",copy:"Open Appearance settings to change color, background, layout, blur, contrast and movement."},
-    {selector:"#gxCloakLaunch",title:"Tab identity controls",copy:"Open Cloaking to select a preset or set a custom tab name and icon. The address bar still shows Lightning's real URL."}
+    {selector:"#gxCloakLaunch",title:"Tab identity controls",copy:"Open Cloaking to select a preset or set a custom tab name and icon. The real Lightning page still loads inside the about:blank wrapper."}
   ];
 
   function safeIcon(value) {
