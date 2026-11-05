@@ -37,6 +37,7 @@ function fakeBrowser({blocked=false,insideBlank=false}={}){
  const sourceDoc={title:"Google Classroom",querySelector:()=>({href:"https://classroom.google.com/favicon.ico"})};
  const origin="https://bolt-v5-preview-production.up.railway.app";
  const location={origin,href:origin+"/"};
+ contextWindow.location=location;
  vm.runInNewContext(blank,{window:contextWindow,document:sourceDoc,location,URL});
  return {contextWindow,opened,elements,doc,popup,listeners,origin};
 }
@@ -60,7 +61,7 @@ test("Native page scrollbar tracks are hidden; activity and reading feeds remain
  assert.match(scroll,/forced-colors:active/);
  assert.match(scroll,/body\.app-page \.ln7-home/);
 });
-test("Clothing preset Apply opens about:blank directly; iframe still loads real origin",()=>{
+test("Cloaking preset Apply opens about:blank directly; iframe still loads real origin",()=>{
  const b=fakeBrowser();
  const result=b.contextWindow.LightningBlankCloak.open();
  assert.equal(result.ok,true);
