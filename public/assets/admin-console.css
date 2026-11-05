@@ -301,3 +301,40 @@
  .ac-audit-item>div{grid-column:2}
 }
 @media(prefers-reduced-motion:reduce){.ac-console *, .ac-prompt *{transition:none!important}}
+
+/* Provider management is part of the real staff workspace, not a separate popup. */
+.ac-secret-notice{display:flex;align-items:flex-start;gap:12px;padding:17px 19px;
+ background:#19302f;border:1px solid #3c6760;border-radius:12px;margin-bottom:20px}
+.ac-secret-notice svg{width:22px;height:22px;flex:none;color:#8be6c1}
+.ac-secret-notice strong{color:#d6f7e9;font-size:13px}
+.ac-secret-notice p{color:#a9c6bd;font-size:12px;line-height:1.65;margin:5px 0 0}
+.ac-provider-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,330px),1fr));gap:15px}
+.ac-provider-card{min-width:0;border:1px solid #365056;border-radius:14px;background:#14252a;padding:21px}
+.ac-provider-heading{display:flex;justify-content:space-between;align-items:start;gap:15px;flex-wrap:wrap}
+.ac-provider-heading h2{font-size:19px;color:#effbf6;letter-spacing:-.04em;margin:9px 0 6px}
+.ac-provider-heading p{color:#9dbbb8;font-size:12px;line-height:1.5;margin:0}
+.ac-provider-status{border:1px solid #7d6453;background:#403327;color:#efc3a1;
+ font-size:10px;font-weight:700;white-space:nowrap;border-radius:7px;padding:7px 9px}
+.ac-provider-status.ready{background:#1d423c;border-color:#477e6d;color:#a8eacc}
+.ac-provider-form{margin-top:25px}
+.ac-provider-form label,.ac-announcement form label{display:grid;gap:7px;color:#bdd3d1;font-size:11px;font-weight:700}
+.ac-provider-input{display:flex;gap:8px;margin-top:7px;min-width:0}
+.ac-provider-input input,.ac-announcement input,.ac-announcement textarea{
+ width:100%;min-width:0;padding:12px 13px;border-radius:9px;border:1px solid #446167;
+ background:#09181d;color:#eff7f3;outline:0;font:12px "Instrument Sans",system-ui
+}
+.ac-provider-input input:focus,.ac-announcement :is(input,textarea):focus{border-color:#82cbb9}
+.ac-provider-input .ac-primary{flex:none;border:0;border-radius:8px;background:#70c6a9;
+ color:#102520;font-weight:750;padding:0 13px}
+.ac-provider-actions{display:flex;gap:14px;flex-wrap:wrap;margin-top:14px}
+.ac-provider-actions button{padding:4px 0;background:none;border:0;color:#92caba;font-size:11px;font-weight:670}
+.ac-provider-actions button:hover{color:#e6fff5;text-decoration:underline}
+.ac-provider-actions button:disabled{opacity:.45}
+.ac-error-inline{color:#ffc4ba;background:#412a2b;padding:12px;border-radius:9px}
+.ac-announcement form{display:grid;gap:16px}
+.ac-announcement textarea{resize:vertical;min-height:105px}
+.ac-announcement p{color:#a5bdb9;font-size:12px;line-height:1.6}
+.ac-announcement .ac-primary{justify-self:start;display:inline-flex;align-items:center;gap:8px;
+ border-radius:9px;border:0;background:#75ceac;padding:12px 17px;color:#112620;font-weight:760}
+.ac-announcement .ac-primary svg{height:17px;width:17px}
+@media(max-width:740px){.ac-provider-input{flex-direction:column}.ac-provider-input .ac-primary{padding:11px}}
