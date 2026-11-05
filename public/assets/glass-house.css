@@ -279,3 +279,20 @@ body.app-page .gx-hide{display:none!important}
  background:#1c2541ed!important;
  }
 }
+/* The two new toolbar controls occupy their own columns, not a second row. */
+body.app-page{isolation:isolate}
+body.app-page .toolbar{grid-template-columns:auto minmax(120px,1fr) repeat(4,auto)!important}
+@media(max-width:750px){
+ body.app-page .toolbar{gap:5px!important;grid-template-columns:auto minmax(95px,1fr) repeat(4,auto)!important}
+ body.app-page .nav-cluster{gap:0}
+ body.app-page .nav-cluster .tool-button,body.app-page .toolbar>.tool-button{width:31px;height:34px}
+ body.app-page .gx-launch{width:32px;height:34px;min-width:32px}
+ body.app-page .address-form{min-width:0!important}
+}
+@media(max-width:510px){
+ body.app-page #forwardBtn,body.app-page #bookmarkBtn{display:none!important}
+ body.app-page .toolbar{grid-template-columns:auto minmax(80px,1fr) repeat(2,auto)!important}
+ body.app-page .address-go{display:none!important}
+ body.app-page .address-form{grid-template-columns:28px minmax(0,1fr)!important}
+ body.app-page .nav-cluster .tool-button{width:29px}
+}
