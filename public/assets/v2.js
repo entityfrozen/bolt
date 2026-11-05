@@ -92,6 +92,14 @@ export function installV2(Hub){
         if(field){if(this.$(".chat-searchbar")?.hidden)toggle?.click();field.value=event.target.value;field.dispatchEvent(new Event("input",{bubbles:true}));}
       }
     });
+    document.addEventListener("lightning:notification-channel",()=>{
+      const target=window.LightningNotificationDestination;
+      const server=this.v2Servers?.find(item=>item.id===target?.serverId);
+      if(server&&server.channels?.some(c=>c.id===target.channel)){
+        this.v2ServerId=server.id;this.v2Channel=target.channel;
+        delete window.LightningNotificationDestination;this.show("room");
+      }
+    });
     this.v2Nav();
   };
   Hub.prototype.v2Nav=function(){
@@ -229,6 +237,12 @@ export function installV2(Hub){
       else if(this.view==="chat"&&!this.v2ServerId){
         const home=this.v2Servers.find(s=>s.id==="lightning-main");
         if(home){this.v2ServerId=home.id;this.v2Channel=this.v2ChooseChannel(home);this.show("room");}
+      }
+      const target=window.LightningNotificationDestination;
+      const destination=this.v2Servers.find(server=>server.id===target?.serverId);
+      if(destination&&destination.channels?.some(c=>c.id===target.channel)){
+       this.v2ServerId=destination.id;this.v2Channel=target.channel;
+       delete window.LightningNotificationDestination;this.show("room");
       }
       this.v2Nav();
     }else if(m.type==="v2Directory"){this.v2Directory=m.directory||[];if(this.view==="directory")this.v2Discover(true);}
