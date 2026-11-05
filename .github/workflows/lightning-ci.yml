@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - bolt-hosted-v5
+      - feature/clean-layout-blank-cloak-2026-11-05
   workflow_dispatch:
 
 permissions:
@@ -43,6 +44,7 @@ jobs:
           node --check public/assets/chat-experience.js
           node --check community-v2.js
           node --check public/assets/lightning-gui-v7.js
+          node --check public/assets/tab-blank.js
           node --check live.js
           node --check community-v2.js
           node --check public/assets/v2.js
@@ -113,6 +115,8 @@ jobs:
         run: node --test test/chat-experience.test.mjs
       - name: Test all three new Lightning GUI layouts
         run: node --test test/gui-v7.test.mjs
+      - name: Test clean layout, scrollbars, and about:blank cloaking
+        run: node --test test/clean-layout-cloak.test.mjs
       - name: Verify hosted Lightning preview
         run: |
           url="https://bolt-v5-preview-production.up.railway.app/assets/bolt-v6.css?ci=${GITHUB_SHA}"
