@@ -85,8 +85,8 @@ test("Typing activity is ephemeral and channel clearing is restricted",t=>{
  assert.ok(h.store.snapshot(h.alice).servers.find(s=>s.permanent).channels.some(c=>c.id==="general"));
 });
 test("Chat frontend renders actual message actions and an interactive searchable picker",()=>{
- assert.match(hub,/chat-experience\\.js/);
- assert.match(hub,/chat-experience\\.css/);
+ assert.ok(hub.includes("chat-experience.js"));
+ assert.ok(hub.includes("chat-experience.css"));
  for(const action of ["picker","react","reply","edit","menu","saveEdit","cancelReply","composeEmoji"])assert.ok(source.includes('action==="'+action+'"'));
  for(const event of ["v2React","v2EditMessage","v2PinMessage","v2ClearReactions","v2Message"])assert.ok(source.includes(event)||community.includes(event));
  assert.match(ui,/dc-message-toolbar/);
