@@ -5,6 +5,7 @@ import {hasPermission} from "./staff-roles.js";
 
 export const MAIN_SERVER_ID="lightning-main";
 const LIMITS={servers:60,owned:5,channels:35,messages:150,roles:30};
+const REACTIONS=new Set(["👍","👎","❤️","😂","🤣","🔥","💀","😭","🥹","😍","😎","👀","🙏","✨","🎉","💯","👏","🤝","😮","😢","😡","🤔","🤯","😴","✅","❌","🚀","⚡","🫶","💜","🤍","💚","😅","😬","👋","😏"]);
 const id=()=>crypto.randomBytes(8).toString("hex");
 const clean=(value,max)=>String(value??"").trim().slice(0,max);
 const slug=value=>clean(value,40).toLowerCase().replace(/[^a-z0-9_-]+/g,"-").replace(/^-+|-+$/g,"").slice(0,30);
@@ -280,14 +281,58 @@ export function createCommunityStore({dataDir,sendToUser,sendAll,getRole=()=>nul
    if(data.description!==undefined)s.description=clean(data.description,140);
    save();serverChanged(s);return;
   }
+  if(type==="v2Typing"){
+   const channel=clean(data.channel,40),c=s.channels.find(c=>c.id===channel);
+   if(!c||!channelAccess(u,s,c)||c.readOnly&&!authorized(u,s))return;
+   s.members.forEach(memberId=>{
+    if(memberId!==u.id&&(!c.staffOnly||canSeeStaff(memberId,s)))
+     sendToUser(memberId,{type:"v2Typing",serverId:s.id,channel,userId:u.id,name:u.name});
+   });
+   return;
+  }
   if(type==="v2Message"){
    const channel=clean(data.channel,40),message=clean(data.message,1500);
    const c=s.channels.find(c=>c.id===channel);
    if(!c||!channelAccess(u,s,c)||!message)return err(u,"Choose a channel and enter a message.");
    if(c.readOnly&&!authorized(u,s))return err(u,"This is a staff-only posting channel.");
-   const entry={id:id(),channel,message,by:u.name,username:u.username,userId:u.id,at:Date.now(),reactions:{}};
+   const parentId=clean(data.replyTo,40);
+   const parent=parentId?(s.messages[channel]||[]).find(m=>m.id===parentId):null;
+   const entry={id:id(),channel,message,by:u.name,username:u.username,userId:u.id,at:Date.now(),
+    replyTo:parent?.id||null,reactions:{}};
    (s.messages[channel]??=[]).push(entry);s.messages[channel]=s.messages[channel].slice(-LIMITS.messages);
    save();s.members.forEach(memberId=>{const p=s.profiles[memberId]||{};if(!c.staffOnly||canSeeStaff(memberId,s))sendToUser(memberId,{type:"v2Message",serverId:s.id,entry});});return;
+  }
+  if(["v2EditMessage","v2PinMessage","v2ClearReactions","v2ClearChannel"].includes(type)){
+   const channel=clean(data.channel,40),c=s.channels.find(c=>c.id===channel);
+   if(!c||!channelAccess(u,s,c))return err(u,"Channel not found.");
+   if(type==="v2ClearChannel"){
+    if(!canManage(u,s))return err(u,"Only the server owner or an admin can clear a channel.");
+    s.messages[channel]=[];save();serverChanged(s);return;
+   }
+   const entry=(s.messages[channel]||[]).find(m=>m.id===clean(data.messageId,40));
+   if(!entry)return err(u,"Message not found.");
+   if(type==="v2EditMessage"){
+    if(entry.userId!==u.id||Date.now()-entry.at>900000)return err(u,"You can only edit your own recent messages.");
+    const message=clean(data.message,1500);
+    if(!message)return err(u,"Enter a message before saving.");
+    entry.message=message;entry.editedAt=Date.now();
+   }else if(type==="v2PinMessage"){
+    if(!canModerate(u,s))return err(u,"You cannot pin messages.");
+    if(entry.pinnedAt){delete entry.pinnedAt;delete entry.pinnedBy;}
+    else{
+     const pinned=(s.messages[channel]||[]).filter(m=>m.pinnedAt);
+     if(pinned.length>=15)return err(u,"This channel has reached its 15 pinned message limit.");
+     entry.pinnedAt=Date.now();entry.pinnedBy=u.id;
+    }
+   }else if(type==="v2ClearReactions"){
+    if(!canModerate(u,s))return err(u,"You cannot clear reactions.");
+    entry.reactions={};
+   }
+   save();
+   s.members.forEach(memberId=>{
+    if(!c.staffOnly||canSeeStaff(memberId,s))sendToUser(memberId,{type:"v2MessageUpdate",serverId:s.id,entry});
+   });
+   return;
   }
   if(type==="v2DeleteMessage"){
    const channel=clean(data.channel,40),c=s.channels.find(c=>c.id===channel);
@@ -304,7 +349,7 @@ export function createCommunityStore({dataDir,sendToUser,sendAll,getRole=()=>nul
    const entry=(s.messages[channel]||[]).find(m=>m.id===clean(data.messageId,40));
    if(!entry)return err(u,"Message not found.");
    const emoji=String(data.emoji||"");
-   if(!["👍","❤️","😂","🔥","😭","💀","🎉","👀","🙏","✨"].includes(emoji))return err(u,"Choose a supported reaction.");
+   if(!REACTIONS.has(emoji))return err(u,"Choose a supported reaction.");
    entry.reactions??={};
    const voters=Array.isArray(entry.reactions[emoji])?entry.reactions[emoji]:[];
    entry.reactions[emoji]=voters.includes(u.id)?voters.filter(id=>id!==u.id):[...voters.slice(-119),u.id];
