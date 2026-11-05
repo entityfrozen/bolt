@@ -33,7 +33,7 @@
       text:"Change the wallpaper, accent, blur strength, transparency, and layout in Appearance settings. Glass uses backdrop filtering over the scene behind each panel.",
       bullets:["Try Frost or Lavender for a new accent.","Raise transparency to show more wallpaper.","Use the low-effects option if blur affects performance."], action:"Open appearance settings", kind:"appearance"},
     {name:"Privacy", tag:"05 / TAB APPEARANCE", title:"Choose your tab identity", art:"Different tab. Same Lightning workspace.",
-      text:"Tab cloaking changes the browser tab title and favicon, including school-oriented presets. It does not change the website URL, hide browser history, or provide a separate login.",
+      text:"Tab cloaking changes the tab title and icon. Applying a preset opens a new about:blank tab containing the Lightning app. The website still loads normally inside it; this does not hide network activity or browsing history.",
       bullets:["Pick DCSS Portal, i-Ready, Google Classroom, or another preset.","Use Custom for your own name and icon URL.","Return to Lightning at any time with one click."], action:"Open tab cloaking", kind:"cloak"}
   ];
 
@@ -141,7 +141,7 @@
     const dialog=dialogTemplate("gxCloak","gx-cloak-dialog","Tab appearance","PRIVACY & IDENTITY");
     const layout=document.createElement("div");
     layout.className="gx-cloak-layout";
-    layout.innerHTML='<div class="gx-cloak-main"><p class="gx-cloak-explain">Choose how this page appears in your browser tab. Your real address stays unchanged.</p>'+
+    layout.innerHTML='<div class="gx-cloak-main"><p class="gx-cloak-explain">Choose the tab title and icon, then open Lightning in an about:blank tab. The actual website still loads inside the tab.</p>'+
       '<div class="gx-cloak-grid" role="group" aria-label="Tab appearance presets"></div>'+
       '<section class="gx-cloak-custom"><h3>Your own title and icon</h3><div class="gx-cloak-fields">'+
       '<label>Tab title<input id="gxCustomTitle" type="text" maxlength="80" placeholder="My dashboard"></label>'+
@@ -149,8 +149,8 @@
       '</div><small>Typing here switches to Custom. Icon URLs must use HTTPS or HTTP; Lightning never loads custom scripts.</small></section>'+
       '<div class="gx-cloak-controls"><button class="gx-secondary" data-gx-reset>Reset to Lightning</button><button class="gx-secondary" data-gx-guide>How this works</button></div>'+
       '</div><aside class="gx-cloak-preview"><strong>LIVE TAB PREVIEW</strong><div class="gx-tab-demo"><span class="gx-tab-icon-slot"></span><span class="gx-tab-title"></span><i>×</i></div>'+
-      '<div class="gx-preview-note">This changes the browser tab title and favicon only. It does not change the URL, the loaded site, or what your browser records in history.</div>'+
-      '<button class="gx-primary" data-gx-apply>Apply tab appearance</button></aside>';
+      '<div class="gx-preview-note">Opens a new about:blank tab with Lightning inside it. The real site, network requests and browsing records are not hidden. Your browser may block the new tab.</div>'+
+      '<button class="gx-primary" data-gx-apply>Apply & open about:blank</button></aside>';
     dialog.append(layout);
     const grid=$(".gx-cloak-grid",dialog);
     presets.forEach(p=>{
@@ -173,7 +173,10 @@
       const detail={preset:selected,title:customTitle.trim().slice(0,80),icon:safeIcon(customIcon)};
       document.dispatchEvent(new CustomEvent("lightning:set-cloak",{detail}));
       dialog.close();
-      notice("Tab appearance updated");
+      const opened=window.LightningBlankCloak?.open();
+      if(!opened?.ok)notice("New tab blocked. Allow popups, then apply again.");
+      else if(opened.alreadyOpen)notice("Tab appearance updated");
+      else notice("Opened in about:blank. Close this original tab when ready.");
     });
     $("[data-gx-reset]",dialog).addEventListener("click",()=>{
       selected="lightning";customTitle="";customIcon="";
