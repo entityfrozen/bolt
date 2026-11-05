@@ -38,6 +38,7 @@ jobs:
           node --check public/assets/community-ui.js
           node --check public/assets/glass-settings.js
           node --check public/assets/glass-house-ui.js
+          node --check public/assets/lightning-gui-v7.js
           node --check live.js
           node --check community-v2.js
           node --check public/assets/v2.js
@@ -104,6 +105,8 @@ jobs:
         run: node --test test/ui-init.test.mjs
       - name: Test Glass House guide and cloaking
         run: node --test test/glass-house.test.mjs
+      - name: Test all three new Lightning GUI layouts
+        run: node --test test/gui-v7.test.mjs
       - name: Verify hosted Lightning preview
         run: |
           url="https://bolt-v5-preview-production.up.railway.app/assets/bolt-v6.css?ci=${GITHUB_SHA}"
