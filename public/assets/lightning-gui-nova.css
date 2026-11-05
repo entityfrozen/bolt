@@ -97,8 +97,6 @@ html[data-ln7-gui=nova] body.app-page .ln7-home{
  background:radial-gradient(ellipse at 73% 15%,#7843e444,transparent 62%),linear-gradient(160deg,#080d2c66,#120b3477)!important;
 }
 html[data-ln7-gui=nova] .ln7-nova{width:100%;min-height:100%;padding:26px clamp(24px,4vw,62px) 32px;position:relative}
-html[data-ln7-gui=nova] .ln7-nova-head{color:#c7b8e6;font:700 10px "IBM Plex Mono",monospace;letter-spacing:.13em;padding-bottom:14px;border-bottom:1px solid #ffffff22}
-html[data-ln7-gui=nova] .ln7-nova-head b{color:#77ffce;font-size:13px}
 html[data-ln7-gui=nova] .ln7-nova-hero{position:relative;min-height:390px;display:grid;place-items:center;isolation:isolate;padding:40px 8px 28px}
 html[data-ln7-gui=nova] .ln7-nova-orbit{
  position:absolute;inset:-85px 0 auto;left:50%;top:-72px;width:650px;height:580px;
@@ -121,9 +119,6 @@ html[data-ln7-gui=nova] .ln7-nova-orbit span{
  position:relative;z-index:1;font-size:98px;color:#ffffffbc;text-shadow:0 0 60px #ffe2ff88;mix-blend-mode:screen;
 }
 html[data-ln7-gui=nova] .ln7-nova-content{text-align:center;min-width:0;z-index:1;width:min(765px,96%)}
-html[data-ln7-gui=nova] .ln7-nova-label{
- display:block;margin-bottom:14px;color:#f3e8ff;font:800 10px "IBM Plex Mono",monospace;letter-spacing:.22em;
-}
 html[data-ln7-gui=nova] .ln7-nova-content h1{
  color:white!important;font-weight:760!important;letter-spacing:-.083em!important;
  font-size:clamp(57px,7.3vw,109px)!important;line-height:.96!important;margin:0 0 16px!important;
