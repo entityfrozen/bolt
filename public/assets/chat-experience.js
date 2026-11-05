@@ -13,6 +13,7 @@ export function installChatExperience(Hub){
  const oldRoom=Hub.prototype.v2Room;
  const oldChat=Hub.prototype.chat;
  const oldMessages=Hub.prototype.messages;
+ const oldMembers=Hub.prototype.v2Members;
  const oldReceive=Hub.prototype.onMessage;
  Hub.prototype.v2Setup=function(){
   oldSetup.call(this);
@@ -211,8 +212,31 @@ export function installChatExperience(Hub){
   oldRoom.call(this);
   this.dcEditing=null;
   enhanceRoom(this);
+  this.v2Members();
  };
  Hub.prototype.v2Messages=function(){renderRoom(this);};
+ Hub.prototype.v2Members=function(){
+  oldMembers.call(this);
+  const panel=this.$(".v2-online-panel"),server=this.v2Servers.find(s=>s.id===this.v2ServerId);
+  if(!panel||!server)return;
+  const active=new Set(this.users.map(u=>u.id));
+  const people=[...(server.members||[])].sort((a,b)=>{
+   const diff=Number(active.has(b.id))-Number(active.has(a.id));
+   return diff||String(a.name).localeCompare(String(b.name));
+  });
+  const online=people.filter(u=>active.has(u.id));
+  const offline=people.filter(u=>!active.has(u.id));
+  const heading=panel.querySelector("h3");if(heading)heading.textContent="MEMBERS · "+people.length;
+  const content=panel.querySelector("div");if(!content)return;
+  const section=(title,rows)=>'<div class="dc-member-heading">'+title+' — '+rows.length+'</div>'+
+   rows.slice(0,45).map(u=>'<button type="button" class="dc-member'+(active.has(u.id)?" online":"")+
+    '" data-cm="dm" data-member="'+escapeText(u.id)+'" title="Message '+escapeText(u.name)+'">'+
+    '<span class="dc-member-avatar">'+escapeText(u.name?.[0]?.toUpperCase()||"?")+'</span>'+
+    '<span class="dc-member-name"><strong>'+escapeText(u.name)+'</strong><small>'+
+    escapeText(u.admin?"Admin":server.roles?.find(r=>r.id===u.role)?.name||"Member")+'</small></span>'+
+    '<span class="dc-member-dot"></span></button>').join("");
+  content.innerHTML=section("ONLINE",online)+section("OFFLINE",offline);
+ };
  Hub.prototype.chat=function(){
   oldChat.call(this);
   const form=this.$("#hubChatForm"),input=this.$("#hubChatInput");
