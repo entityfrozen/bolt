@@ -1,0 +1,104 @@
+/* Lightning scrolling rules.
+ * No page-level scrollbar tracks, while content remains scrollable.
+ * Real reading areas and activity feeds keep subtle scroll indicators.
+ */
+html,body{scrollbar-width:none}
+:where(html,body,body *){scrollbar-width:none}
+:where(html,body,body *)::-webkit-scrollbar{display:none;width:0;height:0}
+
+/* The browser shell should never create a second page scrollbar. */
+html:has(body.app-page),body.app-page{height:100%;overflow:hidden}
+
+/* Only panels where the user needs to read or navigate a longer collection
+   show a scrollbar, and only when overflow actually occurs. */
+:where(
+ #hubMount .v3-inspector,
+ #hubMount #v3InspectorContent,
+ #hubMount .v3-overview,
+ #hubMount .v3-library,
+ #hubMount .v3-play-screen,
+ #hubMount .v2-room-feed,
+ #hubMount .social-messages,
+ #hubMount .sc-messages,
+ #hubMount .v2-directory,
+ #hubMount .cm-content,
+ #hubMount .v3-command-results,
+ #hubMount .v3-primary-tabs,
+ #hubMount .v3-board,
+ body.app-page .side-panel .panel-body,
+ body.app-page .side-panel .panel-content,
+ body.app-page .lg-content,
+ body.app-page .lg-settings-body,
+ .lg-settings .lg-panel,
+ .lg-settings .lg-content,
+ .gx-dialog .gx-dialog-main,
+ .gx-dialog .gx-guide-layout,
+ .ln7-gallery,
+ .community-manager .cm-content
+){
+ scrollbar-width:thin;
+ scrollbar-color:#71809663 transparent;
+}
+:where(
+ #hubMount .v3-inspector,
+ #hubMount #v3InspectorContent,
+ #hubMount .v3-overview,
+ #hubMount .v3-library,
+ #hubMount .v3-play-screen,
+ #hubMount .v2-room-feed,
+ #hubMount .social-messages,
+ #hubMount .sc-messages,
+ #hubMount .v2-directory,
+ #hubMount .cm-content,
+ #hubMount .v3-command-results,
+ body.app-page .side-panel .panel-body,
+ body.app-page .side-panel .panel-content,
+ body.app-page .lg-content,
+ .lg-settings .lg-content,
+ .gx-dialog .gx-dialog-main,
+ .ln7-gallery
+)::-webkit-scrollbar{display:block;width:6px;height:6px}
+:where(
+ #hubMount .v3-inspector,
+ #hubMount .v3-overview,
+ #hubMount .v3-library,
+ #hubMount .v3-play-screen,
+ #hubMount .v2-room-feed,
+ #hubMount .social-messages,
+ #hubMount .sc-messages,
+ #hubMount .v2-directory,
+ body.app-page .side-panel .panel-body,
+ body.app-page .lg-content
+)::-webkit-scrollbar-thumb{border-radius:10px;background:#6e7d9563}
+:where(
+ #hubMount .v3-inspector,
+ #hubMount .v3-overview,
+ #hubMount .v3-library,
+ #hubMount .v3-play-screen,
+ #hubMount .v2-room-feed,
+ #hubMount .social-messages,
+ #hubMount .sc-messages,
+ #hubMount .v2-directory,
+ body.app-page .side-panel .panel-body,
+ body.app-page .lg-content
+)::-webkit-scrollbar-track{background:transparent}
+
+/* No visible track in horizontal tab strips or decorative quick-launch rails.
+   Their wheel/touch/keyboard scrolling stays functional. */
+body.app-page .tabs,
+body.app-page .rail,
+body.app-page .ln7-home,
+#hubMount .v3-dock-games,
+#hubMount .v3-category-tabs{scrollbar-width:none!important}
+body.app-page .tabs::-webkit-scrollbar,
+body.app-page .rail::-webkit-scrollbar,
+body.app-page .ln7-home::-webkit-scrollbar,
+#hubMount .v3-dock-games::-webkit-scrollbar,
+#hubMount .v3-category-tabs::-webkit-scrollbar{display:none!important}
+
+/* People who require persistent visible scrollbar affordances can select a
+   system forced-colors theme: don't suppress native controls in that mode. */
+@media(forced-colors:active){
+ html,body,:where(body *){scrollbar-width:auto!important}
+ :where(html,body,body *)::-webkit-scrollbar{display:initial!important}
+}
