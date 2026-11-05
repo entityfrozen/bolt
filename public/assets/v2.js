@@ -176,7 +176,7 @@ export function installV2(Hub){
       '<form id="v2ChatForm" class="v2-room-compose"><button type="button" data-v2="ai" title="Ask AI">✧</button><textarea id="v2ChatInput" rows="1" maxlength="1500" placeholder="Message #'+esc(c.name)+'" aria-label="Message #'+esc(c.name)+'"></textarea><button class="v2-primary">Send ↗</button></form></main>'+
       '<aside class="v2-online-panel"><h3>ONLINE · '+this.users.length+'</h3><div>'+this.users.map(u=>'<button class="v2-online-user" data-v2="mention" data-name="'+esc(u.username||u.name)+'"><span class="v2-avatar">'+esc(u.name?.[0]?.toUpperCase()||"?")+'</span><strong>'+nameLabel(u.name,u.username)+'</strong><i>●</i></button>').join("")+'</div><small>People online across Lightning</small></aside></div>';
     const form=this.$("#v2ChatForm"),input=this.$("#v2ChatInput");
-    form.addEventListener("submit",event=>{event.preventDefault();const msg=input.value.trim();if(msg&&this.send({type:"v2Message",serverId:s.id,channel:c.id,message:msg})){input.value="";input.style.height="auto";}});
+    form.addEventListener("submit",event=>{event.preventDefault();const msg=input.value.trim();if(msg&&this.send({type:"v2Message",serverId:s.id,channel:c.id,message:msg,replyTo:this.dcReply?.serverId===s.id&&this.dcReply?.channel===c.id?this.dcReply.id:null})){input.value="";input.style.height="auto";this.dcReply=null;this.dcShowReply?.();}});
     input.addEventListener("keydown",event=>{if(event.key==="Enter"&&!event.shiftKey&&!event.isComposing){event.preventDefault();form.requestSubmit();}});
     input.addEventListener("input",()=>{input.style.height="auto";input.style.height=Math.min(140,input.scrollHeight)+"px";});
     this.v2Messages();
