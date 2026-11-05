@@ -36,6 +36,8 @@
    favicon.rel="icon";
    favicon.href=safeIcon(document.querySelector('link[rel="icon"]')?.href);
    doc.head.append(favicon);
+   // Avoid granting the new document unnecessary access to the source tab.
+   try{tab.opener=null;}catch{}
    const frame=doc.createElement("iframe");
    frame.title="Browser workspace";
    frame.setAttribute("allow","clipboard-write; fullscreen");
