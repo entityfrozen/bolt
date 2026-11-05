@@ -18,6 +18,8 @@ const sections=[
  ["accounts","Accounts","users","accounts.read"],
  ["community","Community","messages-square","community.moderate"],
  ["platform","Platform","sliders-horizontal","settings.manage"],
+ ["providers","Provider Keys","lock-keyhole",null],
+ ["announcements","Announcements","bell",null],
  ["sessions","Sessions","monitor","sessions.read"],
  ["activity","Activity log","scroll-text","audit.read"]
 ];
@@ -36,6 +38,7 @@ class AdminConsole{
   this.search="";
   this.filter="all";
   this.data=null;
+  this.providers={};
   this.rights=new Set();
   this.loading=false;
   this.dialog=document.createElement("dialog");
@@ -70,6 +73,7 @@ class AdminConsole{
    this.rights=new Set(result.permissions||[]);
    const allowed=this.available();
    if(!allowed.some(tab=>tab[0]===this.page))this.page="overview";
+   if(this.page==="providers")await this.loadProviderStatus();
    this.render();
   }catch(error){
    const host=this.dialog.querySelector("#acApp");
@@ -81,7 +85,9 @@ class AdminConsole{
    this.dialog.removeAttribute("aria-busy");
   }
  }
- available(){return sections.filter(([, , ,permission])=>!permission||this.rights.has(permission));}
+ available(){return sections.filter(([key,,,permission])=>
+   (!["providers","announcements"].includes(key)||this.services.me?.role==="admin")&&
+   (!permission||this.rights.has(permission)));}
  stats(){
   const users=this.data?.users||[];
   return {users:users.length,pending:users.filter(u=>u.approved===false).length,
@@ -128,6 +134,8 @@ class AdminConsole{
    case "accounts":return this.accounts(stats);
    case "community":return this.community();
    case "platform":return this.platform();
+   case "providers":return this.providerKeys();
+   case "announcements":return this.announcements();
    case "sessions":return this.sessions();
    case "activity":return this.activity();
    default:return this.overview(stats);
@@ -150,7 +158,7 @@ class AdminConsole{
    '<button class="ac-destination" type="button" data-ac-page="'+key+'">'+
    '<span class="ac-destination-icon">'+icon(ico)+'</span><span><b>'+escape(label)+'</b><small>'+
    escape(({accounts:"Users, access & approvals",community:"Channels and moderation",
-     platform:"Platform-wide switches",sessions:"Connected devices",activity:"Security activity"}[key]))+
+     platform:"Platform-wide switches",providers:"NVIDIA, Tavily and Brave keys",announcements:"Send notices to every member",sessions:"Connected devices",activity:"Security activity"}[key]))+
     '</small></span>'+icon("arrow-up-right")+'</button>').join("");
   const recent=rights.has("audit.read")?(this.data.audit||[]).slice(0,5).map(evt=>
    '<div class="ac-event"><span class="ac-event-dot"></span><div><strong>'+
@@ -278,6 +286,44 @@ class AdminConsole{
     '<button type="button" class="ac-danger-button" data-ac-action="revokeAll">'+icon("shield-off")+
     ' Sign out members</button></section>';
  }
+ async loadProviderStatus(){
+  try{this.providers=await this.services.api("/api/ai/search-settings");}
+  catch(error){this.providers={error:error.message};}
+ }
+ providerKeys(){
+  const providers=[
+   ["nvidia","NVIDIA AI","Powers Lightning AI responses","NVIDIA_API_KEY"],
+   ["tavily","Tavily Search","Provides current web results","TAVILY_API_KEY"],
+   ["brave","Brave Search","Optional alternative search provider","BRAVE_SEARCH_API_KEY"]
+  ];
+  return this.pageHeading("INTEGRATIONS","Provider Keys",
+   "Add or replace server API keys directly from the website. Only administrators can manage them.")+
+   '<div class="ac-secret-notice">'+icon("shield-check")+
+   '<div><strong>Encrypted server-side storage</strong><p>Keys are saved on Lightning’s persistent data volume. Saved values are never displayed or sent back to the browser. The Railway environment still works as a fallback.</p></div></div>'+
+   (this.providers.error?'<p class="ac-error-inline">'+escape(this.providers.error)+'</p>':"")+
+   '<div class="ac-provider-list">'+providers.map(([key,name,description,env])=>{
+    const source=this.providers.source?.[key]||"missing",ready=!!this.providers[key];
+    const status=ready?(source==="shared"?"Saved on website":"Configured in Railway"):"Not configured";
+    return '<section class="ac-provider-card"><div class="ac-provider-heading"><div><span class="ac-eyebrow">'+escape(env)+'</span>'+
+     '<h2>'+escape(name)+'</h2><p>'+escape(description)+'</p></div>'+
+     '<span class="ac-provider-status'+(ready?" ready":"")+'">'+escape(status)+'</span></div>'+
+     '<form class="ac-provider-form" data-ac-provider="'+key+'" autocomplete="off">'+
+     '<label for="acKey-'+key+'">API key</label><div class="ac-provider-input"><input id="acKey-'+key+
+     '" name="key" type="password" autocomplete="new-password" autocapitalize="off" spellcheck="false" required minlength="10" maxlength="300" placeholder="Paste a new key to save">'+
+     '<button type="submit" class="ac-primary">Save key</button></div>'+
+     '<div class="ac-provider-actions"><button type="button" data-ac-action="testProvider" data-provider="'+key+'"'+(!ready?" disabled":"")+'>Test connection</button>'+
+     '<button type="button" data-ac-action="removeProvider" data-provider="'+key+'"'+(source!=="shared"?" disabled":"")+'>Remove saved key</button></div></form></section>';
+   }).join("")+'</div>';
+ }
+ announcements(){
+  return this.pageHeading("COMMUNICATIONS","Announcements",
+   "Send a notification to every active Lightning member.")+
+   '<section class="ac-card ac-announcement"><div class="ac-card-head"><div><span class="ac-eyebrow">NEW ANNOUNCEMENT</span><h2>Notify everyone</h2></div></div>'+
+   '<form data-ac-announcement><label>Title<input name="title" maxlength="90" minlength="3" required placeholder="What’s new on Lightning?"></label>'+
+   '<label>Message<textarea name="body" maxlength="240" minlength="3" rows="4" required placeholder="Tell members what changed…"></textarea></label>'+
+   '<p>Appears in each member’s notification inbox, including when they next sign in. Limited to one announcement every 30 seconds.</p>'+
+   '<button type="submit" class="ac-primary">'+icon("send")+' Send announcement</button></form></section>';
+ }
  sessions(){
   const list=this.data.sessions||[];
   return this.pageHeading("SECURITY CENTER","Active sessions","View connected accounts and end individual sessions.",
@@ -332,7 +378,9 @@ class AdminConsole{
   if(!button||!this.dialog.contains(button)||button.disabled)return;
   const page=button.dataset.acPage;
   if(page&&this.available().some(item=>item[0]===page)){
-   this.page=page;this.render();return;
+   this.page=page;
+   if(page==="providers")await this.loadProviderStatus();
+   this.render();return;
   }
   const setting=button.dataset.acSetting;
   if(setting&&this.rights.has("settings.manage")){
@@ -349,6 +397,25 @@ class AdminConsole{
   }
   const action=button.dataset.acAction;
   if(!action)return;
+  if(action==="testProvider"&&this.services.me?.role==="admin"){
+   const provider=button.dataset.provider;
+   if(!["nvidia","tavily","brave"].includes(provider))return;
+   button.disabled=true;
+   try{
+    const data=await this.services.api(provider==="nvidia"?"/api/ai/provider-test":"/api/ai/search-test",{
+     method:"POST",body:JSON.stringify({provider})});
+    this.message(data.ok?"Connection successful.":data.error||"The provider did not respond.");
+   }catch(error){this.message(error.message);}
+   finally{button.disabled=false;}
+   return;
+  }
+  if(action==="removeProvider"&&this.services.me?.role==="admin"){
+   const provider=button.dataset.provider;
+   if(!["nvidia","tavily","brave"].includes(provider))return;
+   if(!confirm("Remove the saved "+provider+" key? The Railway key, if any, will remain available."))return;
+   await this.run(()=>this.services.api("/api/ai/search-settings/"+provider,{method:"DELETE"}),"Saved key removed.");
+   return;
+  }
   if(action==="close"){this.dialog.close();return;}
   if(action==="refresh"){await this.refresh();return;}
   if(action==="community"&&this.rights.has("community.moderate")){
@@ -413,6 +480,32 @@ class AdminConsole{
   }
  }
  async submit(event){
+  if(event.target.matches("[data-ac-provider]")){
+   event.preventDefault();
+   if(this.services.me?.role!=="admin")return;
+   const provider=event.target.dataset.acProvider;
+   if(!["nvidia","tavily","brave"].includes(provider))return;
+   const input=event.target.elements.key,key=input?.value?.trim()||"";
+   if(!key)return;
+   input.value="";
+   await this.run(()=>this.services.api("/api/ai/search-settings",{
+    method:"POST",body:JSON.stringify({provider,key})
+   }),"Provider key saved securely.");
+   return;
+  }
+  if(event.target.matches("[data-ac-announcement]")){
+   event.preventDefault();
+   if(this.services.me?.role!=="admin")return;
+   const values=new FormData(event.target);
+   const title=String(values.get("title")||"").trim(),body=String(values.get("body")||"").trim();
+   if(!confirm("Notify every Lightning member?"))return;
+   await this.run(async()=>{
+    const response=await this.services.api("/api/admin/notifications/announce",{
+     method:"POST",body:JSON.stringify({title,body})});
+    this.announcementRecipients=response.recipients;
+   },"Announcement sent to members.");
+   return;
+  }
   if(event.target.id!=="acCreateForm"||!this.rights.has("accounts.manage"))return;
   event.preventDefault();
   const values=new FormData(event.target),minutes=Number(values.get("expiry"))||0;
