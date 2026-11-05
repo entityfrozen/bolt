@@ -11,6 +11,7 @@ import { needsWebSearch, searchWeb } from "./web-search.js";
 import {completeAi,activeRoleplay} from "./ai-provider.js";
 import {normalizeAiImage,visionMessages} from "./ai-images.js";
 import { installSearchCredentials } from "./web-search-credentials.js";
+import { purgeChatLogs } from "./purge-chat-logs.js";
 import {ROLE_OPTIONS,isValidRole,hasPermission,permissionsFor,canManageAccount} from "./staff-roles.js";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -21,6 +22,14 @@ const sessionHours = Math.max(1, Number(process.env.BOLT_SESSION_TTL_HOURS || 16
 let accountSpace=null;
 
 fs.mkdirSync(dataDir, { recursive: true });
+
+// This runs once per persistent data volume before any chat store is read.
+const chatReset=purgeChatLogs(dataDir);
+if(!chatReset.alreadyDone)console.log("Chat history reset:",JSON.stringify(chatReset.counts));
+console.log("Provider key presence:",JSON.stringify({
+ NVIDIA_API_KEY:!!String(process.env.NVIDIA_API_KEY||"").trim(),
+ TAVILY_API_KEY:!!String(process.env.TAVILY_API_KEY||"").trim()
+}));
 
 const freshState = () => ({
   users: [],
