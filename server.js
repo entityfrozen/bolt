@@ -442,8 +442,8 @@ const aiRequests = new Map();
 app.post("/api/ai/chat", mustBeSignedIn, sameOrigin, async (req, res) => {
   res.setHeader("Cache-Control", "no-store");
   if (!state.settings.features.ai) return res.status(403).json({ error: "Lightning AI is disabled by the administrator." });
-  const key = (process.env.NVIDIA_API_KEY || "").trim();
-  if (!key) return res.status(503).json({ error: "Lightning AI needs an NVIDIA_API_KEY configured on Railway. The API key belongs on the server, not in your browser." });
+  const key = aiSearch.getNvidiaKey().trim();
+  if (!key) return res.status(503).json({ error: "Ask an admin to configure NVIDIA under Admin Console → Provider Keys." });
   const actor = req.auth.session.id;
   const timestamp = Date.now();
   const history = aiRequests.get(actor) || [];
