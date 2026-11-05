@@ -686,7 +686,7 @@ function toggleBookmark(){
 function openPanel(name){
   if(name==="admin"){
     closePanel();
-    void import("/assets/admin-console.js?v=1").then(module=>module.openAdminConsole({
+    void import("/assets/admin-console.js?v=2").then(module=>module.openAdminConsole({
       api,me,notify:toast,onSettings:settings=>{config=settings;},
       onCommunity:()=>openLightningHub("room")
     })).catch(error=>toast(error.message||"Could not open staff console"));
@@ -1181,12 +1181,7 @@ async function pollDirectMessages(){
    const prior=lastDmIds.get(peer);
    if(dmPollStarted&&prior!==last.id&&last.from!==me?.id){
     const sender=thread.user.displayName||thread.user.username||"Member";
-    if(document.hidden&&window.Notification?.permission==="granted"){
-     try{
-      const notification=new Notification("Lightning · "+sender,{body:String(last.text||"New direct message").slice(0,140),icon:"/favicon.svg",tag:"lightning-dm-"+peer});
-      notification.onclick=()=>{window.focus();window.LightningAccount?.open("messages",peer);notification.close()};
-     }catch{}
-    }else if(!document.querySelector("#lightningAccountSpace")?.open){
+    if(!document.hidden&&!document.querySelector("#lightningAccountSpace")?.open){
      toast("New DM from "+sender);
     }
    }
