@@ -51,9 +51,7 @@
   const screens={
     aura:function(){return [
       '<div class="ln7-aura"><div class="ln7-aura-center">',
-      '<div class="ln7-aura-top"><span>YOUR DESKTOP <i> / </i> LIGHTNING</span><span>AURA — 01/03</span></div>',
       '<div class="ln7-aura-hero"><div class="ln7-aura-heading">',
-      '<span class="ln7-status"><i></i> YOUR SPACE IS READY</span>',
       '<h1>Everything, <em>in its element.</em></h1>',
       '<p>A quieter place to explore, create, and connect. Make yourself comfortable.</p>',
       '</div><div class="ln7-aura-visual" aria-hidden="true"><div class="ln7-aura-sphere"></div><span>SPACE TO EXPLORE</span></div></div>',
@@ -64,9 +62,9 @@
       '</div><div class="ln7-aura-footer"><div data-ln7="suggestion"></div></div></div>'
     ].join("");},
     nova:function(){return [
-      '<div class="ln7-nova"><header class="ln7-nova-head"><span>NOVA / PERSONAL COMMAND DECK</span><span>ALL SYSTEMS OPEN <b>●</b></span></header>',
+      '<div class="ln7-nova">',
       '<div class="ln7-nova-hero"><div class="ln7-nova-orbit" aria-hidden="true"><i></i><i></i><i></i><span>✳</span></div>',
-      '<div class="ln7-nova-content"><span class="ln7-nova-label">THE NEXT CHAPTER / 02</span>',
+      '<div class="ln7-nova-content">',
       '<h1>Go beyond <em>the ordinary.</em></h1><p>The web, your people, your playground. One launch point.</p>',
       '<div class="ln7-nova-query" data-ln7="form"></div>',
       '<div class="ln7-nova-actions" data-ln7="quick"></div></div>',
@@ -79,9 +77,9 @@
       '<div data-ln7="suggestion"></div></section></div></div>'
     ].join("");},
     noir:function(){return [
-      '<div class="ln7-noir"><div class="ln7-noir-top"><span>LIGHTNING SYSTEM <b> / </b> 03</span><span>SESSION ACTIVE ●</span></div>',
-      '<div class="ln7-noir-columns"><aside class="ln7-noir-statement"><div class="ln7-noir-number">03<span>/03</span></div>',
-      '<span class="ln7-noir-eyebrow">MINIMAL WORKBENCH</span><h1>Less noise. <em>More space.</em></h1>',
+      '<div class="ln7-noir">',
+      '<div class="ln7-noir-columns"><aside class="ln7-noir-statement">',
+      '<h1>Less noise. <em>More space.</em></h1>',
       '<p>Everything you need. Exactly where it belongs. Nothing between you and the work.</p>',
       '<div class="ln7-noir-illustration" aria-hidden="true"><i></i><i></i><i></i><i></i></div>',
       '<button type="button" data-ln7-action="guide">READ THE FIELD GUIDE <b>↗</b></button></aside>',
