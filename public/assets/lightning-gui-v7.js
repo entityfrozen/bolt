@@ -118,10 +118,12 @@
     captureControls();
     const home=$("#newtabView");
     if(!home)return;
+    const wasHidden=home.classList.contains("hidden");
+    const searchFocused=document.activeElement===controls.form.querySelector("input");
     const original=[controls.form,controls.recent,controls.saved,controls.suggestion,...controls.shortcuts];
     original.forEach(el=>el.remove());
     home.innerHTML=screens[next]();
-    home.className="newtab v3-browser-home ln7-home ln7-home-"+next;
+    home.className="newtab v3-browser-home ln7-home ln7-home-"+next+(wasHidden?" hidden":"");
     const target=(name)=>$('[data-ln7="'+name+'"]',home);
     target("form")?.append(controls.form);
     target("recent")?.append(controls.recent);
@@ -130,6 +132,7 @@
     for(const item of controls.shortcuts)target("quick")?.append(item);
     controls.form.classList.add("ln7-search-form");
     controls.form.querySelector("input")?.setAttribute("placeholder","Search or enter a website");
+    if(searchFocused)controls.form.querySelector("input")?.focus();
   }
   function setMode(next,options={}){
     if(!valid(next))return false;
