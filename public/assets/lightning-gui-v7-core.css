@@ -118,6 +118,7 @@ html[data-ln7-gui] body.app-page .ln7-home{
  background:none!important;overflow-y:auto!important;overflow-x:hidden!important;
  color:var(--ln7-fg)!important;scrollbar-width:thin;
 }
+html[data-ln7-gui] body.app-page .ln7-home.hidden{display:none!important}
 html[data-ln7-gui] body.app-page .ln7-home::before,
 html[data-ln7-gui] body.app-page .ln7-home::after{display:none!important}
 html[data-ln7-gui] body.app-page .ln7-home h1,
