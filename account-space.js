@@ -6,11 +6,11 @@ import {normalizeAiImage} from "./ai-images.js";
 // Private, session-scoped account data. Never infer identity from a request body.
 export function registerAccountSpace({app,dataDir,mustBeSignedIn,sameOrigin,listUsers}){
  const filename=path.join(dataDir,"lightning-accounts.json");
- let data={profiles:{},history:{},dm:{},settings:{},sharedApps:[],aiWorkspaces:{}};
+ let data={profiles:{},history:{},dm:{},settings:{},sharedApps:[],aiWorkspaces:{},notifications:{}};
  try{
   const parsed=JSON.parse(fs.readFileSync(filename,"utf8"));
   if(parsed&&typeof parsed==="object"){
-   for(const key of ["profiles","history","dm","settings","aiWorkspaces"])
+   for(const key of ["profiles","history","dm","settings","aiWorkspaces","notifications"])
     if(parsed[key]&&!Array.isArray(parsed[key])&&typeof parsed[key]==="object")data[key]=parsed[key];
    if(Array.isArray(parsed.sharedApps))data.sharedApps=parsed.sharedApps.slice(0,100);
   }
@@ -53,6 +53,62 @@ export function registerAccountSpace({app,dataDir,mustBeSignedIn,sameOrigin,list
  if(migratedReads)persist();
  const unreadIn=(thread,userId)=>thread.messages.filter(message=>
   message.from!==userId&&message.at>Number(thread.readAt?.[userId]||0)).length;
+ const alertsFor=id=>Array.isArray(data.notifications[id])?data.notifications[id]:[];
+ const addNotification=(id,info,{save=true}={})=>{
+  if(!account(id)||!["dm","mention","announcement"].includes(info?.kind))return null;
+  const entry={
+   id:crypto.randomBytes(10).toString("hex"),
+   kind:info.kind,title:safeText(info.title,90),body:safeText(info.body,240),
+   fromId:clip(info.fromId,100),serverId:clip(info.serverId,50),
+   channel:clip(info.channel,50),at:Date.now(),readAt:0
+  };
+  if(!entry.title)return null;
+  data.notifications[id]=[entry,...alertsFor(id)].slice(0,120);
+  if(save)persist();
+  return entry;
+ };
+ const notifyMentions=({text,authorId,authorName,serverId="",serverName="Community",channel,allowedIds=null,replyToId=null})=>{
+  const tokens=[...String(text||"").matchAll(/(?:^|[^a-z0-9._-])@([a-z0-9._-]{3,32})(?![a-z0-9._-])/gi)]
+   .map(match=>match[1].toLowerCase());
+  const allow=Array.isArray(allowedIds)?new Set(allowedIds):null;
+  const targets=new Set();
+  for(const user of users()){
+   if(user.id===authorId||allow&&!allow.has(user.id))continue;
+   if(tokens.includes(user.username.toLowerCase())||user.id===replyToId)targets.add(user.id);
+  }
+  let changed=false;
+  for(const id of targets)if(addNotification(id,{
+   kind:"mention",title:(id===replyToId&&!tokens.includes((account(id)?.username||"").toLowerCase())?"Reply from ":"Mention from ")+safeText(authorName,40),
+   body:String(text||"").slice(0,240),fromId:authorId,serverId,channel
+  },{save:false}))changed=true;
+  if(changed)persist();
+ };
+ const broadcastNotification=(title,message,fromId)=>{
+  let sent=0;
+  for(const user of users())if(addNotification(user.id,{
+   kind:"announcement",title,body:message,fromId
+  },{save:false}))sent++;
+  if(sent)persist();
+  return sent;
+ };
+ app.get("/api/account/notifications",mustBeSignedIn,(req,res)=>{
+  res.setHeader("Cache-Control","no-store");
+  const items=alertsFor(req.auth.identity.id);
+  res.json({items:items.slice(0,60),unread:items.filter(n=>!n.readAt).length});
+ });
+ app.patch("/api/account/notifications/read",mustBeSignedIn,sameOrigin,(req,res)=>{
+  const items=alertsFor(req.auth.identity.id),ids=req.body?.ids;
+  if(ids!==undefined&&(!Array.isArray(ids)||ids.length>120||ids.some(id=>typeof id!=="string"||id.length>50)))
+   return fail(res,400,"Invalid notification IDs.");
+  const chosen=ids===undefined?null:new Set(ids);
+  let changed=0;
+  for(const alert of items)if(!alert.readAt&&(!chosen||chosen.has(alert.id))){alert.readAt=Date.now();changed++;}
+  if(changed)persist();
+  res.json({ok:true,changed,unread:items.filter(n=>!n.readAt).length});
+ });
+ app.delete("/api/account/notifications",mustBeSignedIn,sameOrigin,(req,res)=>{
+  data.notifications[req.auth.identity.id]=[];persist();res.json({ok:true,unread:0});
+ });
  const historyTypes=["browser","ai"];
  // Search destinations are transient by default. This also prunes older records.
  const sensitiveUrl=value=>{
@@ -268,6 +324,7 @@ export function registerAccountSpace({app,dataDir,mustBeSignedIn,sameOrigin,list
   thread.messages.push(entry);
   thread.messages=thread.messages.slice(-300);
   data.dm[key]=thread;
+  addNotification(target,{kind:"dm",title:"Message from "+getDisplayName(id,rawName(id)),body:message,fromId:id});
   persist();res.status(201).json({message:entry});
  });
  app.delete("/api/account/dms/:target/:message",mustBeSignedIn,sameOrigin,(req,res)=>{
@@ -391,5 +448,5 @@ export function registerAccountSpace({app,dataDir,mustBeSignedIn,sameOrigin,list
   return {...aiDefaults(),...ws.preferences};
  }
 
- return {getDisplayName,profile,getAiPreferences};
+ return {getDisplayName,profile,getAiPreferences,addNotification,notifyMentions,broadcastNotification};
 }
