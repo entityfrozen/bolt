@@ -77,8 +77,7 @@ html[data-ln7-gui=aura] body.app-page .ln7-home{
  background:linear-gradient(145deg,#ffffff09,#060d2226)!important;
 }
 html[data-ln7-gui=aura] .ln7-aura{
- display:grid;grid-template-columns:minmax(0,1.67fr) minmax(250px,.64fr);
- width:100%;min-height:100%;gap:0;
+ display:block;width:min(100%,1180px);min-height:100%;margin-inline:auto;
 }
 html[data-ln7-gui=aura] .ln7-aura-center{min-width:0;padding:35px clamp(25px,4.5vw,66px) 40px}
 html[data-ln7-gui=aura] .ln7-aura-top{
@@ -141,37 +140,10 @@ html[data-ln7-gui=aura] .ln7-aura-list{
 }
 html[data-ln7-gui=aura] .ln7-aura-list header{font-size:12px;font-weight:720}
 html[data-ln7-gui=aura] .ln7-aura-list header small{font:9px "IBM Plex Mono",monospace;letter-spacing:.12em}
-html[data-ln7-gui=aura] .ln7-aura-aside{
- min-width:0;display:flex;flex-direction:column;gap:0;
- padding:28px 26px;border-left:1px solid #ffffff39;
- background:linear-gradient(180deg,#ffffff1f,#ffffff08 45%,#7084d119),rgba(30,40,79,.37);
- -webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);
+html[data-ln7-gui=aura] .ln7-aura-footer{
+ padding-top:17px;margin:16px 0 0;border-top:1px solid #ffffff25;
+ color:#bfcee7;font-size:11px;
 }
-html[data-ln7-gui=aura] .ln7-side-top{display:flex;align-items:center;gap:10px;font:700 9px "IBM Plex Mono",monospace;letter-spacing:.09em;color:#d0ddff}
-html[data-ln7-gui=aura] .ln7-side-top b{font-size:21px;color:#b4d1ff}
-html[data-ln7-gui=aura] .ln7-side-top span{flex:1}
-html[data-ln7-gui=aura] .ln7-side-top>span+span{color:#8492b3}
-html[data-ln7-gui=aura] .ln7-aura-art{
- position:relative;flex:0 0 195px;border-radius:18px;margin:25px 0 28px;overflow:hidden;
- background:radial-gradient(circle at 55% 44%,#8491ef74,transparent 60%),linear-gradient(145deg,#879bdf28,#101a3f91);
- border:1px solid #ffffff3c;display:grid;place-items:center;
-}
-html[data-ln7-gui=aura] .ln7-aura-art i{position:absolute;width:160px;height:160px;border:1px solid #ffffff8b;border-radius:50%;box-shadow:0 0 0 24px #ffffff0f,0 0 0 55px #ffffff0d}
-html[data-ln7-gui=aura] .ln7-aura-art strong{font-size:96px;letter-spacing:-.1em;font-weight:600;color:#ffffffce;text-shadow:0 8px 35px #95b3ff}
-html[data-ln7-gui=aura] .ln7-aura-art small{position:absolute;bottom:11px;left:15px;letter-spacing:.13em;font:9px "IBM Plex Mono",monospace;color:#dae4ff}
-html[data-ln7-gui=aura] .ln7-aside-label{font:750 10px "IBM Plex Mono",monospace;color:#c2d0ef;letter-spacing:.13em}
-html[data-ln7-gui=aura] .ln7-aura-aside h2{font-size:31px;line-height:1.08;letter-spacing:-.065em;margin:13px 0 7px}
-html[data-ln7-gui=aura] .ln7-aura-aside>p{font-size:12px;color:#b8c8e3;margin:0 0 20px}
-html[data-ln7-gui=aura] .ln7-aside-cta,
-html[data-ln7-gui=aura] .ln7-aside-alt{
- display:flex;align-items:center;justify-content:space-between;gap:10px;
- width:100%;padding:12px 14px;border-radius:11px;font-weight:680;text-align:left;font-size:12px
-}
-html[data-ln7-gui=aura] .ln7-aside-cta{background:#cfddff;color:#1b2743;border:1px solid #e4edff}
-html[data-ln7-gui=aura] .ln7-aside-alt{margin-top:8px;border:1px solid #ffffff48;background:#ffffff12;color:#e7eaff}
-html[data-ln7-gui=aura] .ln7-aside-tip{margin-top:auto;padding-top:19px;border-top:1px solid #ffffff30}
-html[data-ln7-gui=aura] .ln7-aside-tip small{font:700 9px "IBM Plex Mono",monospace;letter-spacing:.1em;color:#b1c8ef}
-html[data-ln7-gui=aura] .ln7-aside-tip p{color:#c4d1e8;font-size:11px;margin:8px 0}
 html[data-ln7-gui=aura] #hubMount{
  background:radial-gradient(ellipse at 20% 20%,#7b90d355,transparent 60%),radial-gradient(ellipse at 83% 80%,#5b81a05e,transparent 63%),#10182d!important;
 }
@@ -184,14 +156,10 @@ html[data-ln7-gui=aura] #hubMount .v3-shell>.v3-inspector{
 }
 @media(max-width:1220px){
  html[data-ln7-gui=aura] body.app-page .bolt-shell{grid-template-columns:210px minmax(0,1fr)!important}
- html[data-ln7-gui=aura] .ln7-aura{grid-template-columns:minmax(0,1fr) minmax(220px,.52fr)}
  html[data-ln7-gui=aura] .ln7-aura-center{padding:25px}
- html[data-ln7-gui=aura] .ln7-aura-art{flex-basis:140px}
  html[data-ln7-gui=aura] .ln7-aura-visual{display:none}
 }
 @media(max-width:890px){
- html[data-ln7-gui=aura] .ln7-aura{grid-template-columns:minmax(0,1fr)}
- html[data-ln7-gui=aura] .ln7-aura-aside{display:none}
  html[data-ln7-gui=aura] .ln7-aura-heading h1{font-size:clamp(48px,7.3vw,80px)!important}
 }
 @media(max-width:680px){
@@ -202,9 +170,7 @@ html[data-ln7-gui=aura] #hubMount .v3-shell>.v3-inspector{
  html[data-ln7-gui=aura] body.app-page .ln7-nav-label,
  html[data-ln7-gui=aura] body.app-page .ln7-nav-kicker,
  html[data-ln7-gui=aura] body.app-page .ln7-rail-end,
- html[data-ln7-gui=aura] body.app-page .ln7-rail-switch b{display:none!important}
  html[data-ln7-gui=aura] body.app-page .ln7-rail-brand img{width:35px}
- html[data-ln7-gui=aura] body.app-page .ln7-rail-switch{padding:0 8px!important}
  html[data-ln7-gui=aura] body.app-page .rail .rail-button:not(.admin-only){justify-content:center!important;padding:0!important;width:42px!important}
  html[data-ln7-gui=aura] body.app-page .tabbar{margin:5px 5px 2px!important;padding:0 8px!important;border-radius:12px!important}
  html[data-ln7-gui=aura] body.app-page .toolbar{margin:2px 5px 3px!important;padding:0 6px!important;border-radius:12px!important}
