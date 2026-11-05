@@ -7,7 +7,7 @@ import crypto from "node:crypto";
 export function installSearchCredentials({app,dataDir,mustBeAdmin,sameOrigin,searchWeb,getAdminIds=()=>[]}){
  const secretsFile=path.join(dataDir,"lightning-search-credentials.json");
  const secretFile=path.join(dataDir,".lightning-search-master-key");
- const accepted=new Set(["tavily","brave"]);
+ const accepted=new Set(["tavily","brave","nvidia"]);
  let master;
  try{
   master=Buffer.from(fs.readFileSync(secretFile,"utf8").trim(),"hex");
@@ -58,14 +58,16 @@ export function installSearchCredentials({app,dataDir,mustBeAdmin,sameOrigin,sea
  const keys=()=>{
   const config=state.shared||{};
   return {tavilyKey:unseal(config.tavily)||process.env.TAVILY_API_KEY||"",
-   braveKey:unseal(config.brave)||process.env.BRAVE_SEARCH_API_KEY||""};
+   braveKey:unseal(config.brave)||process.env.BRAVE_SEARCH_API_KEY||"",
+   nvidiaKey:unseal(config.nvidia)||process.env.NVIDIA_API_KEY||""};
  };
  const status=()=>{
   const config=state.shared||{},present=keys();
-  return {tavily:!!present.tavilyKey,brave:!!present.braveKey,
+  return {tavily:!!present.tavilyKey,brave:!!present.braveKey,nvidia:!!present.nvidiaKey,
    source:{
     tavily:unseal(config.tavily)?"shared":process.env.TAVILY_API_KEY?"server":"missing",
-    brave:unseal(config.brave)?"shared":process.env.BRAVE_SEARCH_API_KEY?"server":"missing"
+    brave:unseal(config.brave)?"shared":process.env.BRAVE_SEARCH_API_KEY?"server":"missing",
+    nvidia:unseal(config.nvidia)?"shared":process.env.NVIDIA_API_KEY?"server":"missing"
    }};
  };
  const search=(_userId,query,options={})=>searchWeb(query,{...options,...keys()});
@@ -75,7 +77,7 @@ export function installSearchCredentials({app,dataDir,mustBeAdmin,sameOrigin,sea
  });
  app.post("/api/ai/search-settings",mustBeAdmin,sameOrigin,(req,res)=>{
   const provider=req.body?.provider,key=req.body?.key;
-  if(!accepted.has(provider))return res.status(400).json({error:"Choose Tavily or Brave Search."});
+  if(!accepted.has(provider))return res.status(400).json({error:"Choose NVIDIA, Tavily or Brave Search."});
   if(typeof key!=="string"||key.length<10||key.length>300||/[^\x21-\x7e]/.test(key))
    return res.status(400).json({error:"Paste a valid API key (10–300 characters, no spaces)."});
   (state.shared??={})[provider]=seal(key);
@@ -86,6 +88,22 @@ export function installSearchCredentials({app,dataDir,mustBeAdmin,sameOrigin,sea
   if(!accepted.has(provider))return res.status(404).json({error:"Unknown provider."});
   if(state.shared){delete state.shared[provider];save();}
   res.json({ok:true,...status()});
+ });
+ app.post("/api/ai/provider-test",mustBeAdmin,sameOrigin,async(req,res)=>{
+  if(req.body?.provider!=="nvidia")return res.status(400).json({error:"Unknown provider."});
+  const key=keys().nvidiaKey;
+  if(!key)return res.status(400).json({error:"Save an NVIDIA key first."});
+  try{
+   const reply=await fetch("https://integrate.api.nvidia.com/v1/models",{
+    method:"GET",headers:{"Authorization":"Bearer "+key},
+    signal:AbortSignal.timeout(10000)
+   });
+   res.setHeader("Cache-Control","no-store");
+   res.json({ok:reply.ok,error:reply.ok?null:reply.status===401||reply.status===403?
+    "NVIDIA rejected this key ("+reply.status+").":"NVIDIA connection returned HTTP "+reply.status+"."});
+  }catch{
+   res.status(502).json({ok:false,error:"Could not reach NVIDIA. Check the network and try again."});
+  }
  });
  app.post("/api/ai/search-test",mustBeAdmin,sameOrigin,async(req,res)=>{
   const provider=req.body?.provider;
@@ -99,5 +117,5 @@ export function installSearchCredentials({app,dataDir,mustBeAdmin,sameOrigin,sea
    res.status(502).json({ok:false,error:"Search provider could not be reached."});
   }
  });
- return {search,status};
+ return {search,status,getNvidiaKey:()=>keys().nvidiaKey};
 }
