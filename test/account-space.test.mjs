@@ -118,9 +118,17 @@ test("Preferences and game scores persist between sessions, isolated by account"
  assert.equal((await request(origin,"/api/account/settings/appearance",alice,"PUT",{value:prefs})).status,200);
  assert.equal((await request(origin,"/api/account/settings/channels",alice,"PUT",{value:{"lightning-main":"announcements"}})).status,200);
  assert.equal((await request(origin,"/api/account/settings/gameScores",alice,"PUT",{value:{best2048:1024}})).status,200);
+ assert.equal((await request(origin,"/api/account/settings/lightning.gui.mode",alice,"PUT",{value:"aura"})).status,200);
+ assert.equal((await request(origin,"/api/account/settings/lightning.gui.mode",alice,"PUT",{value:"nova"})).status,200);
+ assert.equal((await request(origin,"/api/account/settings/glass.guide.completed",alice,"PUT",{value:true})).status,200);
+ assert.equal((await request(origin,"/api/account/settings/lightning.gui.mode",alice,"PUT",{value:"unexpected"})).status,400);
+ assert.equal((await request(origin,"/api/account/settings/glass.guide.completed",alice,"PUT",{value:"yes"})).status,400);
+ assert.equal((await request(origin,"/api/account/settings",bob)).data.settings["lightning.gui.mode"],undefined);
  const newSession=(await request(origin,"/api/login","","POST",{username:"account-a",password:"test-account-password-456"})).cookie;
  const settings=(await request(origin,"/api/account/settings",newSession)).data.settings;
  assert.deepEqual(settings.appearance,prefs);
+ assert.equal(settings["lightning.gui.mode"],"nova");
+ assert.equal(settings["glass.guide.completed"],true);
  assert.equal(settings.channels["lightning-main"],"announcements");
  assert.equal(settings.gameScores.best2048,1024);
  assert.deepEqual((await request(origin,"/api/account/settings",bob)).data.settings,{});
