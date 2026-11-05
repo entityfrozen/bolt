@@ -53,7 +53,14 @@ const PATHS={
  "bell":'<path d="M18 8a6 6 0 0 0-12 0c0 7-3 8-3 9h18c0-1-3-2-3-9ZM10 21h4"/>',
  "check":'<path d="m5 12 4 4L19 6"/>',
  "log-out":'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>',
- "list":'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>'
+ "list":'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
+ "smile-plus":'<circle cx="11" cy="11" r="8"/><path d="M8 13c1.4 2 4.7 2 6 0M8 9h.01M14 9h.01M20 17v6M17 20h6"/>',
+ "reply":'<path d="m9 17-6-5 6-5M3 12h10a7 7 0 0 1 7 7v1"/>',
+ "pin":'<path d="m16 3 5 5-3 1-2 5-3 3-6-6 3-3 5-2 1-3ZM10 14 3 21"/>',
+ "more-horizontal":'<circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/>',
+ "copy":'<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>',
+ "send":'<path d="m22 2-7 20-4-9-9-4 20-7ZM22 2 11 13"/>',
+ "bookmark":'<path d="M6 3h12v18l-6-4-6 4V3Z"/>'
 };
 export function icon(name,className=""){
  const path=PATHS[name]||PATHS["hash"];
