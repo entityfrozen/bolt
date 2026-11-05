@@ -80,6 +80,7 @@ function initDialog(){
    '<nav aria-label="Settings sections"><button data-lg-tab="appearance">◈ <span>Appearance</span></button>'+
    '<button data-lg-tab="layout">▣ <span>Layout & space</span></button>'+
    '<button data-lg-tab="accessibility">◐ <span>Accessibility</span></button>'+
+   '<button data-lg-tab="privacy">◧ <span>Privacy & tab</span></button>'+
    '<button data-lg-tab="data">⇄ <span>Preferences & data</span></button></nav>'+
    '<div class="lg-sidebar-footer">Made to feel like yours.</div></aside>'+
   '<div class="lg-main"><header class="lg-head"><div><small id="lgCategory">APPEARANCE</small><h2 id="lgSettingsTitle">The look and feel.</h2></div>'+
@@ -104,6 +105,8 @@ function initDialog(){
   if(action==="close")dialog.close();
   if(action==="reset"&&confirm("Reset your appearance to Lightning defaults?")){prefs={...DEFAULTS};save();apply();draw(currentTab);}
   if(action==="browser"){dialog.close();document.dispatchEvent(new Event("lightning:browser-settings"));}
+  if(action==="cloak"){dialog.close();window.LightningTabStudio?.open();}
+  if(action==="guide"){dialog.close();window.LightningGuide?.open();}
   if(action==="light"){
    prefs=sanitize({...prefs,opacity:30,blur:8,motion:false,shadows:false,contrast:true});save();apply();draw(currentTab);
   }
@@ -140,10 +143,10 @@ function initDialog(){
  return dialog;
 }
 function draw(tab="appearance"){
- currentTab=["appearance","layout","accessibility","data"].includes(tab)?tab:"appearance";
+ currentTab=["appearance","layout","accessibility","privacy","data"].includes(tab)?tab:"appearance";
  const dialog=initDialog(),titles={
   appearance:["APPEARANCE","Appearance"],layout:["LAYOUT","Layout"],
-  accessibility:["ACCESSIBILITY","Accessibility"],data:["DATA","Data and preferences"]
+  accessibility:["ACCESSIBILITY","Accessibility"],privacy:["PRIVACY","Tab appearance & guide"],data:["DATA","Data and preferences"]
  };
  $$("[data-lg-tab]",dialog).forEach(b=>{b.classList.toggle("active",b.dataset.lgTab===currentTab);b.setAttribute("aria-current",b.dataset.lgTab===currentTab?"page":"false")});
  $("#lgCategory",dialog).textContent=titles[currentTab][0];$("#lgSettingsTitle",dialog).textContent=titles[currentTab][1];
@@ -172,8 +175,16 @@ function draw(tab="appearance"){
      toggle("shadows","Depth and reflections","Multi-layer shadows behind panels"))+
    box("Lightweight mode","A calmer look that uses less blur and motion.",
      '<button class="lg-plain-action" data-lg-action="light">Apply low-effects preset ↗</button>');
+ }else if(currentTab==="privacy"){
+  html='<div class="lg-intro"><span>04 · PRIVACY</span><h3>Control what others see.</h3><p>Choose a browser-tab identity without changing your account or the real site URL.</p></div>'+
+   box("Tab cloaking","Choose a title and favicon from school, study and general presets.",
+     '<button data-lg-action="cloak" class="lg-plain-action">Open tab identity studio ↗</button>')+
+   box("Interactive guide","Learn the browser, community and glass controls through a real walkthrough.",
+     '<button data-lg-action="guide" class="lg-plain-action">Open Lightning guide ↗</button>')+
+   box("What cloaking does not change","A tab label is not a separate website or a privacy shield.",
+     '<p class="lg-auto-save">The address bar, network destination and browser history still reflect Lightning.</p>');
  }else{
-  html='<div class="lg-intro"><span>04 · DATA</span><h3>Yours to keep.</h3><p>Appearance preferences are saved locally on this device.</p></div>'+
+  html='<div class="lg-intro"><span>05 · DATA</span><h3>Yours to keep.</h3><p>Appearance preferences are saved locally on this device.</p></div>'+
    box("Backup","Move your look between browsers and devices.",
      '<div class="lg-data-actions"><button data-lg-action="export">↓ Export theme</button><button data-lg-action="import">↑ Import theme</button></div><input id="lgImport" type="file" accept=".json,application/json" hidden>')+
    box("Browser settings","Search engine, tab behavior and browser preferences.",
