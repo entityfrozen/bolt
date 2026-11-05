@@ -100,11 +100,12 @@
     window.LightningAccount?.open("messages",item.fromId);
    }else if(item.kind==="mention"){
     try{
+     window.LightningNotificationDestination={
+      serverId:item.serverId||"lightning-main",channel:item.channel||"general"
+     };
      const hub=await import("/assets/hub.js?v=45");
      hub.openHub("room");
-     document.dispatchEvent(new CustomEvent("lightning:notification-channel",{detail:{
-      serverId:item.serverId||"lightning-main",channel:item.channel||"general"
-     }}));
+     document.dispatchEvent(new CustomEvent("lightning:notification-channel"));
     }catch{}
    }
   }
