@@ -53,7 +53,7 @@ html[data-ln7-gui=nova] body.app-page .tab.active{
 html[data-ln7-gui=nova] body.app-page .tab-new{border:1px solid #ffffff2c!important;border-radius:50%!important;height:34px!important;width:34px!important}
 html[data-ln7-gui=nova] body.app-page .ln7-tab-switch{display:none!important}
 html[data-ln7-gui=nova] body.app-page .rail{
- margin:6px auto 16px!important;width:max-content!important;max-width:calc(100% - 26px)!important;
+ margin:5px auto 6px!important;width:max-content!important;max-width:calc(100% - 26px)!important;
  height:60px!important;align-self:center;justify-self:center;
  flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:5px!important;
  border-radius:21px!important;padding:6px 9px!important;overflow-x:auto;overflow-y:hidden;
