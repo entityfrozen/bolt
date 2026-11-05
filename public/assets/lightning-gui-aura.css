@@ -170,5 +170,4 @@ html[data-ln7-gui=aura] #hubMount .v3-shell>.v3-inspector{
  html[data-ln7-gui=aura] .ln7-aura-hero{min-height:235px}
  html[data-ln7-gui=aura] .ln7-aura-heading h1{font-size:clamp(43px,10vw,65px)!important}
  html[data-ln7-gui=aura] .ln7-aura-bottom{grid-template-columns:1fr}
- html[data-ln7-gui=aura] .ln7-aura-top{font-size:8px}
 }
