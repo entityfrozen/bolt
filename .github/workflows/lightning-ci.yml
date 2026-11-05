@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - bolt-hosted-v5
+      - feature/remove-gui-status-labels-2026-11-05
   workflow_dispatch:
 
 permissions:
