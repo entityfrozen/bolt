@@ -77,7 +77,8 @@ function initDialog(){
  dialog.innerHTML='<div class="lg-shell"><aside class="lg-sidebar">'+
    '<div class="lg-brand"><i><img class="lightning-mark" src="/assets/lightning-mark.svg?v=1" alt=""></i><span><strong>Settings</strong><small>Appearance</small></span></div>'+
    '<span class="lg-rail-kicker">PERSONALIZATION</span>'+
-   '<nav aria-label="Settings sections"><button data-lg-tab="appearance">◈ <span>Appearance</span></button>'+
+   '<nav aria-label="Settings sections"><button data-lg-tab="interfaces">▦ <span>Choose GUI</span></button>'+ 
+   '<button data-lg-tab="appearance">◈ <span>Appearance</span></button>'+
    '<button data-lg-tab="layout">▣ <span>Layout & space</span></button>'+
    '<button data-lg-tab="accessibility">◐ <span>Accessibility</span></button>'+
    '<button data-lg-tab="privacy">◧ <span>Privacy & tab</span></button>'+
@@ -98,6 +99,8 @@ function initDialog(){
  dialog.addEventListener("click",e=>{
   if(e.target===dialog){dialog.close();return;}
   const tab=e.target.closest("[data-lg-tab]");if(tab){draw(tab.dataset.lgTab);return;}
+  const gui=e.target.closest("[data-lg-gui-choice]");
+  if(gui){window.LightningGUI?.set(gui.dataset.lgGuiChoice);draw("interfaces");return;}
   const choice=e.target.closest("[data-lg-choice]");
   if(choice){set(choice.dataset.lgChoice,choice.dataset.value);draw(currentTab);return;}
   const button=e.target.closest("[data-lg-action]");if(!button)return;
@@ -107,6 +110,7 @@ function initDialog(){
   if(action==="browser"){dialog.close();document.dispatchEvent(new Event("lightning:browser-settings"));}
   if(action==="cloak"){dialog.close();window.LightningTabStudio?.open();}
   if(action==="guide"){dialog.close();window.LightningGuide?.open();}
+  if(action==="gui"){dialog.close();window.LightningGUI?.open();}
   if(action==="light"){
    prefs=sanitize({...prefs,opacity:30,blur:8,motion:false,shadows:false,contrast:true});save();apply();draw(currentTab);
   }
@@ -143,15 +147,24 @@ function initDialog(){
  return dialog;
 }
 function draw(tab="appearance"){
- currentTab=["appearance","layout","accessibility","privacy","data"].includes(tab)?tab:"appearance";
+ currentTab=["interfaces","appearance","layout","accessibility","privacy","data"].includes(tab)?tab:"appearance";
  const dialog=initDialog(),titles={
-  appearance:["APPEARANCE","Appearance"],layout:["LAYOUT","Layout"],
+  interfaces:["YOUR INTERFACE","Choose your GUI"],appearance:["APPEARANCE","Appearance"],layout:["LAYOUT","Layout"],
   accessibility:["ACCESSIBILITY","Accessibility"],privacy:["PRIVACY","Tab appearance & guide"],data:["DATA","Data and preferences"]
  };
  $$("[data-lg-tab]",dialog).forEach(b=>{b.classList.toggle("active",b.dataset.lgTab===currentTab);b.setAttribute("aria-current",b.dataset.lgTab===currentTab?"page":"false")});
  $("#lgCategory",dialog).textContent=titles[currentTab][0];$("#lgSettingsTitle",dialog).textContent=titles[currentTab][1];
  let html="";
- if(currentTab==="appearance"){
+ if(currentTab==="interfaces"){
+  const chosen=window.LightningGUI?.get()||"aura";
+  const guis=[["aura","AURA","Open sidebar and liquid desktop"],["nova","NOVA","Floating command deck with a bottom dock"],["noir","NOIR","Compact, structured workbench"]];
+  html='<div class="lg-intro"><span>THREE WORLDS · ONE WORKSPACE</span><h3>Not just another theme.</h3><p>Each GUI changes the navigation, the home page and how the browser is arranged.</p></div>'+
+    box("Your interface","Select one now. This choice is saved to your account.",
+      '<div class="lg-segments lg-gui-options">'+guis.map(([id,title,detail])=>
+        '<button type="button" data-lg-gui-choice="'+id+'" class="'+(chosen===id?"active":"")+'" aria-pressed="'+(chosen===id)+'"><b>'+title+'</b><small>'+detail+'</small></button>').join("")+'</div>')+
+    box("See all three","Open the full-screen preview gallery before you choose.",
+      '<button data-lg-action="gui" class="lg-plain-action">Open the GUI gallery ↗</button>');
+ }else if(currentTab==="appearance"){
   html='<div class="lg-intro"><span>COLORS</span><h3>Theme</h3><p>Choose a color and background.</p></div>'+
    box("Accent color","Used for buttons and highlights.",
      '<div class="lg-colors">'+COLORS.map(([id,name,color])=>'<button class="'+(prefs.preset===id?"active":"")+'" data-lg-choice="preset" data-value="'+id+'"><i style="--swatch:'+color+'"></i><b>'+name+'</b></button>').join("")+'</div>'+
