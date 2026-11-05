@@ -105,6 +105,14 @@ function updateTabIdentity(){
  let link=document.querySelector('link[rel="icon"]');
  if(!link){link=document.createElement("link");link.rel="icon";document.head.append(link)}
  if(link.href!==icon)link.href=icon;
+ // Sync the address-bar-blank wrapper when this app is inside its iframe.
+ if(window.parent!==window){
+  try{
+   if(window.parent.location.href==="about:blank"){
+    window.parent.postMessage({type:"lightning:cloak-identity",title:document.title,icon:link.href},location.origin);
+   }
+  }catch{}
+ }
 }
 document.addEventListener("lightning:set-cloak",event=>{
  const patch=event.detail||{};
@@ -972,7 +980,7 @@ function renderSettingsPanel(){
       <div class="field"><span>Custom title</span><input id="cloakTitle" maxlength="80" placeholder="Homework"></div>
       <div class="field"><span>Custom icon URL</span><input id="cloakIcon" placeholder="https://example.com/favicon.ico"></div>
       <div class="field"><span>Copy from Lightning tab</span><select class="select" id="cloakCopyTab"><option value="">Choose a tab…</option>${tabs.map(tab=>'<option value="'+escapeHtml(tab.id)+'">'+escapeHtml(tab.title||tab.url)+'</option>').join("")}</select></div>
-      <div class="button-row"><button class="button" id="cloakCopy" type="button">Copy identity</button><button class="button" id="cloakReset" type="button">Reset</button></div>
+      <div class="button-row"><button class="button" id="cloakCopy" type="button">Copy identity</button><button class="button" id="cloakReset" type="button">Reset</button><button class="button" id="cloakOpenBlank" type="button">Open in about:blank</button></div>
     </section>
     <section class="panel-section">
       <h3>Direct message alerts</h3>
@@ -1000,6 +1008,11 @@ function renderSettingsPanel(){
   });
   $("#cloakReset").addEventListener("click",()=>{
    setCloak({preset:"lightning",title:"",icon:""});renderSettingsPanel();
+  });
+  $("#cloakOpenBlank").addEventListener("click",()=>{
+   const result=window.LightningBlankCloak?.open();
+   toast(!result?.ok?"Popup blocked — allow popups and try again.":
+    result.alreadyOpen?"You're already in an about:blank tab.":"Opened about:blank. Close the original tab when ready.");
   });
   const status=$("#notificationStatus"),button=$("#notificationsEnable");
   if(!("Notification" in window)){
