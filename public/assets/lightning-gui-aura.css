@@ -80,22 +80,12 @@ html[data-ln7-gui=aura] .ln7-aura{
  display:block;width:min(100%,1180px);min-height:100%;margin-inline:auto;
 }
 html[data-ln7-gui=aura] .ln7-aura-center{min-width:0;padding:35px clamp(25px,4.5vw,66px) 40px}
-html[data-ln7-gui=aura] .ln7-aura-top{
- display:flex;justify-content:space-between;gap:12px;padding:0 0 16px;border-bottom:1px solid #ffffff23;
- font:680 10px "IBM Plex Mono",monospace;color:#b7c6e4;letter-spacing:.11em
-}
-html[data-ln7-gui=aura] .ln7-aura-top i{font-style:normal;color:#ffffff6c}
 html[data-ln7-gui=aura] .ln7-aura-hero{display:flex;align-items:center;justify-content:space-between;min-height:263px;gap:18px}
 html[data-ln7-gui=aura] .ln7-aura-heading{min-width:0;z-index:1;position:relative}
-html[data-ln7-gui=aura] .ln7-status{
- display:inline-flex;align-items:center;gap:10px;padding:9px 13px;border:1px solid #ffffff34;border-radius:99px;
- background:#ffffff12;font:650 10px "IBM Plex Mono",monospace;letter-spacing:.06em;color:#d6def3;
-}
-html[data-ln7-gui=aura] .ln7-status i{width:7px;height:7px;background:#90f5c2;border-radius:50%;box-shadow:0 0 14px #8fffc999}
 html[data-ln7-gui=aura] .ln7-aura-heading h1{
  font-size:clamp(43px,5.1vw,80px)!important;line-height:1.02!important;
  font-weight:680!important;letter-spacing:-.082em!important;max-width:680px;
- margin:23px 0 14px!important;color:#fff!important;
+ margin:0 0 14px!important;color:#fff!important;
 }
 html[data-ln7-gui=aura] .ln7-aura-heading h1 em{
  display:block;font-weight:630;font-style:normal;color:#c5cbff;
