@@ -146,7 +146,8 @@ export function registerAccountSpace({app,dataDir,mustBeSignedIn,sameOrigin,list
  // Account settings include appearance, tabs, bookmarks, server-channel choice,
  // game favorites and scores. Device storage is not the source of truth.
  const allowedSettings=new Set(["bolt.prefs","bolt.tabs","bolt.bookmarks","bolt.soundcloud","appearance",
-  "favorites","theme","inspector","dock","channels","gameScores","customApps"]);
+  "favorites","theme","inspector","dock","channels","gameScores","customApps",
+  "lightning.gui.mode","glass.guide.completed"]);
  const cleanSettings=record=>Object.fromEntries(Object.entries(record||{})
   .filter(([key])=>allowedSettings.has(key)));
  // Shared apps are managed centrally, never by changing a personal preference.
@@ -202,6 +203,10 @@ export function registerAccountSpace({app,dataDir,mustBeSignedIn,sameOrigin,list
   if(value!==null&&typeof value!=="string"&&typeof value!=="number"&&typeof value!=="boolean"&&
    (!value||typeof value!=="object"||Object.prototype.toString.call(value)!=="[object Object]"&&!Array.isArray(value)))
    return fail(res,400,"Invalid setting.");
+  if(key==="lightning.gui.mode"&&!["aura","nova","noir"].includes(value))
+   return fail(res,400,"Unknown interface.");
+  if(key==="glass.guide.completed"&&typeof value!=="boolean")
+   return fail(res,400,"Invalid guide state.");
   if(key==="customApps"){
    if(!Array.isArray(value)||value.length>30)return fail(res,400,"You can save up to 30 apps.");
    const ids=new Set();
