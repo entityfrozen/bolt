@@ -44,7 +44,7 @@ const memberState=(s,u)=>({
 });
 
 // Server-authoritative permissions. Never trust roles or ownership supplied by clients.
-export function createCommunityStore({dataDir,sendToUser,sendAll,getRole=()=>null}){
+export function createCommunityStore({dataDir,sendToUser,sendAll,getRole=()=>null,notifyMentions=()=>{}}){
  const filename=path.join(dataDir,"lightning-v2-communities.json");
  let servers=[];
  try{
@@ -300,7 +300,13 @@ export function createCommunityStore({dataDir,sendToUser,sendAll,getRole=()=>nul
    const entry={id:id(),channel,message,by:u.name,username:u.username,userId:u.id,at:Date.now(),
     replyTo:parent?.id||null,reactions:{}};
    (s.messages[channel]??=[]).push(entry);s.messages[channel]=s.messages[channel].slice(-LIMITS.messages);
-   save();s.members.forEach(memberId=>{const p=s.profiles[memberId]||{};if(!c.staffOnly||canSeeStaff(memberId,s))sendToUser(memberId,{type:"v2Message",serverId:s.id,entry});});return;
+   save();
+   notifyMentions({text:message,authorId:u.id,authorName:u.name,serverId:s.id,
+    serverName:s.name,channel,allowedIds:s.members.filter(id=>!c.staffOnly||canSeeStaff(id,s)),
+    replyToId:parent?.userId||null});
+   s.members.forEach(memberId=>{
+    if(!c.staffOnly||canSeeStaff(memberId,s))sendToUser(memberId,{type:"v2Message",serverId:s.id,entry});
+   });return;
   }
   if(["v2EditMessage","v2PinMessage","v2ClearReactions","v2ClearChannel"].includes(type)){
    const channel=clean(data.channel,40),c=s.channels.find(c=>c.id===channel);
