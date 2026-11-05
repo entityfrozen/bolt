@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - bolt-hosted-v5
-      - feature/chat-redesign-reactions-moderation-2026-11-05
   workflow_dispatch:
 
 permissions:
