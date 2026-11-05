@@ -41,13 +41,14 @@ test("Native controls are relocated rather than replaced by mockups",()=>{
   assert.match(core,/\.frame-stack>\.proxy-frame\.active\{pointer-events:auto\}/);
 });
 
-test("The GUI switch is usable from settings, the main layout and community",()=>{
+test("GUI selection lives in Settings without floating switch buttons",()=>{
   assert.match(engine,/lightning\.gui\.mode/);
   assert.match(engine,/settings\.get\(KEY/);
   assert.match(engine,/settings\.set\(KEY,next\)/);
   assert.match(engine,/lightning:account-settings-loaded/);
   assert.match(engine,/lightning:gui-open-picker/);
-  assert.match(engine,/ln7-hub-switcher/);
+  assert.doesNotMatch(engine,/ln7-hub-switcher|ln7-rail-switch|ln7-tab-switch|ln7-toolbar-switch/);
+  assert.doesNotMatch(engine,/THE LIGHTNING DESK/);
   assert.match(engine,/aria-pressed/);
   assert.match(engine,/startViewTransition/);
   assert.match(settings,/data-lg-tab="interfaces"/);
