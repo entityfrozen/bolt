@@ -1,0 +1,75 @@
+/* Lightweight account notification inbox. Fits each GUI's native toolbar. */
+body.app-page .ln-bell{
+ position:relative;display:grid;place-items:center;flex:none;
+ width:36px;height:36px;border:1px solid #ffffff34;border-radius:10px;
+ background:#2933447a;color:#dbe6f7;cursor:pointer;transition:background .14s;
+}
+body.app-page .ln-bell:hover,body.app-page .ln-bell:focus-visible{
+ background:#3d5071;color:#fff;outline-color:#98bff4;
+}
+body.app-page .ln-bell-count{
+ position:absolute;min-width:17px;height:17px;display:grid;place-items:center;
+ padding:0 4px;border-radius:99px;background:#d96c70;
+ color:#fff;font:750 10px "Instrument Sans",system-ui;
+ top:-5px;right:-6px;border:2px solid #161f2c;
+}
+body.app-page .ln-bell-count[hidden]{display:none}
+#lnNotificationPanel{
+ position:fixed;z-index:15000;margin:0;inset:auto;
+ width:min(390px,calc(100vw - 20px));max-height:min(580px,calc(100dvh - 110px));
+ overflow:hidden;color:#eef3fc;background:#20252e;border:1px solid #4b586b;
+ border-radius:13px;box-shadow:0 20px 70px #000b;
+ font-family:"Instrument Sans",system-ui,sans-serif;
+}
+#lnNotificationPanel:not(:popover-open)[popover]{display:none}
+#lnNotificationPanel[hidden]{display:none}
+#lnNotificationPanel .ln-notices-head{display:flex;align-items:center;justify-content:space-between;
+ padding:18px 19px 14px;border-bottom:1px solid #3d4654}
+#lnNotificationPanel .ln-notices-head>div{display:grid;gap:4px}
+#lnNotificationPanel .ln-notices-head strong{font-size:16px;font-weight:770;letter-spacing:-.03em}
+#lnNotificationPanel .ln-notices-head small{color:#a8b8cc;font-size:11px}
+#lnNotificationPanel .ln-notices-head button{width:28px;height:28px;border:0;
+ background:transparent;color:#b6c6da;font-size:23px;cursor:pointer}
+#lnNotificationPanel .ln-notice-toolbar{display:flex;gap:12px;justify-content:space-between;
+ padding:11px 18px;border-bottom:1px solid #3d4654}
+#lnNotificationPanel .ln-notice-toolbar button,
+#lnNotificationPanel footer button{
+ border:0;background:transparent;color:#a9c7f1;font-weight:680;
+ font-size:11px;cursor:pointer;padding:4px;
+}
+#lnNotificationPanel .ln-notice-toolbar button:hover,
+#lnNotificationPanel footer button:hover{text-decoration:underline;color:#e0edff}
+#lnNotificationPanel .ln-notice-toolbar button:disabled{opacity:.4;cursor:not-allowed}
+#lnNotificationPanel .ln-notice-list{
+ min-height:112px;max-height:375px;overflow-y:auto;overscroll-behavior:contain;
+ scrollbar-width:thin;scrollbar-color:#697a94 transparent;
+}
+#lnNotificationPanel .ln-notice-item{
+ width:100%;display:flex;align-items:flex-start;gap:11px;padding:13px 16px;
+ text-align:left;border:0;border-bottom:1px solid #38404c;
+ background:transparent;color:#e7edf6;cursor:pointer;
+}
+#lnNotificationPanel .ln-notice-item.unread{background:#2d384b}
+#lnNotificationPanel .ln-notice-item:hover{background:#38465b}
+#lnNotificationPanel .ln-notice-avatar{flex:none;width:33px;height:33px;
+ display:grid;place-items:center;border-radius:10px;background:#435779;
+ color:#e2eeff;font-weight:800;font-size:15px}
+#lnNotificationPanel .ln-notice-copy{min-width:0;flex:1;display:grid;gap:4px}
+#lnNotificationPanel .ln-notice-copy .ln-notice-meta{font-size:10px;color:#9fb6d2}
+#lnNotificationPanel .ln-notice-copy strong{font-size:12px;font-weight:760;color:#f0f4fa}
+#lnNotificationPanel .ln-notice-copy>span:last-child{font-size:11px;color:#c1cbd8;line-height:1.45;overflow-wrap:anywhere}
+#lnNotificationPanel .ln-notice-dot{width:7px;height:7px;flex:none;margin-top:14px;
+ background:#92baf7;border-radius:50%}
+#lnNotificationPanel .ln-notice-empty{text-align:center;padding:38px 20px;color:#aab9cb}
+#lnNotificationPanel .ln-notice-empty span{display:block;font-size:30px;color:#89cdbb;margin-bottom:9px}
+#lnNotificationPanel .ln-notice-empty strong{display:block;color:#e6ebf5;font-size:14px}
+#lnNotificationPanel .ln-notice-empty p{font-size:11px}
+#lnNotificationPanel footer{border-top:1px solid #394250;padding:11px 16px;
+ display:flex;gap:14px;align-items:center;justify-content:space-between}
+#lnNotificationPanel footer span{font-size:10px;color:#99a7b7}
+#lnNotificationPanel :is(button):focus-visible{outline:2px solid #8aaffe;outline-offset:-3px}
+@media(max-width:610px){
+ body.app-page .ln-bell{width:31px;height:34px}
+ #lnNotificationPanel{max-height:calc(100dvh - 80px)}
+ #lnNotificationPanel .ln-notice-list{max-height:calc(100dvh - 235px)}
+}
