@@ -368,3 +368,47 @@
  #hubMount .dc-message-toolbar{transition:none}
  #hubMount .dc-jump{animation:none}
 }
+
+/* Member directory: readable status and roles, no placeholder avatar cards. */
+#hubMount .v2-online-panel .dc-member-heading{
+ padding:16px 4px 7px;color:#9ca5b9;font:750 10px "Instrument Sans",system-ui;
+ letter-spacing:.045em;
+}
+#hubMount .v2-online-panel .dc-member{
+ display:flex;align-items:center;gap:9px;width:100%;min-height:48px;
+ padding:6px 5px;border:0;border-radius:7px;
+ text-align:left;background:transparent;color:#aab1c1;cursor:pointer;
+}
+#hubMount .v2-online-panel .dc-member:hover{background:#303644;color:#fff}
+#hubMount .v2-online-panel .dc-member-avatar{
+ display:grid;place-items:center;flex:none;width:32px;height:32px;border-radius:50%;
+ background:#404756;color:#eaf0fc;font-size:12px;font-weight:750;
+ filter:saturate(.45);opacity:.72;
+}
+#hubMount .v2-online-panel .dc-member.online .dc-member-avatar{
+ background:#476187;filter:none;opacity:1;
+}
+#hubMount .v2-online-panel .dc-member-name{display:grid;gap:3px;min-width:0;flex:1}
+#hubMount .v2-online-panel .dc-member-name strong{
+ font-size:11px!important;font-weight:690;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+ color:#a9b0bf!important;
+}
+#hubMount .v2-online-panel .dc-member.online .dc-member-name strong{color:#edf1fa!important}
+#hubMount .v2-online-panel .dc-member-name small{color:#8994a5;font-size:9px}
+#hubMount .v2-online-panel .dc-member-dot{
+ width:8px;height:8px;flex:none;border-radius:50%;background:#6d7380;
+}
+#hubMount .v2-online-panel .dc-member.online .dc-member-dot{
+ background:#50b895;box-shadow:0 0 0 2px #243c39;
+}
+#hubMount .dc-manager-danger select{
+ min-width:130px;max-width:195px;min-height:36px;padding:0 9px;
+ border:1px solid #515c6b;border-radius:7px;
+ background:#272d37;color:#e5ebf6;font-size:11px;
+}
+#hubMount .v2-online-panel .dc-member:focus-visible,
+#hubMount .dc-message-toolbar button:focus-visible,
+#hubMount .dc-reaction:focus-visible,
+#hubMount .dc-compose-emoji:focus-visible{
+ outline:2px solid #9bbafb!important;outline-offset:2px!important;
+}
