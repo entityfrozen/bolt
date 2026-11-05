@@ -404,7 +404,7 @@ class AdminConsole{
    try{
     const data=await this.services.api(provider==="nvidia"?"/api/ai/provider-test":"/api/ai/search-test",{
      method:"POST",body:JSON.stringify({provider})});
-    this.message(data.ok?"Connection successful.":data.error||"The provider did not respond.");
+    this.message(data.ok?(provider==="nvidia"?"NVIDIA key accepted for model listing. Chat-model access may vary.":"Search connection successful."):(data.error||"The provider did not respond."));
    }catch(error){this.message(error.message);}
    finally{button.disabled=false;}
    return;
