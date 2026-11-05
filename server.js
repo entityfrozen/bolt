@@ -450,7 +450,8 @@ app.get("/api/config", mustBeSignedIn, (req, res) => {
 });
 
 
-const aiSearch=installSearchCredentials({app,dataDir,mustBeAdmin,sameOrigin,searchWeb,getAdminIds:()=>state.users.filter(u=>u.role==="admin"&&u.enabled).map(u=>u.id)});
+const aiSearch=installSearchCredentials({app,dataDir,mustBeAdmin,sameOrigin,searchWeb,getAdminIds:()=>state.users.filter(u=>u.role==="admin"&&u.enabled).map(u=>u.id),
+ onUpdate:(identity,action,provider)=>audit(identity,action,provider)});
 const aiRequests = new Map();
 app.post("/api/ai/chat", mustBeSignedIn, sameOrigin, async (req, res) => {
   res.setHeader("Cache-Control", "no-store");
