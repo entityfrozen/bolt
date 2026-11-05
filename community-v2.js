@@ -302,7 +302,7 @@ export function createCommunityStore({dataDir,sendToUser,sendAll,getRole=()=>nul
    (s.messages[channel]??=[]).push(entry);s.messages[channel]=s.messages[channel].slice(-LIMITS.messages);
    save();
    notifyMentions({text:message,authorId:u.id,authorName:u.name,serverId:s.id,
-    serverName:s.name,channel,allowedIds:s.members.filter(id=>!c.staffOnly||canSeeStaff(id,s)),
+    serverName:s.name,channel,allowedIds:s.permanent&&!c.staffOnly?null:s.members.filter(id=>!c.staffOnly||canSeeStaff(id,s)),
     replyToId:parent?.userId||null});
    s.members.forEach(memberId=>{
     if(!c.staffOnly||canSeeStaff(memberId,s))sendToUser(memberId,{type:"v2Message",serverId:s.id,entry});
