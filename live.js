@@ -475,7 +475,7 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir,getDispla
       save();sendAll({type:"chatDeleted",channel,id:messageId});return;
     }else{
       const emoji=trimText(data.emoji,8);
-      if(!["👍","❤️","😂","🔥","😭","💀","🎉","👀","🙏","✨"].includes(emoji))return;
+      if(!["👍","👎","❤️","😂","🤣","🔥","💀","😭","🥹","😍","😎","👀","🙏","✨","🎉","💯","👏","🤝","😮","😢","😡","🤔","🤯","😴","✅","❌","🚀","⚡","🫶","💜","🤍","💚","😅","😬","👋","😏"].includes(emoji))return;
       entry.reactions ||= {};
       const users=Array.isArray(entry.reactions[emoji])?entry.reactions[emoji]:[];
       entry.reactions[emoji]=users.includes(u.id)?users.filter(id=>id!==u.id):[...users.slice(-119),u.id];
