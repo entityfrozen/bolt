@@ -189,13 +189,13 @@ function draw(tab="appearance"){
    box("Lightweight mode","A calmer look that uses less blur and motion.",
      '<button class="lg-plain-action" data-lg-action="light">Apply low-effects preset ↗</button>');
  }else if(currentTab==="privacy"){
-  html='<div class="lg-intro"><span>04 · PRIVACY</span><h3>Control what others see.</h3><p>Choose a browser-tab identity without changing your account or the real site URL.</p></div>'+
+  html='<div class="lg-intro"><span>04 · PRIVACY</span><h3>Control what others see.</h3><p>Pick a tab title and icon, then open Lightning inside a new about:blank tab.</p></div>'+
    box("Tab cloaking","Choose a title and favicon from school, study and general presets.",
      '<button data-lg-action="cloak" class="lg-plain-action">Open tab identity studio ↗</button>')+
    box("Interactive guide","Learn the browser, community and glass controls through a real walkthrough.",
      '<button data-lg-action="guide" class="lg-plain-action">Open Lightning guide ↗</button>')+
    box("What cloaking does not change","A tab label is not a separate website or a privacy shield.",
-     '<p class="lg-auto-save">The address bar, network destination and browser history still reflect Lightning.</p>');
+     '<p class="lg-auto-save">In the new blank tab, the address bar can show about:blank, but Lightning still loads inside an iframe. Network traffic, accounts and browser history are not hidden.</p>');
  }else{
   html='<div class="lg-intro"><span>05 · DATA</span><h3>Yours to keep.</h3><p>Appearance preferences are saved locally on this device.</p></div>'+
    box("Backup","Move your look between browsers and devices.",
