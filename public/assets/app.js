@@ -75,6 +75,13 @@ if(!accents[prefs.accent])prefs.accent="champagne";
 
 const cloakPresets={
  lightning:{title:"Lightning",icon:"/favicon.svg"},
+ dcss:{title:"DCSS Portal",icon:"https://portal.dcssga.org/favicon.ico"},
+ iready:{title:"i-Ready",icon:"https://login.i-ready.com/favicon.ico"},
+ classroom:{title:"Google Classroom",icon:"https://classroom.google.com/favicon.ico"},
+ clever:{title:"Clever | Portal",icon:"https://clever.com/favicon.ico"},
+ canvas:{title:"Dashboard",icon:"https://canvas.instructure.com/favicon.ico"},
+ schoology:{title:"Schoology",icon:"https://app.schoology.com/favicon.ico"},
+ powerschool:{title:"PowerSchool",icon:"https://www.powerschool.com/favicon.ico"},
  chatgpt:{title:"ChatGPT",icon:"https://chatgpt.com/favicon.ico"},
  google:{title:"Google",icon:"https://www.google.com/favicon.ico"},
  docs:{title:"Google Docs",icon:"https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico"},
@@ -93,12 +100,24 @@ function updateTabIdentity(){
  const choice=prefs.cloak?.preset||"lightning",preset=cloakPresets[choice]||cloakPresets.lightning;
  const title=choice==="custom"?String(prefs.cloak?.title||"Lightning").slice(0,80):preset.title;
  const icon=choice==="custom"?safeTabIcon(prefs.cloak?.icon):preset.icon;
- const total=dmUnread+communityUnread;
+ const total=choice==="lightning" ? dmUnread+communityUnread : 0;
  document.title=(total?"("+total+") ":"")+title;
  let link=document.querySelector('link[rel="icon"]');
  if(!link){link=document.createElement("link");link.rel="icon";document.head.append(link)}
  if(link.href!==icon)link.href=icon;
 }
+document.addEventListener("lightning:set-cloak",event=>{
+ const patch=event.detail||{};
+ if(!Object.prototype.hasOwnProperty.call(cloakPresets,patch.preset))return;
+ prefs.cloak={
+  preset:patch.preset,
+  title:String(patch.title||"").slice(0,80),
+  icon:patch.preset==="custom"?safeTabIcon(patch.icon):""
+ };
+ savePrefs();
+ updateTabIdentity();
+ document.dispatchEvent(new CustomEvent("lightning:cloak-updated",{detail:{...prefs.cloak}}));
+});
 document.addEventListener("lightning:community-unread",e=>{
  communityUnread=Math.max(0,Number(e.detail?.count)||0);updateTabIdentity();
 });
@@ -949,7 +968,7 @@ function renderSettingsPanel(){
     <section class="panel-section">
       <h3>Tab cloaking</h3>
       <p class="panel-copy">Change your tab title and icon, or copy them from another tab opened inside Lightning.</p>
-      <div class="field"><span>Tab appearance</span><select class="select" id="cloakPreset"><option value="lightning">Lightning</option><option value="chatgpt">ChatGPT</option><option value="google">Google</option><option value="docs">Google Docs</option><option value="youtube">YouTube</option><option value="custom">Custom</option></select></div>
+      <div class="field"><span>Tab appearance</span><select class="select" id="cloakPreset"><option value="lightning">Lightning</option><option value="dcss">DCSS Portal</option><option value="iready">i-Ready</option><option value="classroom">Google Classroom</option><option value="clever">Clever</option><option value="canvas">Canvas</option><option value="schoology">Schoology</option><option value="powerschool">PowerSchool</option><option value="chatgpt">ChatGPT</option><option value="google">Google</option><option value="docs">Google Docs</option><option value="youtube">YouTube</option><option value="custom">Custom</option></select></div>
       <div class="field"><span>Custom title</span><input id="cloakTitle" maxlength="80" placeholder="Homework"></div>
       <div class="field"><span>Custom icon URL</span><input id="cloakIcon" placeholder="https://example.com/favicon.ico"></div>
       <div class="field"><span>Copy from Lightning tab</span><select class="select" id="cloakCopyTab"><option value="">Choose a tab…</option>${tabs.map(tab=>'<option value="'+escapeHtml(tab.id)+'">'+escapeHtml(tab.title||tab.url)+'</option>').join("")}</select></div>
