@@ -291,7 +291,7 @@ body.app-page .toolbar{grid-template-columns:auto minmax(120px,1fr) repeat(4,aut
 }
 @media(max-width:510px){
  body.app-page #forwardBtn,body.app-page #bookmarkBtn{display:none!important}
- body.app-page .toolbar{grid-template-columns:auto minmax(80px,1fr) repeat(2,auto)!important}
+ body.app-page .toolbar{grid-template-columns:auto minmax(80px,1fr) repeat(3,auto)!important}
  body.app-page .address-go{display:none!important}
  body.app-page .address-form{grid-template-columns:28px minmax(0,1fr)!important}
  body.app-page .nav-cluster .tool-button{width:29px}
