@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - bolt-hosted-v5
-      - feature/lightning-three-real-guis
   workflow_dispatch:
 
 permissions:
