@@ -49,7 +49,8 @@ test("Cloaking presets use account-owned settings and real favicon changes",()=>
   assert.match(settings,/data-lg-tab="privacy"/);
   assert.match(settings,/window\.LightningTabStudio\?\.open\(\)/);
   assert.match(settings,/window\.LightningGuide\?\.open\(\)/);
-  assert.match(studio,/does not change the URL/);
+  assert.match(studio,/about:blank/);
+  assert.match(studio,/network requests and browsing records are not hidden/);
 });
 
 test("Both new runtime modules parse under Node",()=>{
