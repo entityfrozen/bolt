@@ -8,6 +8,13 @@ html,body{scrollbar-width:none}
 
 /* The browser shell should never create a second page scrollbar. */
 html:has(body.app-page),body.app-page{height:100%;overflow:hidden}
+/* Standalone reading and sign-in pages may exceed the viewport; show a
+   subtle native indicator only when there is content to scroll. */
+html:has(body.auth-page),html:has(.learning-shell){
+ scrollbar-width:thin;scrollbar-color:#7d8da466 transparent;
+}
+html:has(body.auth-page)::-webkit-scrollbar,
+html:has(.learning-shell)::-webkit-scrollbar{display:block;width:6px}
 
 /* Only panels where the user needs to read or navigate a longer collection
    show a scrollbar, and only when overflow actually occurs. */
