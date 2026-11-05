@@ -4,7 +4,7 @@ import crypto from "node:crypto";
 
 // One encrypted search configuration for the whole installation.
 // Only authenticated admins can read its status, save/remove keys or test them.
-export function installSearchCredentials({app,dataDir,mustBeAdmin,sameOrigin,searchWeb,getAdminIds=()=>[]}){
+export function installSearchCredentials({app,dataDir,mustBeAdmin,sameOrigin,searchWeb,getAdminIds=()=>[],onUpdate=()=>{}}){
  const secretsFile=path.join(dataDir,"lightning-search-credentials.json");
  const secretFile=path.join(dataDir,".lightning-search-master-key");
  const accepted=new Set(["tavily","brave","nvidia"]);
@@ -81,12 +81,12 @@ export function installSearchCredentials({app,dataDir,mustBeAdmin,sameOrigin,sea
   if(typeof key!=="string"||key.length<10||key.length>300||/[^\x21-\x7e]/.test(key))
    return res.status(400).json({error:"Paste a valid API key (10–300 characters, no spaces)."});
   (state.shared??={})[provider]=seal(key);
-  save();res.json({ok:true,...status()});
+  save();onUpdate(req.auth.identity,"provider.key.saved",provider);res.json({ok:true,...status()});
  });
  app.delete("/api/ai/search-settings/:provider",mustBeAdmin,sameOrigin,(req,res)=>{
   const provider=req.params.provider;
   if(!accepted.has(provider))return res.status(404).json({error:"Unknown provider."});
-  if(state.shared){delete state.shared[provider];save();}
+  if(state.shared?.[provider]){delete state.shared[provider];save();onUpdate(req.auth.identity,"provider.key.removed",provider);}
   res.json({ok:true,...status()});
  });
  app.post("/api/ai/provider-test",mustBeAdmin,sameOrigin,async(req,res)=>{
@@ -107,7 +107,7 @@ export function installSearchCredentials({app,dataDir,mustBeAdmin,sameOrigin,sea
  });
  app.post("/api/ai/search-test",mustBeAdmin,sameOrigin,async(req,res)=>{
   const provider=req.body?.provider;
-  if(!accepted.has(provider))return res.status(400).json({error:"Choose Tavily or Brave Search."});
+  if(!["tavily","brave"].includes(provider))return res.status(400).json({error:"Choose Tavily or Brave Search."});
   if(!status()[provider])return res.status(400).json({error:"Save a "+provider+" key first."});
   try{
    const result=await search(null,"Lightning browser official website",{providerOnly:provider});
