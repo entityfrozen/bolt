@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - bolt-hosted-v5
+      - feature/chat-redesign-reactions-moderation-2026-11-05
   workflow_dispatch:
 
 permissions:
@@ -38,6 +39,10 @@ jobs:
           node --check public/assets/community-ui.js
           node --check public/assets/glass-settings.js
           node --check public/assets/glass-house-ui.js
+          node --check public/assets/chat-emojis.js
+          node --check public/assets/chat-renderer.js
+          node --check public/assets/chat-experience.js
+          node --check community-v2.js
           node --check public/assets/lightning-gui-v7.js
           node --check live.js
           node --check community-v2.js
@@ -105,6 +110,8 @@ jobs:
         run: node --test test/ui-init.test.mjs
       - name: Test Glass House guide and cloaking
         run: node --test test/glass-house.test.mjs
+      - name: Test Discord-style chat reactions and moderation
+        run: node --test test/chat-experience.test.mjs
       - name: Test all three new Lightning GUI layouts
         run: node --test test/gui-v7.test.mjs
       - name: Verify hosted Lightning preview
