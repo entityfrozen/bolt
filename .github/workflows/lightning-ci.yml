@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - bolt-hosted-v5
+      - feature/admin-provider-keys-notifications-2026-11-05
   workflow_dispatch:
 
 permissions:
@@ -41,6 +42,8 @@ jobs:
           node --check public/assets/chat-emojis.js
           node --check public/assets/chat-renderer.js
           node --check public/assets/chat-experience.js
+          node --check public/assets/notifications.js
+          node --check web-search-credentials.js
           node --check community-v2.js
           node --check public/assets/lightning-gui-v7.js
           node --check public/assets/tab-blank.js
@@ -114,6 +117,8 @@ jobs:
         run: node --test test/chat-experience.test.mjs
       - name: Test all three new Lightning GUI layouts
         run: node --test test/gui-v7.test.mjs
+      - name: Test provider keys and member notifications
+        run: node --test test/admin-notifications.test.mjs
       - name: Test clean layout, scrollbars, and about:blank cloaking
         run: node --test test/clean-layout-cloak.test.mjs
       - name: Verify hosted Lightning preview
