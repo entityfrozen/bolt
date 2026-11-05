@@ -429,6 +429,19 @@ app.post("/api/logout", sameOrigin, (req, res) => {
   res.json({ ok: true });
 });
 
+const noticeCooldown=new Map();
+app.post("/api/admin/notifications/announce",mustBeAdmin,sameOrigin,(req,res)=>{
+ const title=String(req.body?.title||"").trim(),body=String(req.body?.body||"").trim();
+ if(title.length<3||title.length>90||body.length<3||body.length>240)
+  return res.status(400).json({error:"Use a title of 3–90 characters and a message of 3–240 characters."});
+ const id=req.auth.identity.id,now=Date.now();
+ if(now-Number(noticeCooldown.get(id)||0)<30000)
+  return res.status(429).json({error:"Announcements are limited to one every 30 seconds."});
+ noticeCooldown.set(id,now);
+ const count=accountSpace.broadcastNotification(title,body,id);
+ audit(req.auth.identity,"announcement.sent","all members","Recipients: "+count);
+ res.json({ok:true,recipients:count});
+});
 app.get("/api/config", mustBeSignedIn, (req, res) => {
   res.json({
     user: req.auth.identity,
@@ -867,7 +880,8 @@ server.on("upgrade", (req, socket, head) => {
   routeUpgrade(req, socket, head);
 });
 
-attachLightningLive({server,sessionFromHeaders,dataDir,getDisplayName:(id,username)=>accountSpace?.getDisplayName(id,username)||username,getRole:id=>state.users.find(user=>user.id===id)?.role||"user"});
+attachLightningLive({server,sessionFromHeaders,dataDir,getDisplayName:(id,username)=>accountSpace?.getDisplayName(id,username)||username,getRole:id=>state.users.find(user=>user.id===id)?.role||"user",
+ notifyMentions:info=>accountSpace?.notifyMentions(info)});
 
 server.listen(port, () => {
   console.log(`Lightning listening on http://localhost:${port}`);
