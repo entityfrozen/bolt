@@ -14,6 +14,11 @@ html[data-ln7-gui] body.app-page .bolt-shell{
 html[data-ln7-gui] body.app-page .workarea{
  display:contents!important;
 }
+@media(min-width:681px){
+ html[data-ln7-gui] body.app-page.bolt-ai-open .bolt-shell{
+  width:calc(100% - min(405px,calc(100vw - 60px)))!important;
+ }
+}
 html[data-ln7-gui] body.app-page .tabbar,
 html[data-ln7-gui] body.app-page .toolbar,
 html[data-ln7-gui] body.app-page .rail,
