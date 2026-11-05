@@ -38,7 +38,7 @@ for(const seed of landIndices){
 const makeMap=()=>Array.from({length:WORLD_W*WORLD_H},(_,i)=>isLand(i)?{owner:null,def:4+(i*17%5),kind:"",fort:0}:{owner:"sea"});
 const colors=["#f0bd67","#72b9c1","#f08381","#9c91d3","#89c574","#d9a0da","#d5c777","#87a5de","#c28d78","#9bc4a6"];
 const channelsFileName="lightning-social.json";
-export function attachLightningLive({server,sessionFromHeaders,dataDir,getDisplayName=(_id,username)=>username,getRole=()=>null}){
+export function attachLightningLive({server,sessionFromHeaders,dataDir,getDisplayName=(_id,username)=>username,getRole=()=>null,notifyMentions=()=>{}}){
  // An isolated game engine per HTTP server: tests and previews must never
  // receive WebSocket state from other Lightning instances in the process.
  const clients=new Map(),queues={chess:[],rps:[]},chessGames=new Map(),rpsGames=new Map(),tournaments=new Map();
@@ -66,7 +66,7 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir,getDispla
  const sendUser=(id,evt)=>{for(const [socket] of clientOf(id))safeSend(socket,evt)};
  const summary=()=>({users:usersOnline().length,queue:{chess:queues.chess.length,rps:queues.rps.length,world:worldQueue.length},tournaments:[...tournaments.values()].filter(t=>!t.done).map(t=>({id:t.id,players:t.ids.length,max:4,status:t.status})),games:{chess:chessGames.size,rps:rpsGames.size}});
  const presence=()=>sendAll({type:"presence",...summary(),online:usersOnline().map(id=>({id,name:clientOf(id)[0]?.[1]?.name||id,username:clientOf(id)[0]?.[1]?.username||""}))});
- const communities=createCommunityStore({dataDir,sendToUser:sendUser,sendAll,getRole});
+ const communities=createCommunityStore({dataDir,sendToUser:sendUser,sendAll,getRole,notifyMentions});
  const validateSend=(ws,msg)=>{
   const u=clients.get(ws);
   if(!u)return false;
@@ -450,6 +450,8 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir,getDispla
     const entry={id:uid(),by:u.name,username:u.username,userId:u.id,channel,message,at:Date.now(),
       replyTo:parent?.id||null,reactions:{}};
     history[channel].push(entry);history[channel]=history[channel].slice(-120);save();
+    notifyMentions({text:message,authorId:u.id,authorName:u.name,channel,
+      replyToId:parent?.userId||null});
     sendAll({type:"chat",entry});return;
    }
    if(data.type==="typing"){
