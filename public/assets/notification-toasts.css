@@ -1,0 +1,83 @@
+/* Lightning lower-right notification tray.
+   Functional alerts share one surface across AURA, NOVA, NOIR and Community. */
+#lnToastStack{
+ position:fixed;right:18px;bottom:20px;z-index:2147482500;
+ display:flex;flex-direction:column;gap:10px;align-items:stretch;
+ width:min(365px,calc(100vw - 28px));pointer-events:none;
+ font-family:"Instrument Sans",Inter,system-ui,sans-serif;
+}
+#lnToastStack .ln-toast{
+ --ln-type:#87adcd;
+ position:relative;display:flex;align-items:flex-start;gap:12px;
+ overflow:hidden;isolation:isolate;min-height:84px;
+ border:1px solid #495263;border-left:3px solid var(--ln-type);
+ border-radius:12px;background:#1c222c;color:#f0f4fb;
+ box-shadow:0 12px 35px #05091066,0 2px 9px #05091033;
+ padding:14px 38px 15px 14px;pointer-events:auto;
+ animation:ln-toast-arrive .22s cubic-bezier(.18,.84,.34,1) both;
+}
+#lnToastStack .ln-toast-dm{--ln-type:#9eacf7}
+#lnToastStack .ln-toast-mention{--ln-type:#e7b57d}
+#lnToastStack .ln-toast-announcement{--ln-type:#81d2ac}
+#lnToastStack .ln-toast-chat{--ln-type:#92b9d6}
+#lnToastStack .ln-toast-game{--ln-type:#d6bafb}
+#lnToastStack .ln-toast-system{--ln-type:#92c3c1}
+#lnToastStack .ln-toast-leaving{animation:ln-toast-leave .18s ease both}
+#lnToastStack .ln-toast-mark{
+ display:grid;place-items:center;flex:none;width:33px;height:33px;
+ border:1px solid color-mix(in srgb,var(--ln-type),transparent 66%);
+ border-radius:9px;background:color-mix(in srgb,var(--ln-type),transparent 87%);
+ color:var(--ln-type);font-size:16px;font-weight:740;
+}
+#lnToastStack .ln-toast-main{min-width:0;flex:1}
+#lnToastStack .ln-toast-overline{display:flex;justify-content:space-between;align-items:center;
+ gap:12px;margin:1px 0 5px}
+#lnToastStack .ln-toast-overline span{
+ color:var(--ln-type);font-size:9px;font-weight:780;letter-spacing:.09em;
+}
+#lnToastStack .ln-toast-overline small{color:#929caa;font-size:10px;white-space:nowrap}
+#lnToastStack .ln-toast-main>strong{display:block;color:#f1f5fa;
+ font-size:13px;font-weight:760;line-height:1.35;overflow-wrap:anywhere}
+#lnToastStack .ln-toast-main>p{margin:5px 0 0;color:#b7c1d0;font-size:11px;
+ line-height:1.5;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+#lnToastStack .ln-toast-close{
+ position:absolute;right:9px;top:8px;border:0;background:transparent;
+ border-radius:5px;color:#aab7c9;font-size:19px;line-height:1;
+ width:24px;height:24px;cursor:pointer;
+}
+#lnToastStack .ln-toast-close:hover{background:#ffffff12;color:#fff}
+#lnToastStack .ln-toast-open{
+ display:inline-flex;align-items:center;gap:8px;margin:11px 0 0;
+ border:0;background:none;padding:0;color:#b8d7ff;font-size:11px;
+ font-weight:700;cursor:pointer;
+}
+#lnToastStack .ln-toast-open:hover{text-decoration:underline;color:#e5f0ff}
+#lnToastStack .ln-toast-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+#lnToastStack .ln-toast-actions button{
+ min-height:32px;padding:8px 12px;border-radius:7px;
+ font-size:11px;font-weight:750;cursor:pointer;
+ transition:background .13s,border-color .13s;
+}
+#lnToastStack .ln-toast-accept{border:1px solid #ae92e5;background:#bca5ed;color:#221633}
+#lnToastStack .ln-toast-accept:hover{background:#d4c4fa}
+#lnToastStack .ln-toast-decline{border:1px solid #586273;background:#303948;color:#d0d9e9}
+#lnToastStack .ln-toast-decline:hover{background:#3e4a5d}
+#lnToastStack .ln-toast-actions button:disabled{opacity:.5;cursor:wait}
+#lnToastStack .ln-toast-expired{color:#a9b5c4;font-size:11px}
+#lnToastStack .ln-toast-timer{
+ position:absolute;left:0;bottom:0;height:2px;width:100%;
+ background:color-mix(in srgb,var(--ln-type),transparent 20%);
+ transform-origin:left;animation:ln-toast-progress 6.7s linear forwards;
+}
+#lnToastStack button:focus-visible{outline:2px solid #e5d0ff;outline-offset:2px}
+@keyframes ln-toast-arrive{from{opacity:0;transform:translateX(22px) scale(.985)}to{opacity:1;transform:translateX(0) scale(1)}}
+@keyframes ln-toast-leave{to{opacity:0;transform:translateX(20px) scale(.98)}}
+@keyframes ln-toast-progress{to{transform:scaleX(0)}}
+@media(max-width:620px){
+ #lnToastStack{right:10px;bottom:calc(12px + env(safe-area-inset-bottom,0px));
+  width:min(350px,calc(100vw - 20px))}
+ #lnToastStack .ln-toast{padding:12px 35px 13px 12px}
+}
+@media(prefers-reduced-motion:reduce){
+ #lnToastStack .ln-toast,#lnToastStack .ln-toast-timer{animation:none}
+}
