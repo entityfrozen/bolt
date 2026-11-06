@@ -657,5 +657,5 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir,getDispla
  },3000);
  ticker.unref();
  console.log("Lightning Live: WebSocket social + games ready");
- return {wss};
+ return {wss,sendToUser:sendUser};
 }
