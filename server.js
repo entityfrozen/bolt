@@ -880,8 +880,9 @@ server.on("upgrade", (req, socket, head) => {
   routeUpgrade(req, socket, head);
 });
 
-attachLightningLive({server,sessionFromHeaders,dataDir,getDisplayName:(id,username)=>accountSpace?.getDisplayName(id,username)||username,getRole:id=>state.users.find(user=>user.id===id)?.role||"user",
+const live=attachLightningLive({server,sessionFromHeaders,dataDir,getDisplayName:(id,username)=>accountSpace?.getDisplayName(id,username)||username,getRole:id=>state.users.find(user=>user.id===id)?.role||"user",
  notifyMentions:info=>accountSpace?.notifyMentions(info)});
+accountSpace?.setNotificationSender((id,entry)=>live.sendToUser(id,{type:"accountNotification",entry}));
 
 server.listen(port, () => {
   console.log(`Lightning listening on http://localhost:${port}`);
