@@ -135,3 +135,50 @@ test("Admin interface and signed-in app expose keys and a functional notificatio
  assert.match(styles,/\.ln-notice-list/);
  assert.doesNotThrow(()=>new Function(browser));
 });
+
+
+test("Authenticated DMs notify recipient over Lightning Live immediately", {timeout:35000},async t=>{
+ const env=await setup(t),alice=await member(env,"live-note-alice"),bob=await member(env,"live-note-bob");
+ const received=[];
+ const socket=new WebSocket(env.origin.replace("http:","ws:")+"/live",{headers:{Cookie:bob.cookie}});
+ t.after(()=>socket.terminate());
+ socket.on("message",raw=>{try{received.push(JSON.parse(raw.toString()))}catch{}});
+ await once(socket,"open");
+ const sent=await env.request("/api/account/dms/"+bob.id,alice.cookie,"POST",{text:"Live DM test"});
+ assert.equal(sent.status,201);
+ let alert=null;
+ for(let i=0;i<70;i++){
+  alert=received.find(x=>x.type==="accountNotification"&&x.entry?.kind==="dm");
+  if(alert)break;
+  await new Promise(resolve=>setTimeout(resolve,40));
+ }
+ assert.ok(alert,"Recipient must receive a live DM alert without polling");
+ assert.equal(alert.entry.fromId,alice.id);
+ assert.equal(alert.entry.body,"Live DM test");
+ const inbox=await env.request("/api/account/notifications",bob.cookie);
+ assert.equal(inbox.data.items[0].id,alert.entry.id);
+});
+test("Notification and invite UI expose bottom-right stack, invitation actions and online player pickers",()=>{
+ const notices=read("public/assets/notifications.js");
+ const css=read("public/assets/notification-toasts.css");
+ const invites=read("public/assets/game-invites.js");
+ const gameCss=read("public/assets/game-invites.css");
+ const hub=read("public/assets/hub.js");
+ const live=read("live.js");
+ const page=read("views/app.html");
+ for(const phrase of ["lnToastStack","ln-toast-accept","ln-toast-decline","lightning:account-alert",
+   "lightning:toast","lightning:invite-result"]){
+   assert.ok(notices.includes(phrase)||css.includes(phrase)||invites.includes(phrase),phrase);
+ }
+ assert.match(css,/right:18px;bottom:20px/);
+ assert.match(css,/prefers-reduced-motion:reduce/);
+ assert.match(invites,/gameInviteRespond/);
+ assert.match(invites,/data-gi-target/);
+ assert.match(gameCss,/gi-roster-list/);
+ assert.match(hub,/installGameInvites\(Hub\)/);
+ assert.match(live,/INVITE_TTL=90000/);
+ assert.match(live,/if\(invite.to!==u.id/);
+ assert.match(page,/notification-toasts\.css/);
+ assert.doesNotThrow(()=>new Function(notices));
+ assert.doesNotThrow(()=>new Function(invites.replace("export function installGameInvites","function installGameInvites")));
+});
