@@ -740,7 +740,10 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir,getDispla
    if(data.type==="worldQueue"||data.type==="worldJoin")return worldQueueJoin(u);
    if(data.type==="worldCancel")return worldCancel(u);
    if(data.type==="chessBot")return newChess([u.id,"npc:chess"]);
-    if(data.type==="rpsBot")return newRPS([u.id,"npc:rps"]);
+    if(data.type==="rpsBot"){
+    if(playing(u.id))return safeSend(u.ws,{type:"error",message:"Finish your current match first."});
+    return newRPS([u.id,"npc:rps"]);
+   }
    if(data.type==="worldAction")return worldAction(u,data);
   });
   ws.on("close",()=>{
