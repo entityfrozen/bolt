@@ -546,3 +546,55 @@ test("RPS tournament plays two hidden semifinals and a real championship round",
   m.type==="tournamentWinner"&&m.winner==="tourn3"));
  assert.equal(trophy.winner,"tourn3");
 });
+
+
+test("Chess bot difficulty is real server state and rejects unsupported levels",{timeout:16000},async t=>{
+ const env=await setup(t),alice=await env.connect("levelplayer");
+ alice.send(JSON.stringify({type:"chessBot",difficulty:"hard"}));
+ const start=await env.until(()=>env.messages.get(alice).find(m=>m.type==="chessStart"));
+ assert.equal(start.difficulty,"hard");
+ assert.equal(start.bot,true);
+ assert.equal(start.turn,"w");
+ await delay(170);
+ alice.send(JSON.stringify({type:"chessBot",difficulty:"expert"}));
+ await env.until(()=>env.messages.get(alice).some(m=>m.type==="error"&&/Finish your current game/i.test(m.message)));
+ assert.equal(env.messages.get(alice).filter(m=>m.type==="chessStart").length,1);
+ await delay(170);
+ alice.send(JSON.stringify({type:"chessResign",id:start.id}));
+ await env.until(()=>env.messages.get(alice).some(m=>m.type==="chessState"&&m.over));
+ await delay(170);
+ alice.send(JSON.stringify({type:"chessBot",difficulty:"impossible"}));
+ await env.until(()=>env.messages.get(alice).some(m=>m.type==="error"&&/Easy, Normal, Hard, or Expert/.test(m.message)));
+});
+
+test("Ghost Pilot plays legal turns for its owner, not other users",{timeout:28000},async t=>{
+ const env=await setup(t),alice=await env.connect("ghostowner"),bob=await env.connect("ghostopponent"),eve=await env.connect("ghostoutsider");
+ alice.send(JSON.stringify({type:"queue",game:"chess"}));
+ await env.until(()=>env.messages.get(alice).some(m=>m.type==="queued"&&m.game==="chess"));
+ bob.send(JSON.stringify({type:"queue",game:"chess"}));
+ const start=await env.until(()=>env.messages.get(alice).find(m=>m.type==="chessStart"));
+ await env.until(()=>env.messages.get(bob).some(m=>m.type==="chessStart"&&m.id===start.id));
+ await delay(170);
+ eve.send(JSON.stringify({type:"chessAutoplay",id:start.id,enabled:true}));
+ await env.until(()=>env.messages.get(eve).some(m=>m.type==="error"&&/no longer active/i.test(m.message)));
+ assert.equal(env.messages.get(bob).some(m=>m.type==="chessAutoStatus"),false);
+ alice.send(JSON.stringify({type:"chessAutoplay",id:start.id,enabled:true}));
+ const on=await env.until(()=>env.messages.get(alice).find(m=>m.type==="chessAutoStatus"&&m.id===start.id&&m.enabled));
+ assert.equal(on.enabled,true);
+ const aiState=await env.until(()=>env.messages.get(bob).find(m=>
+  m.type==="chessState"&&m.id===start.id&&m.turn==="b"));
+ assert.notEqual(aiState.fen,start.fen);
+ assert.equal(aiState.autoplay,false,"The opponent must not be shown an autoplay toggle state");
+ await delay(180);
+ alice.send(JSON.stringify({type:"chessAutoplay",id:start.id,enabled:false}));
+ const off=await env.until(()=>env.messages.get(alice).find(m=>m.type==="chessAutoStatus"&&m.id===start.id&&!m.enabled));
+ assert.equal(off.enabled,false);
+ bob.send(JSON.stringify({type:"chessMove",id:start.id,from:"e7",to:"e5"}));
+ const after=await env.until(()=>env.messages.get(alice).find(m=>
+  m.type==="chessState"&&m.id===start.id&&m.turn==="w"&&m.last==="e5"));
+ assert.equal(after.autoplay,false);
+ const total=env.messages.get(alice).filter(m=>m.type==="chessState"&&m.id===start.id).length;
+ await delay(700);
+ assert.equal(env.messages.get(alice).filter(m=>m.type==="chessState"&&m.id===start.id).length,total,
+  "Ghost Pilot must stop after its owner disables it");
+});
