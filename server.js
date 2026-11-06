@@ -8,7 +8,7 @@ import { bootstrap } from "@mercuryworkshop/proxy-bootstrap";
 import { attachLightningLive } from "./live.js";
 import { registerAccountSpace } from "./account-space.js";
 import { needsWebSearch, searchWeb } from "./web-search.js";
-import {completeAi,activeRoleplay} from "./ai-provider.js";
+import {completeAi,activeRoleplay,TEXT_MODEL,VISION_MODEL,VISION_BACKUP,usableModel,collapseHistory} from "./ai-provider.js";
 import {normalizeAiImage,visionMessages} from "./ai-images.js";
 import { installSearchCredentials } from "./web-search-credentials.js";
 import { purgeChatLogs } from "./purge-chat-logs.js";
@@ -563,19 +563,18 @@ app.post("/api/ai/chat", mustBeSignedIn, sameOrigin, async (req, res) => {
       personalization+sceneGuide+"\n"+
       (searchRequested?"\nSearch results fetched for this question. Cite source numbers in square brackets.\n\n"+evidence:"")
     },
-    ...visionMessages(messages)
+    ...visionMessages(collapseHistory(messages))
   ];
   sendAiEvent("status",{message:hasImage?"Examining your image…":"Connecting to the AI model…"});
   try{
     modelSignal=new AbortController();
     const result=await completeAi({
       apiKey:key,
-      // Prefer NVIDIA's currently hosted low-latency text-capable endpoint.
-      // The older configured model remains a secondary choice for compatibility.
-      model:hasImage
-        ?(process.env.NVIDIA_VISION_MODEL||"meta/llama-3.2-11b-vision-instruct")
-        :(process.env.NVIDIA_FAST_MODEL||"meta/llama-3.2-11b-vision-instruct"),
-      backupModel:hasImage?"meta/llama-3.2-90b-vision-instruct":(process.env.NVIDIA_MODEL||"openai/gpt-oss-20b"),
+      // Use NVIDIA's hosted, current inference models, not the retired
+      // llama-3.2-vision endpoint. Environment overrides remain possible.
+      model:hasImage?usableModel(process.env.NVIDIA_VISION_MODEL,VISION_MODEL):
+        usableModel(process.env.NVIDIA_FAST_MODEL,TEXT_MODEL),
+      backupModel:hasImage?VISION_BACKUP:VISION_MODEL,
       messages:providerMessages,
       stream:streamMode,
       signal:modelSignal.signal,
