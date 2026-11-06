@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - bolt-hosted-v5
-      - fix/restore-nvidia-ai-2026-11-05
   workflow_dispatch:
 
 permissions:
