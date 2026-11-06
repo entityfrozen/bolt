@@ -65,7 +65,8 @@ class Hub{
   else if(m.type==="rpsStart"){
    const previous=this.rps?.id===m.id?this.rps:null;
    this.rps={...m,myChoice:m.waiting?previous?.myChoice||null:null};
-   this.rpsQueueing=false;this.view="rps";this.render();
+   this.rpsQueueing=false;if(m.tournament)this.rpsTournamentWaiting=null;
+   this.view="rps";this.render();
   }else if(m.type==="rpsRoundStart"){
    if(this.rps?.id===m.id){
     this.rps={...m,myChoice:null,result:null,waiting:!!m.waiting};
@@ -96,7 +97,7 @@ class Hub{
    if(this.rps?.id===m.id){
     this.rps.rematchPending=false;this.rps.rematchOffered=false;
     if(this.view==="rps")this.rpsScreen();
-    this.flash("Rematch declined.");
+    this.flash(m.reason==="expired"?"Rematch request expired.":"Rematch declined.");
    }
   }else if(m.type==="rpsQueueCancelled"){
    this.rpsQueueing=false;if(this.view==="rps"&&!this.rps)this.rpsScreen();
@@ -105,9 +106,21 @@ class Hub{
    if(this.view==="rps")this.rpsScreen();
    this.flash(m.message||"This match is no longer available.");
   }
-  else if(m.type==="tournamentJoined")this.flash("Tournament: "+m.players+"/4 players joined");
-  else if(m.type==="tournamentStarted")this.flash("Tournament has started!");
-  else if(m.type==="tournamentWinner")this.flash("Tournament won by "+m.winner);
+  else if(m.type==="tournamentJoined"){
+   this.rpsTournamentWaiting={id:m.id,players:m.players};
+   if(this.view==="rps"&&!this.rps)this.rpsScreen();
+  }else if(m.type==="tournamentLeft"){
+   this.rpsTournamentWaiting=null;
+   if(this.view==="rps"&&!this.rps)this.rpsScreen();
+  }else if(m.type==="tournamentStarted"){
+   this.rpsTournamentWaiting=null;
+   this.flash("Tournament started.");
+  }else if(m.type==="tournamentCancelled"){
+   this.rpsTournamentWaiting=null;
+   this.flash("Tournament cancelled.");
+  }else if(m.type==="tournamentWinner"){
+   this.flash("Tournament won by "+m.winner);
+  }
   else if(m.type==="world"){this.world=m;if(this.view==="world")this.worldUpdate()}
   else if(m.type==="worldQueued"){this.worldQueueing=true;this.worldActive=false;if(this.view==="world")this.worldScreen()}
   else if(m.type==="worldMatch"){this.worldActive=true;this.worldQueueing=false;this.tile=null;if(this.view==="world")this.worldScreen()}
@@ -419,6 +432,7 @@ class Hub{
    return;
   }
   if(action==="tournament")return this.send({type:"tournamentJoin"});
+  if(action==="tournamentLeave")return this.send({type:"tournamentLeave"});
   if(action==="chessDuel"||action==="rpsDuel"){const target=this.$("#hubDuelId")?.value.trim();if(!target)return this.flash("Enter an opponent user ID.");return this.send({type:"duel",game:action==="chessDuel"?"chess":"rps",target})}
   if(action==="square"){
    const g=this.chess;
