@@ -366,33 +366,185 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir,getDispla
    fen:game.engine.fen(),turn:game.engine.turn(),legal:game.over?[]:chessLegal(game.engine),
    over:game.over,result:game.engine.isCheckmate()?"Checkmate":game.engine.isDraw()?"Draw":"",last});
  }
+ // Best-of-five matches, first to three wins. A tournament bracket uses one
+ // decisive round per pairing so tournaments don't take twenty minutes.
+ const RPS_MOVES=["rock","paper","scissors"];
+ const RPS_ROUND_MS=45000;
+ const RPS_REVEAL_MS=2500;
+ const RPS_TARGET=3;
+ const rpsName=id=>id==="npc:rps"?"Lightning Bot":clientOf(id)[0]?.[1]?.name||id;
+ const rpsScore=g=>({...g.score});
+ function rpsView(g,userId){
+  const other=g.ids.find(id=>id!==userId);
+  return {
+   id:g.id,ids:g.ids,players:g.players,tournament:g.tournament,bot:g.bot,
+   round:g.round,winsTo:g.winsTo,score:rpsScore(g),
+   phase:g.phase,over:g.over,waiting:!!g.choices[userId],
+   opponentReady:!!g.choices[other],result:g.lastResult,
+   rematchPending:g.rematch?.has(userId)||false,
+   rematchOffered:g.rematch?.has(other)||false
+  };
+ }
+ function rpsSend(g,type,more={}){
+  for(const id of g.ids)if(id!=="npc:rps")
+   sendUser(id,{type,...rpsView(g,id),...more});
+ }
+ function rpsBotMove(){return RPS_MOVES[crypto.randomInt(RPS_MOVES.length)];}
  function newRPS(ids,tournament=null){
-  const id=uid(),game={id,ids,choices:{},tournament,bot:ids.includes("npc:rps")};
-  if(game.bot)game.choices["npc:rps"]=["rock","paper","scissors"][Math.floor(Math.random()*3)];
-  rpsGames.set(id,game);
-  for(const user of ids)if(user!=="npc:rps")sendUser(user,{type:"rpsStart",id,ids,players:ids.map(z=>z==="npc:rps"?"Lightning Bot":clientOf(z)[0]?.[1]?.name||z),tournament,bot:game.bot});
-  return game;
+  const g={
+   id:uid(),ids:[...ids],players:ids.map(rpsName),tournament,bot:ids.includes("npc:rps"),
+   round:1,winsTo:tournament?1:RPS_TARGET,score:Object.fromEntries(ids.map(id=>[id,0])),
+   choices:{},phase:"choosing",over:false,lastResult:null,rematch:new Set(),timer:null
+  };
+  if(g.bot)g.choices["npc:rps"]=rpsBotMove();
+  rpsGames.set(g.id,g);
+  rpsSend(g,"rpsStart");
+  rpsArmTimer(g);
+  presence();
+  return g;
+ }
+ function rpsArmTimer(g){
+  clearTimeout(g.timer);
+  g.timer=setTimeout(()=>{
+   if(g.over||g.phase!=="choosing")return;
+   const selected=g.ids.filter(id=>g.choices[id]);
+   const winner=selected.length===1?selected[0]:null;
+   rpsFinish(g,winner,"timeout");
+  },RPS_ROUND_MS);
+  g.timer.unref?.();
+ }
+ function rpsCleanup(g){
+  clearTimeout(g.timer);
+  g.timer=setTimeout(()=>{if(rpsGames.get(g.id)===g)rpsGames.delete(g.id);presence();},120000);
+  g.timer.unref?.();
+ }
+ function advanceTournament(g,winner){
+  if(!g.tournament)return;
+  const t=tournaments.get(g.tournament);
+  if(!t||t.done)return;
+  if(!winner){
+   t.done=true;t.status="cancelled";
+   for(const id of t.ids)sendUser(id,{type:"tournamentCancelled",id:t.id});
+   presence();return;
+  }
+  if(t.status==="semifinal"){
+   if(!t.winners.includes(winner))t.winners.push(winner);
+   if(t.winners.length===2){
+    const finalists=[...t.winners];t.status="final";t.winners=[];
+    newRPS(finalists,t.id);
+   }
+  }else if(t.status==="final"){
+   t.done=true;t.status="finished";
+   sendAll({type:"tournamentWinner",id:t.id,winner});
+   presence();
+  }
+ }
+ function rpsFinish(g,winner,reason=""){
+  if(g.over)return;
+  clearTimeout(g.timer);
+  g.over=true;g.phase="finished";
+  const result={
+   type:"rpsResult",id:g.id,round:g.round,winner,tie:!winner,
+   choices:{...g.choices},score:rpsScore(g),over:true,
+   winsTo:g.winsTo,reason
+  };
+  g.lastResult=result;
+  rpsSend(g,"rpsResult",result);
+  advanceTournament(g,winner);
+  rpsCleanup(g);
+  presence();
+ }
+ function rpsBeginRound(g){
+  if(g.over||g.phase!=="reveal")return;
+  g.round++;
+  g.choices={};
+  if(g.bot)g.choices["npc:rps"]=rpsBotMove();
+  g.lastResult=null;g.phase="choosing";
+  rpsSend(g,"rpsRoundStart");
+  rpsArmTimer(g);
  }
  function rpsChoice(u,data){
-  const g=rpsGames.get(data.id);
-  if(!g||!g.ids.includes(u.id)||g.choices[u.id]||!["rock","paper","scissors"].includes(data.choice))return;
-  g.choices[u.id]=data.choice;
-  sendUser(u.id,{type:"rpsWaiting",id:g.id});
-  if(Object.keys(g.choices).length!==2)return;
-  const [a,b]=g.ids,[ca,cb]=[g.choices[a],g.choices[b]];
-  const awin=ca===cb?null:(ca==="rock"&&cb==="scissors")||(ca==="scissors"&&cb==="paper")||(ca==="paper"&&cb==="rock");
-  const winner=awin===null?null:awin?a:b;
-  for(const id of g.ids)sendUser(id,{type:"rpsResult",id:g.id,choices:g.choices,winner,tie:winner===null});
-  rpsGames.delete(g.id);
-  if(g.tournament){
-   const t=tournaments.get(g.tournament);
-   if(t&&winner){t.winners.push(winner);if(t.winners.length===2){t.status="final";newRPS(t.winners,t.id);t.winners=[]}else if(t.status==="final"){t.done=true;sendAll({type:"tournamentWinner",id:t.id,winner});presence()}}
-   else if(t&&!winner)newRPS(g.ids,g.tournament);
-  }else if(!winner){newRPS(g.ids)}
+  const g=rpsGames.get(String(data.id||""));
+  if(!g||!g.ids.includes(u.id))
+   return safeSend(u.ws,{type:"error",message:"That match is no longer available."});
+  if(g.over||g.phase!=="choosing"||g.choices[u.id])return;
+  const pick=data.choice;
+  if(!RPS_MOVES.includes(pick))
+   return safeSend(u.ws,{type:"error",message:"Pick rock, paper, or scissors."});
+  g.choices[u.id]=pick;
+  sendUser(u.id,{type:"rpsWaiting",id:g.id,round:g.round});
+  const opponent=g.ids.find(id=>id!==u.id);
+  if(opponent!=="npc:rps")sendUser(opponent,{
+   type:"rpsOpponentReady",id:g.id,round:g.round
+  });
+  if(!g.ids.every(id=>g.choices[id]))return;
+  clearTimeout(g.timer);
+  const [a,b]=g.ids,ca=g.choices[a],cb=g.choices[b];
+  const tie=ca===cb;
+  const winner=tie?null:
+   (ca==="rock"&&cb==="scissors")||(ca==="paper"&&cb==="rock")||(ca==="scissors"&&cb==="paper")?a:b;
+  if(winner)g.score[winner]++;
+  const over=!!winner&&g.score[winner]>=g.winsTo;
+  const result={
+   type:"rpsResult",id:g.id,round:g.round,choices:{...g.choices},
+   winner,tie,score:rpsScore(g),over,winsTo:g.winsTo
+  };
+  g.lastResult=result;g.phase=over?"finished":"reveal";g.over=over;
+  rpsSend(g,"rpsResult",result);
+  if(over){
+   advanceTournament(g,winner);rpsCleanup(g);presence();
+  }else{
+   g.timer=setTimeout(()=>rpsBeginRound(g),RPS_REVEAL_MS);
+   g.timer.unref?.();
+  }
  }
-
+ function rpsSync(u,data){
+  const game=data?.id?rpsGames.get(String(data.id)):
+   [...rpsGames.values()].reverse().find(g=>g.ids.includes(u.id)&&!g.over);
+  if(!game||!game.ids.includes(u.id)){
+   return safeSend(u.ws,{type:"rpsNotFound",message:"That match has ended."});
+  }
+  safeSend(u.ws,{type:"rpsStart",...rpsView(game,u.id)});
+ }
+ function rpsRematch(u,data){
+  const g=rpsGames.get(String(data.id||""));
+  if(!g||!g.ids.includes(u.id)||!g.over||g.tournament)
+   return safeSend(u.ws,{type:"error",message:"This match isn't available for a rematch."});
+  if(g.bot){
+   rpsGames.delete(g.id);clearTimeout(g.timer);newRPS([u.id,"npc:rps"]);return;
+  }
+  const other=g.ids.find(id=>id!==u.id);
+  if(!clientOf(other).length)
+   return safeSend(u.ws,{type:"error",message:"Your opponent is offline."});
+  g.rematch.add(u.id);
+  if(g.rematch.size===2){
+   clearTimeout(g.timer);rpsGames.delete(g.id);
+   newRPS(g.ids);return;
+  }
+  sendUser(u.id,{type:"rpsRematchWaiting",id:g.id});
+  sendUser(other,{type:"rpsRematchOffer",id:g.id,fromName:rpsName(u.id)});
+ }
+ function rpsRematchDecline(u,data){
+  const g=rpsGames.get(String(data.id||""));
+  if(!g||!g.ids.includes(u.id)||!g.over||g.tournament)return;
+  g.rematch.clear();
+  rpsSend(g,"rpsRematchDeclined");
+ }
+ function rpsLeave(u,data){
+  const g=rpsGames.get(String(data.id||""));
+  if(!g||!g.ids.includes(u.id))return;
+  if(g.over)return;
+  const other=g.ids.find(id=>id!==u.id);
+  rpsFinish(g,other==="npc:rps"?null:other,"left");
+ }
+ function rpsCancelQueue(u){
+  const before=queues.rps.length;
+  queues.rps=queues.rps.filter(id=>id!==u.id);
+  safeSend(u.ws,{type:"rpsQueueCancelled",removed:before!==queues.rps.length});
+  presence();
+ }
  const playing=id=>[...chessGames.values()].some(g=>!g.over&&g.ids.includes(id))||
-  [...rpsGames.values()].some(g=>g.ids.includes(id));
+  [...rpsGames.values()].some(g=>!g.over&&g.ids.includes(id));
  const invitePayload=invite=>({
   type:"gameInvite",id:invite.id,game:invite.game,createdAt:invite.createdAt,
   expiresAt:invite.expiresAt,from:{
@@ -482,6 +634,9 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir,getDispla
   presence();
  }
  function tournamentJoin(u){
+  if(playing(u.id))return safeSend(u.ws,{type:"error",message:"Finish your match before joining a tournament."});
+  if([...tournaments.values()].some(t=>!t.done&&t.ids.includes(u.id)))
+   return safeSend(u.ws,{type:"error",message:"You're already in a tournament."});
   let t=[...tournaments.values()].find(x=>!x.done&&x.status==="waiting"&&x.ids.length<4);
   if(!t){t={id:uid(),ids:[],winners:[],status:"waiting",done:false};tournaments.set(t.id,t)}
   if(!t.ids.includes(u.id))t.ids.push(u.id);
@@ -503,6 +658,9 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir,getDispla
  wss.on("connection",(ws,auth,req)=>{
   const id=auth.identity.id,u={ws,id,name:getDisplayName(id,nameOf(auth.identity)),username:nameOf(auth.identity),role:auth.identity.role,last:0,world:false};
   clients.set(ws,u);
+  // Returning players recover only their own committed state, not their opponent's move.
+  for(const g of rpsGames.values())if(!g.over&&g.ids.includes(u.id))
+   safeSend(ws,{type:"rpsStart",...rpsView(g,u.id)});
   safeSend(ws,{type:"hello",id,name:u.name,username:u.username,role:u.role,channels:CHANNELS,history,online:usersOnline().map(id=>({id,name:clientOf(id)[0]?.[1]?.name||id,username:clientOf(id)[0]?.[1]?.username||""})),summary:summary()});
   safeSend(ws,{type:"v2State",...communities.snapshot(u)});
   for(const invite of invitations.values()){
@@ -573,6 +731,11 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir,getDispla
    if(data.type==="gameInviteRespond")return respondInvite(u,data);
    if(data.type==="chessMove")return chessMove(u,data);
    if(data.type==="rpsChoice")return rpsChoice(u,data);
+   if(data.type==="rpsSync")return rpsSync(u,data);
+   if(data.type==="rpsRematch")return rpsRematch(u,data);
+   if(data.type==="rpsRematchDecline")return rpsRematchDecline(u,data);
+   if(data.type==="rpsLeave")return rpsLeave(u,data);
+   if(data.type==="rpsCancelQueue")return rpsCancelQueue(u);
    if(data.type==="tournamentJoin")return tournamentJoin(u);
    if(data.type==="worldQueue"||data.type==="worldJoin")return worldQueueJoin(u);
    if(data.type==="worldCancel")return worldCancel(u);
