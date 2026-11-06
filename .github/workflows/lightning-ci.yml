@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - bolt-hosted-v5
+      - feature/actionable-game-invites-toasts-2026-11-05
   workflow_dispatch:
 
 permissions:
@@ -42,6 +43,7 @@ jobs:
           node --check public/assets/chat-renderer.js
           node --check public/assets/chat-experience.js
           node --check public/assets/notifications.js
+          node --check public/assets/game-invites.js
           node --check web-search-credentials.js
           node --check community-v2.js
           node --check public/assets/lightning-gui-v7.js
