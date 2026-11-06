@@ -15,7 +15,7 @@ export function installSocial(Hub){
    if(this.socialReady)return;
    this.socialReady=true;
    this.readMarkers={};this.unread={};this.typing=new Map();this.reply=null;
-   this.notifyMode=get("lightning:notify-mode","mentions");
+   this.notifyMode=get("lightning:notify-mode","all");
    this.desktopAlerts=get("lightning:notify-desktop",false);
    this.originalTitle=document.title;
    this.root.addEventListener("click",event=>{
@@ -73,7 +73,7 @@ export function installSocial(Hub){
    }
    document.dispatchEvent(new CustomEvent("lightning:community-unread",{detail:{count:total}}));
    const mode=this.$("#socialMode");if(mode)mode.textContent="Alerts: "+this.notifyMode;
-   const desktop=this.$("#socialDesktop");if(desktop)desktop.textContent=this.desktopAlerts&&window.Notification?.permission==="granted"?"Desktop on":"Enable desktop";
+   const desktop=this.$("#socialDesktop");if(desktop)desktop.textContent="Notification settings";
  };
  Hub.prototype.readChannel=function(channel){
    if(!this.id||!CHANNELS.includes(channel))return;
@@ -90,29 +90,13 @@ export function installSocial(Hub){
    put("lightning:read:"+this.id,this.readMarkers);this.badges();
  };
  Hub.prototype.enableAlerts=async function(){
-   if(!("Notification" in window)||!isSecureContext)return this.flash("Desktop notifications require a supported HTTPS browser.");
-   let result=Notification.permission;
-   if(result==="default")result=await Notification.requestPermission();
-   this.desktopAlerts=result==="granted";put("lightning:notify-desktop",this.desktopAlerts);
-   this.badges();this.flash(this.desktopAlerts?"Desktop notifications enabled.":"Notification permission not granted.");
+   window.LightningNotifications?.open?.();
  };
  Hub.prototype.newChatNotice=function(entry){
    if(entry.userId===this.id)return;
    if(this.active&&this.view==="chat"&&this.channel===entry.channel&&!document.hidden){this.readChannel(entry.channel);return}
    this.unread[entry.channel]=(this.unread[entry.channel]||0)+1;this.badges();
-   const mentioned=[...String(entry.message||"").matchAll(/(?:^|[^a-z0-9._-])@([a-z0-9._-]{3,32})(?![a-z0-9._-])/gi)].map(m=>m[1].toLowerCase());
-   const mentions=mentioned.includes(String(this.username||this.name||"").toLowerCase());
-   if(this.notifyMode==="off"||(this.notifyMode==="mentions"&&!mentions))return;
-   if(this.desktopAlerts&&window.Notification?.permission==="granted"&&document.hidden){
-     try{
-       const n=new Notification(entry.by+" in #"+entry.channel,{body:entry.message.slice(0,130),icon:"/favicon.svg",tag:"lightning-"+entry.channel});
-       n.onclick=()=>{window.focus();this.open("chat");this.show("chat",entry.channel);n.close()};
-     }catch{}
-   }else if(!this.active){
-     const toast=document.querySelector("#toast");
-     if(toast){toast.textContent=entry.by+" in #"+entry.channel+": "+entry.message.slice(0,60);
-       toast.classList.add("show");clearTimeout(this.noticeTimer);this.noticeTimer=setTimeout(()=>toast.classList.remove("show"),3600)}
-   }
+   // The shared bottom-right notification stack owns all visible chat alerts.
  };
  Hub.prototype.onMessage=function(m){
    this.socialInit();
