@@ -93,8 +93,8 @@ test("Repeated unanswered user turns collapse so the provider gets alternating r
  ];
  const normalized=collapseHistory(original);
  assert.deepEqual(normalized.map(x=>x.role),["user","assistant","user"]);
- assert.equal(normalized[0].content,"Hi\\n\\nAre you still there?");
- assert.equal(normalized[2].content,"Explain this\\n\\nPlease be brief");
+ assert.equal(normalized[0].content,"Hi\n\nAre you still there?");
+ assert.equal(normalized[2].content,"Explain this\n\nPlease be brief");
  assert.equal(normalized[2].image,"data:image/png;base64,AAAA");
  assert.equal(original[0].content,"Hi");
 });
