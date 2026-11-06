@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
+import {completeAi,TEXT_MODEL,VISION_MODEL,usableModel} from "./ai-provider.js";
 
 // One encrypted search configuration for the whole installation.
 // Only authenticated admins can read its status, save/remove keys or test them.
@@ -89,20 +90,27 @@ export function installSearchCredentials({app,dataDir,mustBeAdmin,sameOrigin,sea
   if(state.shared?.[provider]){delete state.shared[provider];save();onUpdate(req.auth.identity,"provider.key.removed",provider);}
   res.json({ok:true,...status()});
  });
+ const lastAiTest=new Map();
  app.post("/api/ai/provider-test",mustBeAdmin,sameOrigin,async(req,res)=>{
+  res.setHeader("Cache-Control","no-store");
   if(req.body?.provider!=="nvidia")return res.status(400).json({error:"Unknown provider."});
   const key=keys().nvidiaKey;
   if(!key)return res.status(400).json({error:"Save an NVIDIA key first."});
+  const id=req.auth.identity.id,now=Date.now();
+  if(now-Number(lastAiTest.get(id)||0)<15000)
+   return res.status(429).json({error:"Try another AI connection test in a few seconds."});
+  lastAiTest.set(id,now);
   try{
-   const reply=await fetch("https://integrate.api.nvidia.com/v1/models",{
-    method:"GET",headers:{"Authorization":"Bearer "+key},
-    signal:AbortSignal.timeout(10000)
+   // Model-list access alone doesn't prove the chat model can generate text.
+   // This tests the same inference path used by Lightning AI.
+   const result=await completeAi({
+    apiKey:key,model:usableModel(process.env.NVIDIA_FAST_MODEL,TEXT_MODEL),
+    backupModel:VISION_MODEL,stream:false,maxTokens:64,budgets:[12000,16000],
+    messages:[{role:"user",content:"Reply with just the word READY."}]
    });
-   res.setHeader("Cache-Control","no-store");
-   res.json({ok:reply.ok,error:reply.ok?null:reply.status===401||reply.status===403?
-    "NVIDIA rejected this key ("+reply.status+").":"NVIDIA connection returned HTTP "+reply.status+"."});
-  }catch{
-   res.status(502).json({ok:false,error:"Could not reach NVIDIA. Check the network and try again."});
+   res.json({ok:true,model:result.model});
+  }catch(error){
+   res.status(502).json({ok:false,error:String(error?.message||"AI inference test failed.").slice(0,360)});
   }
  });
  app.post("/api/ai/search-test",mustBeAdmin,sameOrigin,async(req,res)=>{
