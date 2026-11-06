@@ -53,6 +53,7 @@ export function registerAccountSpace({app,dataDir,mustBeSignedIn,sameOrigin,list
  if(migratedReads)persist();
  const unreadIn=(thread,userId)=>thread.messages.filter(message=>
   message.from!==userId&&message.at>Number(thread.readAt?.[userId]||0)).length;
+ let pushNotification=()=>{};
  const alertsFor=id=>Array.isArray(data.notifications[id])?data.notifications[id]:[];
  const addNotification=(id,info,{save=true}={})=>{
   if(!account(id)||!["dm","mention","announcement"].includes(info?.kind))return null;
@@ -65,6 +66,8 @@ export function registerAccountSpace({app,dataDir,mustBeSignedIn,sameOrigin,list
   if(!entry.title)return null;
   data.notifications[id]=[entry,...alertsFor(id)].slice(0,120);
   if(save)persist();
+  // The saved inbox is authoritative; active tabs also receive this alert now.
+  try{pushNotification(id,entry);}catch(error){console.warn("Notification delivery:",error.message);}
   return entry;
  };
  const notifyMentions=({text,authorId,authorName,serverId="",serverName="Community",channel,allowedIds=null,replyToId=null})=>{
@@ -448,5 +451,6 @@ export function registerAccountSpace({app,dataDir,mustBeSignedIn,sameOrigin,list
   return {...aiDefaults(),...ws.preferences};
  }
 
- return {getDisplayName,profile,getAiPreferences,addNotification,notifyMentions,broadcastNotification};
+ return {getDisplayName,profile,getAiPreferences,addNotification,notifyMentions,broadcastNotification,
+  setNotificationSender:callback=>{pushNotification=typeof callback==="function"?callback:()=>{};}};
 }
