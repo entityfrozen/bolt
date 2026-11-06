@@ -527,8 +527,8 @@ function ensureHubStyles(){
      const logStyle=document.createElement("link");logStyle.id="lightningUpdateLogCss";logStyle.rel="stylesheet";logStyle.href="/assets/update-log.css?v=1";document.head.append(logStyle);
      const chat=document.createElement("link");chat.id="lightningChatExperienceCss";chat.rel="stylesheet";chat.href="/assets/chat-experience.css?v=1";document.head.append(chat);
      const invites=document.createElement("link");invites.id="lightningGameInvitesCss";invites.rel="stylesheet";invites.href="/assets/game-invites.css?v=1";document.head.append(invites);
-     const compact=document.createElement("link");compact.id="lightningCompactGamesCss";compact.rel="stylesheet";compact.href="/assets/compact-games.css?v=1";document.head.append(compact);
      const rps=document.createElement("link");rps.id="lightningRpsRebuildCss";rps.rel="stylesheet";rps.href="/assets/rps-rewrite.css?v=1";document.head.append(rps);
+     const compact=document.createElement("link");compact.id="lightningCompactGamesCss";compact.rel="stylesheet";compact.href="/assets/compact-games.css?v=1";document.head.append(compact);
  }
 }
 export function openHub(view="chat"){
