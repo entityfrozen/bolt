@@ -45,6 +45,104 @@
     '<footer><span>DMs, mentions, replies and staff updates</span>'+
     '<button type="button" data-ln-notice="clear">Clear inbox</button></footer>';
   document.body.append(panel);
+  // Corner alerts are a separate layer. The bell remains an account-owned inbox;
+  // live channel traffic doesn't fill the saved inbox with every public message.
+  const stack=document.createElement("section");
+  stack.id="lnToastStack";stack.className="ln-toast-stack";
+  stack.setAttribute("aria-label","Recent notifications");
+  stack.setAttribute("aria-live","polite");
+  stack.setAttribute("aria-relevant","additions");
+  document.body.append(stack);
+  const toastKeys=new Map();
+  const visible=new Map();
+  const toastIcon={dm:"✉",mention:"@",announcement:"✦",chat:"#",game:"♞",system:"✓"};
+  function removeToast(key){
+   const entry=visible.get(key);if(!entry)return;
+   clearTimeout(entry.timer);
+   clearTimeout(entry.expiry);
+   visible.delete(key);
+   entry.node.classList.add("ln-toast-leaving");
+   setTimeout(()=>entry.node.remove(),190);
+  }
+  function pushToast(info){
+   if(!info||typeof info!=="object")return;
+   const key=String(info.key||info.id||info.kind+":"+Date.now()).slice(0,140);
+   const now=Date.now();
+   for(const [id,at] of toastKeys)if(now-at>120000)toastKeys.delete(id);
+   if(toastKeys.has(key))return;
+   toastKeys.set(key,now);
+   const kind=["dm","mention","announcement","chat","game","system"].includes(info.kind)?info.kind:"system";
+   const invite=kind==="game"&&info.inviteId;
+   const title=String(info.title||"Notification").slice(0,95);
+   const body=String(info.body||"").slice(0,220);
+   const node=document.createElement("article");
+   node.className="ln-toast ln-toast-"+kind;
+   node.dataset.key=key;
+   node.setAttribute("aria-label",title);
+   node.innerHTML='<div class="ln-toast-mark" aria-hidden="true">'+toastIcon[kind]+'</div>'+
+     '<div class="ln-toast-main"><div class="ln-toast-overline"><span>'+html(info.label||({
+      dm:"DIRECT MESSAGE",mention:"MENTION",announcement:"ANNOUNCEMENT",chat:"COMMUNITY",game:"GAME INVITE",system:"LIGHTNING"
+     }[kind]))+'</span><small>Just now</small></div>'+
+     '<strong>'+html(title)+'</strong>'+
+     (body?'<p>'+html(body)+'</p>':"")+
+     (invite?'<div class="ln-toast-actions"><button type="button" class="ln-toast-accept" data-ln-toast="accept">Accept invite</button>'+
+       '<button type="button" class="ln-toast-decline" data-ln-toast="decline">Decline</button></div>':
+       info.onOpen?'<button type="button" class="ln-toast-open" data-ln-toast="open">'+
+        html(info.openLabel||"Open message")+' <span aria-hidden="true">↗</span></button>':"")+
+     '</div><button type="button" class="ln-toast-close" data-ln-toast="dismiss" aria-label="Dismiss notification">×</button>'+
+     (!invite?'<div class="ln-toast-timer" aria-hidden="true"></div>':"");
+   stack.prepend(node);
+   const entry={node,info:{...info},timer:null,expiry:null};
+   visible.set(key,entry);
+   if(!invite){
+    entry.timer=setTimeout(()=>removeToast(key),Number(info.duration)||6700);
+   }else{
+    const delay=Math.max(0,Number(info.expiresAt||0)-Date.now());
+    entry.expiry=setTimeout(()=>{
+     if(visible.has(key)){
+      const actions=node.querySelector(".ln-toast-actions");
+      if(actions)actions.innerHTML='<span class="ln-toast-expired">Invitation expired</span>';
+      entry.timer=setTimeout(()=>removeToast(key),4500);
+     }
+    },Math.min(95000,delay));
+   }
+   while(visible.size>4)removeToast(visible.keys().next().value);
+   return key;
+  }
+  function resolveInvite(id,status){
+   for(const [key,entry] of visible){
+    if(entry.info.inviteId!==id)continue;
+    const actions=entry.node.querySelector(".ln-toast-actions");
+    if(actions){
+     actions.innerHTML='<span class="ln-toast-expired">'+html({
+      accepted:"Invite accepted",declined:"Invite declined",expired:"Invitation expired",
+      cancelled:"Invite cancelled",busy:"Player is in a match",unavailable:"Player unavailable"
+     }[status]||"Invite closed")+'</span>';
+    }
+    clearTimeout(entry.expiry);
+    entry.timer=setTimeout(()=>removeToast(key),2600);
+   }
+  }
+  stack.addEventListener("click",event=>{
+   const button=event.target.closest("[data-ln-toast]");
+   const node=button?.closest(".ln-toast");
+   if(!node)return;
+   const entry=visible.get(node.dataset.key);
+   if(!entry)return;
+   const action=button.dataset.lnToast;
+   if(action==="dismiss"){removeToast(node.dataset.key);return;}
+   if(action==="open"){
+    removeToast(node.dataset.key);
+    entry.info.onOpen?.();
+   }
+   if(action==="accept"||action==="decline"){
+    const ok=window.LightningGames?.respond?.(entry.info.inviteId,action);
+    if(!ok)return;
+    node.querySelectorAll(".ln-toast-actions button").forEach(item=>item.disabled=true);
+    const actions=node.querySelector(".ln-toast-actions");
+    if(actions)actions.textContent=action==="accept"?"Joining match…":"Declining invitation…";
+   }
+  });
   const count=button.querySelector(".ln-bell-count"),list=panel.querySelector("#lnNoticeList");
   const summary=panel.querySelector("#lnNoticeSummary"),desktopButton=panel.querySelector("#lnDesktopAlerts");
   function render(){
@@ -80,7 +178,11 @@
     const next=Array.isArray(data.items)?data.items:[];
     if(initialized){
      const seen=new Set(items.map(x=>x.id));
-     for(const item of next.slice().reverse())if(!seen.has(item.id))notifyDesktop(item);
+     for(const item of next.slice().reverse())if(!seen.has(item.id)){
+      notifyDesktop(item);
+      pushToast({key:"inbox:"+item.id,kind:item.kind,title:item.title,body:item.body,
+       onOpen:()=>openNotification(item),openLabel:item.kind==="dm"?"Reply":"View notification"});
+     }
     }
     items=next;unread=Number(data.unread)||0;initialized=true;render();
    }catch(error){
@@ -156,7 +258,15 @@
   window.addEventListener("pageshow",()=>void refresh());
   setInterval(()=>void refresh(),12000);
   void refresh();
-  window.LightningNotifications={refresh,open:()=>button.click()};
+  window.LightningNotifications={
+   refresh,open:()=>button.click(),push:pushToast,resolveInvite
+  };
+  // Live channel traffic can arrive before the inbox finishes its first poll.
+  // Keep a single owner for all corner alerts and for deduplication.
+  document.addEventListener("lightning:toast",event=>pushToast(event.detail));
+  document.addEventListener("lightning:invite-result",event=>{
+   const detail=event.detail||{};if(detail.id)resolveInvite(detail.id,detail.status);
+  });
  }
  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",start,{once:true});
  else start();
