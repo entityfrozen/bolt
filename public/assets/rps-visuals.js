@@ -12,6 +12,10 @@ export function installRpsVisuals(Hub){
  Hub.prototype.rpsScreen=function(){
   this.header("Rock Paper Scissors","First to three wins");
   const host=this.$("#hubContent"),g=this.rps;
+  // State changes rebuild the visual stage, but must not reset its scroll.
+  const previous=host.querySelector(".rps-rewrite");
+  const oldScroll=previous?.scrollTop||0;
+  const oldHostScroll=host.scrollTop;
   if(!this.rpsKeyboardBound){
    this.rpsKeyboardBound=true;
    document.addEventListener("keydown",event=>{
@@ -56,7 +60,9 @@ export function installRpsVisuals(Hub){
     '<div><input id="hubDuelId" placeholder="Paste a player ID" autocomplete="off">'+
     '<button type="button" class="rps-btn rps-btn-secondary" data-act="rpsDuel">Invite</button></div></div>'+
     '<button type="button" class="rps-back-link" data-act="back">← Back to Arcade</button>'+
-    '</div></section>';return;
+    '</div></section>';
+   host.scrollTop=oldHostScroll;
+   return;
   }
   const ids=Array.isArray(g.ids)?g.ids:[];
   const seat=ids.indexOf(this.id),me=ids[seat]||this.id,other=ids[seat===0?1:0]||"opponent";
@@ -125,5 +131,8 @@ export function installRpsVisuals(Hub){
    '<footer class="rps-arena-footer"><span>'+escRps(g.tournament?"Tournament match":"Best of five")+'</span>'+
    '<span>Hands stay hidden until both players pick.</span></footer>'+
    '</div></section>';
+  const current=host.querySelector(".rps-rewrite");
+  if(current&&previous?.classList.contains("rps-fresh-match"))current.scrollTop=oldScroll;
+  host.scrollTop=oldHostScroll;
  };
 }
