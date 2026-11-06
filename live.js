@@ -775,6 +775,12 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir,getDispla
    if(!clientOf(u.id).length){
     for(const kind of ["chess","rps"])queues[kind]=queues[kind].filter(id=>id!==u.id);
     worldQueue=worldQueue.filter(id=>id!==u.id);
+    for(const t of tournaments.values()){
+     if(t.status!=="waiting"||!t.ids.includes(u.id))continue;
+     t.ids=t.ids.filter(id=>id!==u.id);
+     for(const id of t.ids)sendUser(id,{type:"tournamentJoined",id:t.id,players:t.ids.length});
+     if(!t.ids.length)tournaments.delete(t.id);
+    }
    }
    presence();
   });
