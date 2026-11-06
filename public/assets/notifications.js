@@ -170,6 +170,16 @@
     n.onclick=()=>{window.focus();openNotification(item);n.close();};
    }catch{}
   }
+  function incomingAccount(item){
+   if(!item?.id||!["dm","mention","announcement"].includes(item.kind))return;
+   if(items.some(existing=>existing.id===item.id))return;
+   items=[item,...items].slice(0,60);
+   if(!item.readAt)unread++;
+   render();
+   notifyDesktop(item);
+   pushToast({key:"inbox:"+item.id,kind:item.kind,title:item.title,body:item.body,
+    onOpen:()=>openNotification(item),openLabel:item.kind==="dm"?"Reply":"View notification"});
+  }
   async function refresh(){
    if(loading)return;
    loading=true;
@@ -253,13 +263,14 @@
     }catch{desktop=false;render();}
    }
   });
+  document.addEventListener("lightning:account-alert",event=>incomingAccount(event.detail));
   document.addEventListener("lightning:dm-refresh",()=>void refresh());
   window.addEventListener("focus",()=>void refresh());
   window.addEventListener("pageshow",()=>void refresh());
   setInterval(()=>void refresh(),12000);
   void refresh();
   window.LightningNotifications={
-   refresh,open:()=>button.click(),push:pushToast,resolveInvite
+   refresh,open:()=>button.click(),push:pushToast,resolveInvite,receiveAccount:incomingAccount
   };
   // Live channel traffic can arrive before the inbox finishes its first poll.
   // Keep a single owner for all corner alerts and for deduplication.
