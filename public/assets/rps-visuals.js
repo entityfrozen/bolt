@@ -36,8 +36,10 @@ export function installRpsVisuals(Hub){
     (this.rpsQueueing?
       '<button type="button" class="rps-btn rps-btn-primary" disabled>Finding an opponent…</button>'+
       '<button type="button" class="rps-btn rps-btn-secondary" data-act="rpsCancelQueue">Cancel search</button>':
-      '<button type="button" class="rps-btn rps-btn-primary" data-act="rpsQueue">Find a player ↗</button>')+
-    '<button type="button" class="rps-btn rps-btn-secondary" data-act="rpsBot">Play the bot</button>'+
+      '<button type="button" class="rps-btn rps-btn-primary" data-act="rpsQueue"'+
+       (this.rpsTournamentWaiting?" disabled":"")+' >Find a player ↗</button>')+
+    '<button type="button" class="rps-btn rps-btn-secondary" data-act="rpsBot"'+
+      (this.rpsTournamentWaiting?" disabled":"")+' >Play the bot</button>'+
     (this.rpsTournamentWaiting?
      '<button type="button" class="rps-btn rps-btn-quiet" disabled>Waiting for players ('+
        Math.max(1,Math.min(4,this.rpsTournamentWaiting.players))+'/4)</button>'+
