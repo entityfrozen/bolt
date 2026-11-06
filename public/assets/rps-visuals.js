@@ -38,7 +38,11 @@ export function installRpsVisuals(Hub){
       '<button type="button" class="rps-btn rps-btn-secondary" data-act="rpsCancelQueue">Cancel search</button>':
       '<button type="button" class="rps-btn rps-btn-primary" data-act="rpsQueue">Find a player ↗</button>')+
     '<button type="button" class="rps-btn rps-btn-secondary" data-act="rpsBot">Play the bot</button>'+
-    '<button type="button" class="rps-btn rps-btn-quiet" data-act="tournament">4-player tournament ↗</button>'+
+    (this.rpsTournamentWaiting?
+     '<button type="button" class="rps-btn rps-btn-quiet" disabled>Waiting for players ('+
+       Math.max(1,Math.min(4,this.rpsTournamentWaiting.players))+'/4)</button>'+
+     '<button type="button" class="rps-btn rps-btn-secondary" data-act="tournamentLeave">Leave tournament</button>':
+     '<button type="button" class="rps-btn rps-btn-quiet" data-act="tournament">4-player tournament ↗</button>')+
     '</div></div><div class="rps-hero-deck" aria-hidden="true">'+
     '<div class="rps-deck-card rps-deck-rock"><small>01</small><strong>✊</strong><span>ROCK</span></div>'+
     '<div class="rps-deck-card rps-deck-paper"><small>02</small><strong>✋</strong><span>PAPER</span></div>'+
@@ -65,11 +69,14 @@ export function installRpsVisuals(Hub){
   const winner=revealed?result.winner:null;
   const winRound=winner===me,loseRound=winner===other,tie=!!result?.tie&&revealed;
   const victory=over&&winner===me,defeat=over&&winner===other;
+  const advancing=victory&&!!g.tournament&&g.stage==="semifinal";
+  const champion=victory&&!!g.tournament&&g.stage==="final";
   const phase=over?"finished":revealed?"reveal":g.waiting?"waiting":"choosing";
-  const title=over?victory?"Match won":defeat?"Match lost":"Match ended":
+  const title=over?champion?"Tournament champion":advancing?"You're in the final":victory?"Match won":defeat?"Match lost":"Match ended":
    revealed?tie?"It's a tie":winRound?"You take the round":"They take the round":
    g.waiting?"Move locked":g.opponentReady?"They're ready":"Make your move";
-  const help=over?result?.reason==="timeout"?"The round ran out of time.":"First to "+goal+" takes the match.":
+  const help=over?result?.reason==="timeout"?"The round ran out of time.":
+   advancing?"Waiting for the other semifinal to finish.":"First to "+goal+" takes the match.":
    revealed?"Next round starts in a moment.":g.waiting?"Waiting for "+oppName+" to pick.":
    g.opponentReady?oppName+" has picked. Your turn.":"Rock beats scissors. Scissors beats paper. Paper beats rock.";
   const state=over?"MATCH COMPLETE":revealed?"ROUND COMPLETE":g.waiting?"MOVE SUBMITTED":"YOUR TURN";
@@ -86,7 +93,9 @@ export function installRpsVisuals(Hub){
    (g.bot?"Play again":g.rematchOffered?"Accept rematch":"Request rematch")+' ↗</button>'+
    (g.rematchOffered?'<button class="rps-btn rps-btn-secondary" type="button" data-act="rpsRematchDecline">Decline</button>':"")+
    '<button class="rps-btn rps-btn-quiet" type="button" data-act="rpsExit">Back to Arcade</button></div>':
-   over?'<div class="rps-play-again"><button class="rps-btn rps-btn-primary" type="button" data-act="rpsExit">Back to Arcade ↗</button></div>':
+   over?'<div class="rps-play-again">'+
+    (advancing?'<p>Final match starting when the other semifinal is done.</p>':"")+
+    '<button class="rps-btn rps-btn-primary" type="button" data-act="rpsExit">Back to Arcade ↗</button></div>':
    revealed?'<div class="rps-next-round"><i></i> Next round is loading</div>':
    g.waiting?'<div class="rps-next-round"><i></i> Waiting for '+escRps(oppName)+'…</div>':
    '<div class="rps-select-wrap"><span>CHOOSE YOUR MOVE</span><div class="rps-select-grid">'+choiceButtons+'</div>'+
