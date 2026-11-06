@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - bolt-hosted-v5
+      - feature/rps-rebuild-series-2026-11-06
   workflow_dispatch:
 
 permissions:
@@ -65,6 +66,7 @@ jobs:
           node --check public/assets/arcade.js
           node --check public/assets/chess-visuals.js
           node --check public/assets/rps-visuals.js
+          test -s public/assets/rps-rewrite.css
           node --check web-search.js
           node --check public/assets/login.js
           test -f node_modules/marked/lib/marked.umd.js
