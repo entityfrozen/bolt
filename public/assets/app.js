@@ -686,7 +686,7 @@ function toggleBookmark(){
 function openPanel(name){
   if(name==="admin"){
     closePanel();
-    void import("/assets/admin-console.js?v=2").then(module=>module.openAdminConsole({
+    void import("/assets/admin-console.js?v=3").then(module=>module.openAdminConsole({
       api,me,notify:toast,onSettings:settings=>{config=settings;},
       onCommunity:()=>openLightningHub("room")
     })).catch(error=>toast(error.message||"Could not open staff console"));
