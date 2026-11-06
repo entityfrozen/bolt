@@ -499,3 +499,50 @@ test("RPS rejects forged moves and bot spam during an active match",{timeout:120
  await env.until(()=>env.messages.get(a).some(m=>m.type==="error"&&/current match/i.test(m.message)));
  assert.equal(env.messages.get(a).filter(m=>m.type==="rpsStart").length,1);
 });
+
+
+test("RPS tournament lobby can be cancelled and keeps remaining players informed",{timeout:15000},async t=>{
+ const env=await setup(t),alice=await env.connect("touralice"),bob=await env.connect("tourbob");
+ alice.send(JSON.stringify({type:"tournamentJoin"}));
+ await env.until(()=>env.messages.get(alice).some(m=>m.type==="tournamentJoined"&&m.players===1));
+ bob.send(JSON.stringify({type:"tournamentJoin"}));
+ await env.until(()=>env.messages.get(alice).some(m=>m.type==="tournamentJoined"&&m.players===2));
+ await delay(170);
+ alice.send(JSON.stringify({type:"tournamentLeave"}));
+ await env.until(()=>env.messages.get(alice).some(m=>m.type==="tournamentLeft"));
+ await env.until(()=>env.messages.get(bob).some(m=>m.type==="tournamentJoined"&&m.players===1));
+ assert.equal(env.messages.get(bob).some(m=>m.type==="rpsStart"),false);
+});
+
+test("RPS tournament plays two hidden semifinals and a real championship round",{timeout:20000},async t=>{
+ const env=await setup(t);
+ const players=[
+  await env.connect("tourn1"),await env.connect("tourn2"),
+  await env.connect("tourn3"),await env.connect("tourn4")
+ ];
+ for(const player of players)player.send(JSON.stringify({type:"tournamentJoin"}));
+ const semis=await Promise.all(players.map(ws=>
+  env.until(()=>env.messages.get(ws).find(m=>m.type==="rpsStart"&&m.stage==="semifinal"))
+ ));
+ assert.equal(semis[0].winsTo,1);
+ assert.equal(semis[0].id,semis[1].id);
+ assert.equal(semis[2].id,semis[3].id);
+ assert.notEqual(semis[0].id,semis[2].id);
+ await delay(170);
+ players[0].send(JSON.stringify({type:"rpsChoice",id:semis[0].id,choice:"rock"}));
+ players[1].send(JSON.stringify({type:"rpsChoice",id:semis[1].id,choice:"scissors"}));
+ players[2].send(JSON.stringify({type:"rpsChoice",id:semis[2].id,choice:"paper"}));
+ players[3].send(JSON.stringify({type:"rpsChoice",id:semis[3].id,choice:"rock"}));
+ await env.until(()=>env.messages.get(players[0]).some(m=>m.type==="rpsResult"&&m.winner==="tourn1"));
+ await env.until(()=>env.messages.get(players[2]).some(m=>m.type==="rpsResult"&&m.winner==="tourn3"));
+ const final=await env.until(()=>env.messages.get(players[0]).find(m=>
+  m.type==="rpsStart"&&m.stage==="final"));
+ assert.deepEqual(final.ids,["tourn1","tourn3"]);
+ await env.until(()=>env.messages.get(players[2]).some(m=>m.type==="rpsStart"&&m.id===final.id));
+ await delay(170);
+ players[0].send(JSON.stringify({type:"rpsChoice",id:final.id,choice:"rock"}));
+ players[2].send(JSON.stringify({type:"rpsChoice",id:final.id,choice:"paper"}));
+ const trophy=await env.until(()=>env.messages.get(players[1]).find(m=>
+  m.type==="tournamentWinner"&&m.winner==="tourn3"));
+ assert.equal(trophy.winner,"tourn3");
+});
