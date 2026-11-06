@@ -46,7 +46,10 @@ export function installGameInvites(Hub){
    '<p class="gi-roster-empty">No other players online. More will appear as they join Lightning.</p>');
   const before=kind==="chess"?host.querySelector(".chess-link-back"):
    kind==="rps"?host.querySelector(".rps-back-link"):host.querySelector(".arc-page-footer");
-  host.insertBefore(panel,before||null);
+  // RPS and Arcade nest their back links inside a content wrapper.
+  // insertBefore requires a direct child of the target, not a descendant.
+  if(before?.parentElement)before.parentElement.insertBefore(panel,before);
+  else host.append(panel);
  };
  Hub.prototype.chessScreen=function(){originalChess.call(this);this.initInvites();if(!this.chess)this.inviteRoster("chess");};
  Hub.prototype.rpsScreen=function(){originalRps.call(this);this.initInvites();if(!this.rps)this.inviteRoster("rps");};
