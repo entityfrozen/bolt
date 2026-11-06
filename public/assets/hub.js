@@ -1,10 +1,10 @@
 import {installArenaPolish} from "./arena-v3.js?v=12";
 import {installWorldPort} from "./openfront-port.js?v=7";
 import {installSocial} from "./social-v4.js?v=9";
-import {installGameInvites} from "./game-invites.js?v=1";
+import {installGameInvites} from "./game-invites.js?v=2";
 import {installChatPolish} from "./chat-polish.js?v=3";
 import {installArcade} from "./arcade.js?v=4";
-import {installChessVisuals} from "./chess-visuals.js?v=1";
+import {installChessVisuals} from "./chess-visuals.js?v=2";
 import {installRpsVisuals} from "./rps-visuals.js?v=3";
 import {installV2} from "./v2.js?v=11";
 import {installWorkspaceV3} from "./workspace-v3.js?v=9";
@@ -415,7 +415,13 @@ class Hub{
   if(action==="chessView"){if(!this.chess?.over)this.chess=this.chess||null;else this.chess=null;return this.show("chess")}
   if(action==="rpsView"){if(this.rps?.over)this.rps=null;return this.show("rps")}
   if(action==="worldView"){this.worldActive=false;this.worldQueueing=false;this.world=null;this.camera={zoom:1,x:0,y:0};return this.show("world")};
-  if(action==="chessBot"){this.chess=null;return this.send({type:"chessBot"})}
+  if(action==="chessBot"){
+   if(this.chess&&!this.chess.over)return this.flash("Finish your current match first.");
+   const difficulty=this.$("#chessDifficulty")?.value||this.chessDifficulty||"normal";
+   this.chessDifficulty=difficulty;
+   this.chess=null;
+   return this.send({type:"chessBot",difficulty});
+  }
   if(action==="rpsBot"){
    if(this.rps&&!this.rps.over)return this.flash("Finish your current match first.");
    this.rps=null;this.rpsQueueing=false;return this.send({type:"rpsBot"});
@@ -521,6 +527,7 @@ function ensureHubStyles(){
      const logStyle=document.createElement("link");logStyle.id="lightningUpdateLogCss";logStyle.rel="stylesheet";logStyle.href="/assets/update-log.css?v=1";document.head.append(logStyle);
      const chat=document.createElement("link");chat.id="lightningChatExperienceCss";chat.rel="stylesheet";chat.href="/assets/chat-experience.css?v=1";document.head.append(chat);
      const invites=document.createElement("link");invites.id="lightningGameInvitesCss";invites.rel="stylesheet";invites.href="/assets/game-invites.css?v=1";document.head.append(invites);
+     const compact=document.createElement("link");compact.id="lightningCompactGamesCss";compact.rel="stylesheet";compact.href="/assets/compact-games.css?v=1";document.head.append(compact);
      const rps=document.createElement("link");rps.id="lightningRpsRebuildCss";rps.rel="stylesheet";rps.href="/assets/rps-rewrite.css?v=1";document.head.append(rps);
  }
 }
