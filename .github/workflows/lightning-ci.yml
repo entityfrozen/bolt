@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - bolt-hosted-v5
+      - feature/compact-games-chess-ghost-pilot-2026-11-06
   workflow_dispatch:
 
 permissions:
@@ -27,6 +28,9 @@ jobs:
           node --check server.js
           node --check ai-stream.js
           node --check ai-provider.js
+          node --check chess-ai.js
+          node --check public/assets/chess-visuals.js
+          test -s public/assets/compact-games.css
           node --check web-search-credentials.js
           node --check public/assets/web-search-settings.js
           node --check public/assets/split-chat.js
@@ -100,6 +104,8 @@ jobs:
         run: node --test test/ai-provider.test.mjs
       - name: Test Arcade interface
         run: node --test test/arcade.test.mjs
+      - name: Test chess bot difficulty, secret autoplay and compact screens
+        run: node --test test/chess-ai.test.mjs
       - name: Test V2 community servers
         run: node --test test/community-v2.test.mjs
       - name: Test new workspace and puzzle engines
