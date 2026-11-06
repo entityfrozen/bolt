@@ -385,3 +385,116 @@ test("Invitations reject self and offline targets; sender may cancel an outstand
  await env.until(()=>env.messages.get(bob).some(m=>m.type==="gameInviteResult"&&m.id===invite.id&&m.status==="cancelled"));
  assert.equal(env.messages.get(bob).some(m=>m.type==="chessStart"),false);
 });
+
+
+test("RPS runs a private first-to-three series with scores and automatic next rounds",{timeout:35000},async t=>{
+ const env=await setup(t),alice=await env.connect("seriesalice"),bob=await env.connect("seriesbob");
+ alice.send(JSON.stringify({type:"queue",game:"rps"}));
+ await env.until(()=>env.messages.get(alice).some(m=>m.type==="queued"&&m.game==="rps"));
+ bob.send(JSON.stringify({type:"queue",game:"rps"}));
+ const start=await env.until(()=>env.messages.get(alice).find(m=>m.type==="rpsStart"));
+ await env.until(()=>env.messages.get(bob).some(m=>m.type==="rpsStart"&&m.id===start.id));
+ assert.equal(start.winsTo,3);
+ assert.equal(start.phase,"choosing");
+ const rounds=[["rock","scissors"],["paper","rock"],["scissors","paper"]];
+ for(let i=0;i<rounds.length;i++){
+  const round=i+1;
+  if(round>1){
+   const next=await env.until(()=>env.messages.get(alice).find(m=>m.type==="rpsRoundStart"&&m.id===start.id&&m.round===round));
+   assert.equal(next.score.seriesalice,i);
+   assert.equal(next.waiting,false);
+  }
+  alice.send(JSON.stringify({type:"rpsChoice",id:start.id,choice:rounds[i][0]}));
+  await env.until(()=>env.messages.get(bob).some(m=>m.type==="rpsOpponentReady"&&m.round===round));
+  const hidden=env.messages.get(bob).find(m=>m.type==="rpsOpponentReady"&&m.round===round);
+  assert.equal(Object.hasOwn(hidden,"choice"),false);
+  assert.equal(Object.hasOwn(hidden,"choices"),false);
+  assert.equal(env.messages.get(bob).some(m=>m.type==="rpsResult"&&m.round===round),false);
+  bob.send(JSON.stringify({type:"rpsChoice",id:start.id,choice:rounds[i][1]}));
+  const result=await env.until(()=>env.messages.get(bob).find(m=>m.type==="rpsResult"&&m.id===start.id&&m.round===round));
+  assert.equal(result.winner,"seriesalice");
+  assert.equal(result.choices.seriesalice,rounds[i][0]);
+  assert.equal(result.choices.seriesbob,rounds[i][1]);
+  assert.equal(result.score.seriesalice,round);
+  assert.equal(result.over,round===3);
+ }
+});
+
+test("RPS ties award no points and advance to another hidden-choice round",{timeout:30000},async t=>{
+ const env=await setup(t),a=await env.connect("tiealice"),b=await env.connect("tiebob");
+ a.send(JSON.stringify({type:"queue",game:"rps"}));
+ await env.until(()=>env.messages.get(a).some(m=>m.type==="queued"));
+ b.send(JSON.stringify({type:"queue",game:"rps"}));
+ const start=await env.until(()=>env.messages.get(a).find(m=>m.type==="rpsStart"));
+ await delay(170);
+ a.send(JSON.stringify({type:"rpsChoice",id:start.id,choice:"rock"}));
+ await env.until(()=>env.messages.get(a).some(m=>m.type==="rpsWaiting"));
+ b.send(JSON.stringify({type:"rpsChoice",id:start.id,choice:"rock"}));
+ const tie=await env.until(()=>env.messages.get(a).find(m=>m.type==="rpsResult"&&m.round===1));
+ assert.equal(tie.tie,true);assert.equal(tie.winner,null);assert.equal(tie.over,false);
+ assert.equal(tie.score.tiealice,0);assert.equal(tie.score.tiebob,0);
+ const second=await env.until(()=>env.messages.get(b).find(m=>m.type==="rpsRoundStart"&&m.round===2));
+ assert.equal(second.choices,undefined);
+ assert.equal(second.score.tiealice,0);
+});
+
+test("RPS rematches require both players and can be declined safely",{timeout:22000},async t=>{
+ const env=await setup(t),alice=await env.connect("rematchalice"),bob=await env.connect("rematchbob");
+ alice.send(JSON.stringify({type:"queue",game:"rps"}));
+ await env.until(()=>env.messages.get(alice).some(m=>m.type==="queued"));
+ bob.send(JSON.stringify({type:"queue",game:"rps"}));
+ const start=await env.until(()=>env.messages.get(alice).find(m=>m.type==="rpsStart"));
+ await delay(170);
+ alice.send(JSON.stringify({type:"rpsLeave",id:start.id}));
+ const ended=await env.until(()=>env.messages.get(bob).find(m=>m.type==="rpsResult"&&m.id===start.id&&m.over));
+ assert.equal(ended.winner,"rematchbob");
+ await delay(170);
+ bob.send(JSON.stringify({type:"rpsRematch",id:start.id}));
+ await env.until(()=>env.messages.get(alice).some(m=>m.type==="rpsRematchOffer"&&m.id===start.id));
+ assert.equal(env.messages.get(alice).filter(m=>m.type==="rpsStart").length,1);
+ await delay(170);
+ alice.send(JSON.stringify({type:"rpsRematchDecline",id:start.id}));
+ await env.until(()=>env.messages.get(bob).some(m=>m.type==="rpsRematchDeclined"));
+ assert.equal(env.messages.get(alice).filter(m=>m.type==="rpsStart").length,1);
+ await delay(170);
+ bob.send(JSON.stringify({type:"rpsRematch",id:start.id}));
+ await env.until(()=>env.messages.get(alice).filter(m=>m.type==="rpsRematchOffer").length>=2);
+ await delay(170);
+ alice.send(JSON.stringify({type:"rpsRematch",id:start.id}));
+ const second=await env.until(()=>env.messages.get(alice).find(m=>m.type==="rpsStart"&&m.id!==start.id));
+ await env.until(()=>env.messages.get(bob).some(m=>m.type==="rpsStart"&&m.id===second.id));
+ assert.equal(second.round,1);assert.equal(second.over,false);
+ assert.equal(second.score.rematchalice,0);assert.equal(second.score.rematchbob,0);
+});
+
+test("RPS rejoining a game only reveals the reconnected player's locked status",{timeout:15000},async t=>{
+ const env=await setup(t),a=await env.connect("syncalice"),b=await env.connect("syncbob");
+ a.send(JSON.stringify({type:"queue",game:"rps"}));
+ await env.until(()=>env.messages.get(a).some(m=>m.type==="queued"));
+ b.send(JSON.stringify({type:"queue",game:"rps"}));
+ const started=await env.until(()=>env.messages.get(a).find(m=>m.type==="rpsStart"));
+ await delay(170);
+ a.send(JSON.stringify({type:"rpsChoice",id:started.id,choice:"paper"}));
+ await env.until(()=>env.messages.get(a).some(m=>m.type==="rpsWaiting"));
+ const newTab=await env.connect("syncalice");
+ const synced=await env.until(()=>env.messages.get(newTab).find(m=>m.type==="rpsStart"&&m.id===started.id));
+ assert.equal(synced.waiting,true);
+ assert.equal(synced.opponentReady,false);
+ assert.equal(synced.result,null);
+ assert.equal(synced.choices,undefined);
+ assert.equal(synced.score.syncalice,0);
+});
+
+test("RPS rejects forged moves and bot spam during an active match",{timeout:12000},async t=>{
+ const env=await setup(t),a=await env.connect("guardalice"),b=await env.connect("guardbob"),outsider=await env.connect("guardother");
+ a.send(JSON.stringify({type:"queue",game:"rps"}));
+ await env.until(()=>env.messages.get(a).some(m=>m.type==="queued"));
+ b.send(JSON.stringify({type:"queue",game:"rps"}));
+ const start=await env.until(()=>env.messages.get(a).find(m=>m.type==="rpsStart"));
+ outsider.send(JSON.stringify({type:"rpsChoice",id:start.id,choice:"paper"}));
+ await env.until(()=>env.messages.get(outsider).some(m=>m.type==="error"&&/not available/i.test(m.message)));
+ await delay(170);
+ a.send(JSON.stringify({type:"rpsBot"}));
+ await env.until(()=>env.messages.get(a).some(m=>m.type==="error"&&/current match/i.test(m.message)));
+ assert.equal(env.messages.get(a).filter(m=>m.type==="rpsStart").length,1);
+});
