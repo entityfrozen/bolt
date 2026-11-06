@@ -162,7 +162,8 @@ export function installChessVisuals(Hub){
   const grid=this.$("#hubChessBoard");
   grid.addEventListener("dragstart",event=>{
    const square=event.target.closest("[data-square]");
-   if(!square||!from.has(square))return event.preventDefault();
+   if(!square||this.chess?.autoplay||!(this.chess?.legal||[]).some(move=>move.from===square.dataset.square))
+    return event.preventDefault();
    event.dataTransfer.setData("text/plain",square.dataset.square);
    event.dataTransfer.effectAllowed="move";
   });
