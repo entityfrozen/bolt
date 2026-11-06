@@ -378,7 +378,7 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir,getDispla
   const other=g.ids.find(id=>id!==userId);
   return {
    id:g.id,ids:g.ids,players:g.players,tournament:g.tournament,bot:g.bot,
-   round:g.round,winsTo:g.winsTo,score:rpsScore(g),
+   round:g.round,winsTo:g.winsTo,stage:g.stage,score:rpsScore(g),
    phase:g.phase,over:g.over,waiting:!!g.choices[userId],
    opponentReady:!!g.choices[other],result:g.lastResult,
    rematchPending:g.rematch?.has(userId)||false,
@@ -395,7 +395,8 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir,getDispla
   for(const kind of ["chess","rps"])queues[kind]=queues[kind].filter(id=>!ids.includes(id));
   const g={
    id:uid(),ids:[...ids],players:ids.map(rpsName),tournament,bot:ids.includes("npc:rps"),
-   round:1,winsTo:tournament?1:RPS_TARGET,score:Object.fromEntries(ids.map(id=>[id,0])),
+   round:1,winsTo:tournament?1:RPS_TARGET,stage:tournament?(tournaments.get(tournament)?.status||"semifinal"):null,
+   score:Object.fromEntries(ids.map(id=>[id,0])),
    choices:{},phase:"choosing",over:false,lastResult:null,rematch:new Set(),timer:null
   };
   if(g.bot)g.choices["npc:rps"]=rpsBotMove();
@@ -417,7 +418,11 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir,getDispla
  }
  function rpsCleanup(g){
   clearTimeout(g.timer);
-  g.timer=setTimeout(()=>{if(rpsGames.get(g.id)===g)rpsGames.delete(g.id);presence();},120000);
+  g.timer=setTimeout(()=>{
+   if(rpsGames.get(g.id)!==g)return;
+   if(g.rematch.size)rpsSend(g,"rpsRematchDeclined",{reason:"expired"});
+   rpsGames.delete(g.id);presence();
+  },120000);
   g.timer.unref?.();
  }
  function advanceTournament(g,winner){
@@ -639,13 +644,27 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir,getDispla
  }
  function tournamentJoin(u){
   if(playing(u.id))return safeSend(u.ws,{type:"error",message:"Finish your match before joining a tournament."});
+  if(queues.chess.includes(u.id)||queues.rps.includes(u.id))
+   return safeSend(u.ws,{type:"error",message:"Cancel matchmaking before joining a tournament."});
   if([...tournaments.values()].some(t=>!t.done&&t.ids.includes(u.id)))
    return safeSend(u.ws,{type:"error",message:"You're already in a tournament."});
   let t=[...tournaments.values()].find(x=>!x.done&&x.status==="waiting"&&x.ids.length<4);
   if(!t){t={id:uid(),ids:[],winners:[],status:"waiting",done:false};tournaments.set(t.id,t)}
-  if(!t.ids.includes(u.id))t.ids.push(u.id);
-  sendUser(u.id,{type:"tournamentJoined",id:t.id,players:t.ids.length});
-  if(t.ids.length===4){t.status="semifinal";newRPS(t.ids.slice(0,2),t.id);newRPS(t.ids.slice(2,4),t.id);sendAll({type:"tournamentStarted",id:t.id,players:t.ids})}
+  t.ids.push(u.id);
+  for(const id of t.ids)sendUser(id,{type:"tournamentJoined",id:t.id,players:t.ids.length});
+  if(t.ids.length===4){
+   t.status="semifinal";newRPS(t.ids.slice(0,2),t.id);newRPS(t.ids.slice(2,4),t.id);
+   sendAll({type:"tournamentStarted",id:t.id,players:t.ids});
+  }
+  presence();
+ }
+ function tournamentLeave(u){
+  const t=[...tournaments.values()].find(t=>!t.done&&t.status==="waiting"&&t.ids.includes(u.id));
+  if(!t)return safeSend(u.ws,{type:"error",message:"You are not waiting for a tournament."});
+  t.ids=t.ids.filter(id=>id!==u.id);
+  sendUser(u.id,{type:"tournamentLeft",id:t.id});
+  for(const id of t.ids)sendUser(id,{type:"tournamentJoined",id:t.id,players:t.ids.length});
+  if(!t.ids.length)tournaments.delete(t.id);
   presence();
  }
  const wss=new WebSocketServer({noServer:true,maxPayload:8192,perMessageDeflate:false});
@@ -741,6 +760,7 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir,getDispla
    if(data.type==="rpsLeave")return rpsLeave(u,data);
    if(data.type==="rpsCancelQueue")return rpsCancelQueue(u);
    if(data.type==="tournamentJoin")return tournamentJoin(u);
+   if(data.type==="tournamentLeave")return tournamentLeave(u);
    if(data.type==="worldQueue"||data.type==="worldJoin")return worldQueueJoin(u);
    if(data.type==="worldCancel")return worldCancel(u);
    if(data.type==="chessBot")return newChess([u.id,"npc:chess"]);
