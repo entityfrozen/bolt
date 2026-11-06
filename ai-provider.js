@@ -2,7 +2,31 @@ import {readAiCompletionStream} from "./ai-stream.js";
 
 const ENDPOINT="https://integrate.api.nvidia.com/v1/chat/completions";
 // NVIDIA removed mistral-nemotron on 2026-09-28. This endpoint remains hosted.
-const DEFAULT_BACKUP="meta/llama-3.2-11b-vision-instruct";
+// Both defaults have hosted NVIDIA API endpoints as of November 2026.
+export const TEXT_MODEL="nvidia/nemotron-3.5-lightning-30b-a3b";
+export const VISION_MODEL="meta/muse-glimmer-30b";
+export const VISION_BACKUP="nvidia/nemotron-3.5-super-vl-120b-a12b";
+const DEFAULT_BACKUP=VISION_MODEL;
+const RETIRED_MODELS=new Set([
+ "meta/llama-3.2-11b-vision-instruct",
+ "meta/llama-3.2-90b-vision-instruct",
+ "mistralai/mistral-nemotron"
+]);
+export function usableModel(value,fallback){
+ const name=String(value||"").trim();
+ return !name||RETIRED_MODELS.has(name)?fallback:name;
+}
+export function collapseHistory(messages){
+ const result=[];
+ for(const message of messages){
+  const previous=result.at(-1);
+  if(previous?.role===message.role){
+   previous.content+=(previous.content?"\n\n":"")+String(message.content||"");
+   if(message.image)previous.image=message.image;
+  }else result.push({...message});
+ }
+ return result;
+}
 const modelCooldowns=new Map();
 
 export function activeRoleplay(messages){
@@ -19,9 +43,9 @@ export function activeRoleplay(messages){
 }
 
 export async function completeAi({
-  apiKey,model="openai/gpt-oss-20b",backupModel=DEFAULT_BACKUP,
+  apiKey,model=TEXT_MODEL,backupModel=DEFAULT_BACKUP,
   messages,stream=true,signal,fetcher=fetch,onStatus=()=>{},
-  onDelta=()=>{},onReasoning=()=>{},budgets=[14000,30000]
+  onDelta=()=>{},onReasoning=()=>{},budgets=[18000,23000],maxTokens=1200
 }){
   const configured=[model,backupModel].filter((name,index,array)=>name&&array.indexOf(name)===index);
   // Once a model times out, start subsequent chats with the working alternative.
@@ -49,9 +73,10 @@ export async function completeAi({
           "Accept":stream?"text/event-stream":"application/json"},
         body:JSON.stringify({
           model:name,messages,stream,
-          max_tokens:Math.min(1200,Number(process.env.NVIDIA_MAX_TOKENS)||1200),
-          temperature:name.includes("gpt-oss")?1:0.65,
-          ...(name.includes("gpt-oss")?{reasoning_effort:"low"}:{})
+          max_tokens:Math.max(32,Math.min(2048,Math.floor(Number(maxTokens)||1200),
+            Number(process.env.NVIDIA_MAX_TOKENS)||1200)),
+          temperature:name.includes("nemotron")||name.includes("muse-glimmer")?1:0.65,
+          ...(name.includes("nemotron-3")?{chat_template_kwargs:{enable_thinking:false}}:{})
         }),
         signal:controller.signal
       });
@@ -85,7 +110,8 @@ export async function completeAi({
       const problem=status?"HTTP "+status:timeoutFailure?"timed out":String(error?.message||"failed").slice(0,80);
       failures.push(name+": "+problem);
       console.warn("Lightning AI model attempt failed:",name,problem);
-      if(timeoutFailure||status>=500||status===429||status===404||status===410)modelCooldowns.set(name,Date.now()+5*60*1000);
+      if(status===410||status===404)modelCooldowns.set(name,Date.now()+24*60*60*1000);
+      else if(timeoutFailure||status>=500||status===429)modelCooldowns.set(name,Date.now()+5*60*1000);
       if(emitted||status===401||status===403)break;
     }finally{
       clearTimeout(timeout);
@@ -93,9 +119,9 @@ export async function completeAi({
       controller.abort();
     }
   }
-  const message=lastError?.status===401?"NVIDIA rejected Lightning's server API key. The admin needs to check NVIDIA_API_KEY.":
+  const message=lastError?.status===401?"NVIDIA rejected Lightning\'s API key. Ask an admin to check Provider Keys in the admin console.":
     lastError?.status===403?"NVIDIA denied model access for this API key.":
-    "NVIDIA could not generate an answer ("+failures.join("; ")+"). Try again shortly, or check the NVIDIA model and quota in Railway.";
+    "NVIDIA could not generate an answer ("+failures.join("; ")+"). Ask an admin to use Provider Keys → Test connection, or try again shortly.";
   const error=new Error(message);
   error.cause=lastError;
   throw error;
