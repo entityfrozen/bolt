@@ -356,14 +356,14 @@ test("Direct duels require an invite, and only the recipient can accept or decli
 });
 
 test("Rock Paper Scissors invitation starts only after acceptance; replays cannot start another match",async t=>{
- const env=await setup(t),alice=await env.connect("rps-inviter"),bob=await env.connect("rps-recipient");
- alice.send(JSON.stringify({type:"gameInvite",game:"rps",target:"rps-recipient"}));
+ const env=await setup(t),alice=await env.connect("rpsinviter"),bob=await env.connect("rpsrecipient");
+ alice.send(JSON.stringify({type:"gameInvite",game:"rps",target:"rpsrecipient"}));
  const invitation=await env.until(()=>env.messages.get(bob).find(m=>m.type==="gameInvite"));
  assert.equal(env.messages.get(bob).some(m=>m.type==="rpsStart"),false);
  bob.send(JSON.stringify({type:"gameInviteRespond",id:invitation.id,action:"accept"}));
  const started=await env.until(()=>env.messages.get(bob).find(m=>m.type==="rpsStart"));
  await env.until(()=>env.messages.get(alice).some(m=>m.type==="rpsStart"));
- assert.deepEqual(started.ids,["rps-inviter","rps-recipient"]);
+ assert.deepEqual(started.ids,["rpsinviter","rpsrecipient"]);
  await delay(155);
  bob.send(JSON.stringify({type:"gameInviteRespond",id:invitation.id,action:"accept"}));
  await env.until(()=>env.messages.get(bob).some(m=>m.type==="error"&&/expired or was already answered/i.test(m.message)));
@@ -371,14 +371,14 @@ test("Rock Paper Scissors invitation starts only after acceptance; replays canno
 });
 
 test("Invitations reject self and offline targets; sender may cancel an outstanding challenge",async t=>{
- const env=await setup(t),alice=await env.connect("self-inviter"),bob=await env.connect("invite-friend");
- alice.send(JSON.stringify({type:"gameInvite",game:"chess",target:"self-inviter"}));
+ const env=await setup(t),alice=await env.connect("selfinviter"),bob=await env.connect("invitefriend");
+ alice.send(JSON.stringify({type:"gameInvite",game:"chess",target:"selfinviter"}));
  await env.until(()=>env.messages.get(alice).some(m=>m.type==="error"&&/another online/i.test(m.message)));
  await delay(150);
- alice.send(JSON.stringify({type:"gameInvite",game:"chess",target:"not-connected"}));
+ alice.send(JSON.stringify({type:"gameInvite",game:"chess",target:"notconnected"}));
  await env.until(()=>env.messages.get(alice).some(m=>m.type==="error"&&/offline/i.test(m.message)));
  await delay(150);
- alice.send(JSON.stringify({type:"gameInvite",game:"chess",target:"invite-friend"}));
+ alice.send(JSON.stringify({type:"gameInvite",game:"chess",target:"invitefriend"}));
  const invite=await env.until(()=>env.messages.get(bob).find(m=>m.type==="gameInvite"));
  await delay(150);
  alice.send(JSON.stringify({type:"gameInviteRespond",id:invite.id,action:"cancel"}));
