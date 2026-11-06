@@ -89,6 +89,11 @@ export function installArenaPolish(Hub){
     oldClose.call(this);
   };
   Hub.prototype.onMessage=function(message){
+    if(message.type==="chessAutoStatus"&&this.chess?.id===message.id){
+     this.chess.autoplay=!!message.enabled;
+     this.chessPending=false;
+     if(this.view==="chess")this.chessScreen();
+    }
     if(message.type==="chessState"||message.type==="chessStart"){this.chessPending=false;this.chessError="";this.chessQueueing=false;}
     if(message.type==="queued"&&message.game==="chess"){this.chessQueueing=true;if(this.view==="chess")this.chessScreen();}
     if(message.type==="chessQueueCancelled"){this.chessQueueing=false;if(this.view==="chess")this.chessScreen();}
@@ -380,7 +385,7 @@ export function installArenaPolish(Hub){
   };
   Hub.prototype.moveChess=function(from,to){
     const g=this.chess;
-    if(!g||g.over||g.turn!==g.color)return this.flash("Wait for your turn.");
+    if(!g||g.over||g.turn!==g.color||g.autoplay)return this.flash("Wait for your turn or switch off Ghost Pilot.");
     if(this.chessPending)return;
     const legal=(g.legal||[]).filter(m=>m.from===from&&m.to===to);
     if(!legal.length){this.chessError="That move is not legal.";this.chessScreen();return}
@@ -391,6 +396,17 @@ export function installArenaPolish(Hub){
   };
   installWorldRenderer(Hub);
   Hub.prototype.act=function(action,button){
+    if(action==="chessSecret"){
+     this.chessGhostOpen=!this.chessGhostOpen;
+     if(this.view==="chess")this.chessScreen();
+     return;
+    }
+    if(action==="chessAutoToggle"){
+     const game=this.chess;
+     if(!game||game.over)return;
+     this.send({type:"chessAutoplay",id:game.id,enabled:!game.autoplay});
+     return;
+    }
     if(action==="worldView"){this.show("world");return}
     if(action==="worldQueue"||action==="worldBot"){
       this.worldQueueing=true;this.worldQueuedAt=Date.now();this.worldScreen();
@@ -428,7 +444,7 @@ export function installArenaPolish(Hub){
       return;
     }
     if(action==="square"){
-      const g=this.chess;if(!g||g.over||g.turn!==g.color)return;
+      const g=this.chess;if(!g||g.over||g.turn!==g.color||g.autoplay)return;
       const square=button.dataset.square,legal=g.legal||[];
       if(this.chessPending)return;
       if(this.selectedSquare===square){this.selectedSquare=null;this.chessScreen();return}
