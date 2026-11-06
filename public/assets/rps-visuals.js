@@ -12,6 +12,18 @@ export function installRpsVisuals(Hub){
  Hub.prototype.rpsScreen=function(){
   this.header("Rock Paper Scissors","First to three wins");
   const host=this.$("#hubContent"),g=this.rps;
+  if(!this.rpsKeyboardBound){
+   this.rpsKeyboardBound=true;
+   document.addEventListener("keydown",event=>{
+    if(event.repeat||event.altKey||event.ctrlKey||event.metaKey||
+       !this.active||this.view!=="rps"||
+       event.target?.closest?.("input,textarea,select,[contenteditable]"))return;
+    const move={"1":"rock","2":"paper","3":"scissors"}[event.key];
+    if(!move)return;
+    const button=this.$('[data-act="rpsPick"][data-choice="'+move+'"]');
+    if(button&&!button.disabled){event.preventDefault();this.act("rpsPick",button);}
+   });
+  }
   if(!g){
    host.innerHTML=
     '<section class="rps-fresh rps-rewrite rps-fresh-lobby"><div class="rps-lobby-inner">'+
