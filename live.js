@@ -391,6 +391,8 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir,getDispla
  }
  function rpsBotMove(){return RPS_MOVES[crypto.randomInt(RPS_MOVES.length)];}
  function newRPS(ids,tournament=null){
+  // A private match always removes its players from public matchmaking queues.
+  for(const kind of ["chess","rps"])queues[kind]=queues[kind].filter(id=>!ids.includes(id));
   const g={
    id:uid(),ids:[...ids],players:ids.map(rpsName),tournament,bot:ids.includes("npc:rps"),
    round:1,winsTo:tournament?1:RPS_TARGET,score:Object.fromEntries(ids.map(id=>[id,0])),
@@ -514,6 +516,8 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir,getDispla
    rpsGames.delete(g.id);clearTimeout(g.timer);newRPS([u.id,"npc:rps"]);return;
   }
   const other=g.ids.find(id=>id!==u.id);
+  if(playing(u.id)||playing(other))
+   return safeSend(u.ws,{type:"error",message:"Finish the current match before requesting a rematch."});
   if(!clientOf(other).length)
    return safeSend(u.ws,{type:"error",message:"Your opponent is offline."});
   g.rematch.add(u.id);
