@@ -1,0 +1,191 @@
+/* RPS Arena — a real game surface, not a themed dialog.
+ * The palette is deliberately separate from the browser shell.
+ */
+#hubMount .rps-rewrite{
+ --rps-ink:#11151d;--rps-cream:#ffede0;--rps-muted:#b5b9c5;
+ --rps-gold:#ffb477;--rps-ice:#b7c9f5;
+ height:100%;min-height:0;width:100%;box-sizing:border-box;
+ overflow-y:auto;overscroll-behavior:contain;
+ background:radial-gradient(ellipse at 22% 5%,#ab55362b,transparent 38%),
+  radial-gradient(ellipse at 84% 85%,#526b9a28,transparent 40%),#11151d;
+ color:var(--rps-cream);font-family:"Instrument Sans",Inter,system-ui,sans-serif;
+ text-align:left;display:block;scrollbar-width:thin;scrollbar-color:#4f5464 transparent;
+}
+#hubMount .rps-rewrite *,#hubMount .rps-rewrite *::before,#hubMount .rps-rewrite *::after{box-sizing:border-box}
+#hubMount .rps-rewrite button{font-family:inherit}
+#hubMount .rps-rewrite button:focus-visible,#hubMount .rps-rewrite input:focus-visible{
+ outline:2px solid #ffcf9b;outline-offset:3px;
+}
+#hubMount .rps-lobby-inner{max-width:1190px;margin:auto;padding:clamp(22px,4vw,50px) clamp(18px,4vw,60px) 42px}
+#hubMount .rps-lobby-top{display:flex;justify-content:space-between;gap:20px;
+ align-items:center;padding-bottom:24px;border-bottom:1px solid #ffffff1e;
+ font:700 10px ui-monospace,monospace;letter-spacing:.12em;color:#8995a7}
+#hubMount .rps-tag{color:#ffd8b4}
+#hubMount .rps-lobby-hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(290px,.8fr);
+ gap:clamp(20px,5vw,80px);align-items:center;min-height:490px;padding:35px 0 40px}
+#hubMount .rps-hero-copy .rps-label{font-size:10px;font-weight:780;
+ letter-spacing:.17em;color:#efb78e;margin-bottom:20px}
+#hubMount .rps-hero-copy h1{font-family:Georgia,"Times New Roman",serif;
+ font-weight:700;font-size:clamp(58px,7.7vw,104px);line-height:.92;
+ letter-spacing:-.075em;margin:0 0 25px;color:#fff3e7}
+#hubMount .rps-hero-copy h1 em{font-weight:400;font-style:italic;color:#ffbd83}
+#hubMount .rps-hero-copy h1>span{color:#ff9255}
+#hubMount .rps-hero-copy>p{max-width:390px;line-height:1.7;font-size:14px;color:#adb2c0;margin:0}
+#hubMount .rps-lobby-actions{display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin:26px 0 0}
+#hubMount .rps-btn{min-height:42px;display:inline-flex;align-items:center;justify-content:center;
+ gap:9px;padding:10px 17px;border-radius:9px;font-size:12px;font-weight:750;
+ border:1px solid transparent;cursor:pointer;transition:transform .16s,background .16s,border-color .16s}
+#hubMount .rps-btn-primary{color:#231810;background:linear-gradient(145deg,#ffd3a1,#ffa979);border-color:#ffdbb6}
+#hubMount .rps-btn-primary:hover:not(:disabled){background:#ffdfbd;transform:translateY(-2px)}
+#hubMount .rps-btn-secondary{color:#e3e8f4;border-color:#ffffff3b;background:#ffffff0e}
+#hubMount .rps-btn-secondary:hover:not(:disabled){background:#ffffff21;border-color:#9eacc6}
+#hubMount .rps-btn-quiet{color:#bfc5d5;background:transparent;padding-inline:9px}
+#hubMount .rps-btn-quiet:hover:not(:disabled){color:#fff}
+#hubMount .rps-btn:disabled{opacity:.52;cursor:wait;transform:none}
+#hubMount .rps-hero-deck{position:relative;display:grid;place-items:center;
+ width:100%;height:clamp(285px,35vw,450px);isolation:isolate;perspective:900px}
+#hubMount .rps-hero-deck::before{content:"";position:absolute;width:75%;height:55%;
+ background:#ff98531c;border-radius:50%;filter:blur(62px)}
+#hubMount .rps-deck-card{position:absolute;display:flex;flex-direction:column;
+ align-items:center;justify-content:space-between;width:clamp(142px,17vw,225px);
+ height:clamp(211px,25vw,315px);padding:19px;background:linear-gradient(155deg,#3f414d,#1d2029);
+ border:1px solid #6c7080;border-radius:17px;box-shadow:0 18px 50px #05070bb0;
+ font:800 11px ui-monospace,monospace;letter-spacing:.13em}
+#hubMount .rps-deck-card small{align-self:flex-start;color:#b0bbd0}
+#hubMount .rps-deck-card strong{font-size:clamp(67px,9vw,118px);line-height:1;filter:drop-shadow(0 12px 13px #0005)}
+#hubMount .rps-deck-card span{align-self:flex-end;color:#d2d6e2}
+#hubMount .rps-deck-rock{z-index:3;transform:translate(-37%,10%) rotate(-13deg);
+ border-color:#a47862;background:linear-gradient(145deg,#684b40,#2a262d)}
+#hubMount .rps-deck-paper{z-index:2;transform:translate(6%,-13%) rotate(6deg);
+ border-color:#738db9;background:linear-gradient(145deg,#364767,#252733)}
+#hubMount .rps-deck-scissors{z-index:1;transform:translate(43%,14%) rotate(20deg);
+ border-color:#776b92;background:linear-gradient(145deg,#453b61,#232230)}
+#hubMount .rps-lobby-footer{display:grid;grid-template-columns:repeat(3,1fr);
+ gap:12px;padding:21px 0;border-top:1px solid #ffffff20;border-bottom:1px solid #ffffff20}
+#hubMount .rps-lobby-footer>div{display:flex;align-items:center;gap:13px}
+#hubMount .rps-lobby-footer b{font:750 clamp(29px,4.3vw,45px)/1 Georgia,serif;color:#ffd2ad}
+#hubMount .rps-lobby-footer b small{font:750 15px system-ui}
+#hubMount .rps-lobby-footer span{font:740 10px/1.55 ui-monospace,monospace;letter-spacing:.05em;color:#aeb5c1}
+#hubMount .rps-rewrite .rps-invite-box{margin:26px 0 0;width:min(100%,480px);
+ background:#1c222d;border:1px solid #ffffff2b;border-radius:12px;text-align:left;padding:16px}
+#hubMount .rps-rewrite .rps-invite-box label{font:700 11px system-ui;color:#d4dbe7;letter-spacing:0;margin:0 0 10px}
+#hubMount .rps-rewrite .rps-invite-box>div{display:flex;gap:8px}
+#hubMount .rps-rewrite .rps-invite-box input{background:#121820;color:#fff;
+ border:1px solid #576178;border-radius:8px;min-height:40px;padding:8px 12px;flex:1;min-width:0}
+#hubMount .rps-rewrite .rps-back-link{display:inline-flex;margin-top:19px;background:none;
+ border:0;color:#aab7cb;cursor:pointer;padding:9px 0;font-size:12px}
+#hubMount .rps-rewrite .rps-back-link:hover{color:#fff}
+#hubMount .rps-arena-inner{max-width:1100px;margin:auto;padding:21px clamp(16px,3vw,46px) 34px}
+#hubMount .rps-rewrite .rps-match-top{width:100%;display:flex;align-items:center;
+ justify-content:space-between;gap:12px;border-bottom:1px solid #ffffff25;
+ padding:0 0 16px;color:#c9ccd6;font:730 10px ui-monospace,monospace;letter-spacing:.09em}
+#hubMount .rps-match-top strong{font:800 16px "Instrument Sans",system-ui;color:#fce6d1;letter-spacing:-.04em}
+#hubMount .rps-match-top i{font-style:normal;color:#f7a978}
+#hubMount .rps-exit{background:#ffffff0b;color:#a6b0c1;border:1px solid #ffffff1b;border-radius:8px;
+ width:30px;height:30px;font-size:21px;cursor:pointer}
+#hubMount .rps-exit:hover{color:#fff;background:#ffffff20}
+#hubMount .rps-scoreboard{display:grid;grid-template-columns:1fr auto 1fr;
+ align-items:center;gap:clamp(12px,4vw,60px);padding:21px 0 5px}
+#hubMount .rps-score-person{min-width:0;display:grid;gap:5px}
+#hubMount .rps-score-person>span{color:#dfad85;font:750 10px ui-monospace,monospace;letter-spacing:.14em}
+#hubMount .rps-score-person strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+ font-size:clamp(13px,2vw,18px);color:#f5e9dc;letter-spacing:-.04em}
+#hubMount .rps-score-person.opponent{text-align:right;justify-items:end}
+#hubMount .rps-score-person.opponent>span{color:#acbce7}
+#hubMount .rps-score-total{font:750 clamp(31px,4.5vw,48px) Georgia,serif;color:#fdf6ec;white-space:nowrap}
+#hubMount .rps-score-total span{padding:0 9px;color:#667081}
+#hubMount .rps-pips{display:flex;gap:5px;margin-top:5px}
+#hubMount .rps-pips i{display:block;width:24px;height:5px;border-radius:3px;background:#454950}
+#hubMount .rps-pips i.filled{background:#ffb47f;box-shadow:0 0 8px #fdab7966}
+#hubMount .opponent .rps-pips i.filled{background:#b4caff;box-shadow:0 0 8px #b4caff55}
+#hubMount .rps-round-heading{text-align:center;margin:16px auto 7px}
+#hubMount .rps-round-heading .rps-kicker{font:780 10px ui-monospace,monospace;
+ letter-spacing:.16em;color:#c0ad9e}
+#hubMount .rps-round-heading h1{font-family:Georgia,serif;font-weight:700;
+ font-size:clamp(35px,5.8vw,64px);letter-spacing:-.06em;line-height:1;
+ margin:10px 0 8px;color:#fff2e5}
+#hubMount .rps-rewrite.win .rps-round-heading h1{color:#bde9cd}
+#hubMount .rps-rewrite.loss .rps-round-heading h1{color:#ffc0b4}
+#hubMount .rps-round-heading p{font-size:12px;color:#a9b3c1;line-height:1.55;margin:0}
+#hubMount .rps-duel-stage{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
+ align-items:center;gap:clamp(8px,3vw,30px);max-width:780px;margin:25px auto 18px}
+#hubMount .rps-duel-hand{display:grid;justify-items:center;gap:7px;
+ padding:19px 10px;min-width:0;min-height:185px;border:1px solid #6e5242;
+ border-radius:18px;background:linear-gradient(145deg,#49342d,#252028);
+ box-shadow:0 10px 30px #0005}
+#hubMount .rps-duel-hand.them{background:linear-gradient(145deg,#343f5c,#232533);border-color:#516381}
+#hubMount .rps-duel-hand small{color:#ecc09d;font:750 9px ui-monospace,monospace;
+ letter-spacing:.11em;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#hubMount .rps-duel-hand.them small{color:#c1d3f3}
+#hubMount .rps-duel-symbol{display:grid;place-items:center;height:110px;
+ font-size:clamp(53px,8.5vw,95px);filter:drop-shadow(0 9px 12px #0007)}
+#hubMount .rps-phase-reveal .rps-duel-symbol,#hubMount .rps-phase-finished .rps-duel-symbol{
+ animation:rps-reveal .42s cubic-bezier(.1,.7,.3,1.3) both}
+#hubMount .rps-duel-hand strong{color:#f2d9c7;font-size:12px;font-weight:750}
+#hubMount .rps-duel-hand.them strong{color:#d3ddf3}
+#hubMount .rps-duel-versus{font:900 17px ui-monospace,monospace;color:#87909e}
+#hubMount .rps-round-actions{max-width:770px;margin:0 auto;text-align:center}
+#hubMount .rps-select-wrap>span{display:block;font:780 10px ui-monospace,monospace;
+ letter-spacing:.18em;color:#e8bf98;text-align:left;margin:9px 0 13px}
+#hubMount .rps-rewrite .rps-select-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px}
+#hubMount .rps-hand-choice{position:relative;display:grid;place-items:center;gap:2px;
+ border:1px solid #69584f;border-radius:13px;background:#282630;color:#fff1e6;
+ min-width:0;min-height:126px;padding:13px 9px;cursor:pointer;
+ transition:transform .15s,border-color .15s,background .15s}
+#hubMount .rps-hand-choice:hover:not(:disabled){transform:translateY(-5px);
+ border-color:#ffc392;background:#403339}
+#hubMount .rps-hand-choice:active:not(:disabled){transform:translateY(-2px) scale(.98)}
+#hubMount .rps-hand-paper{border-color:#526b88;background:#293447}
+#hubMount .rps-hand-scissors{border-color:#725879;background:#352a3d}
+#hubMount .rps-hand-choice small{position:absolute;top:8px;left:10px;font:780 9px ui-monospace,monospace;color:#c9b5a3}
+#hubMount .rps-hand-emoji{font-size:clamp(34px,5vw,52px);line-height:1.3}
+#hubMount .rps-hand-choice strong{font-size:12px;font-weight:770}
+#hubMount .rps-hand-choice em{font:750 9px ui-monospace,monospace;font-style:normal;
+ letter-spacing:.04em;color:#a6afbd}
+#hubMount .rps-hand-choice:disabled{opacity:.47;cursor:not-allowed}
+#hubMount .rps-select-wrap>p{font-size:11px;color:#8e9eae;margin:12px auto}
+#hubMount .rps-select-wrap kbd{border:1px solid #ffffff37;border-radius:4px;
+ background:#ffffff0b;padding:2px 5px;font:700 10px ui-monospace,monospace;color:#e1ebf3}
+#hubMount .rps-next-round{padding:22px 0;font-size:12px;color:#c1c8d5;font-weight:680}
+#hubMount .rps-next-round i{display:inline-block;width:8px;height:8px;margin-right:8px;
+ border-radius:100%;background:#ffbc91;box-shadow:0 0 9px #ffbc9199;
+ animation:rps-pulse 1.3s ease-in-out infinite}
+#hubMount .rps-play-again{display:flex;justify-content:center;align-items:center;
+ gap:10px;flex-wrap:wrap;padding:20px 0}
+#hubMount .rps-play-again p{flex-basis:100%;color:#cad5df;margin:0 0 5px;font-size:12px}
+#hubMount .rps-arena-footer{display:flex;justify-content:space-between;gap:12px;
+ border-top:1px solid #ffffff20;margin-top:22px;padding-top:13px;
+ font-size:10px;color:#8997a9}
+@keyframes rps-reveal{from{opacity:.7;transform:scale(.78) rotate(-8deg)}to{opacity:1;transform:scale(1) rotate(0)}}
+@keyframes rps-pulse{50%{opacity:.35;transform:scale(.75)}}
+@media(max-width:790px){
+ #hubMount .rps-lobby-hero{grid-template-columns:1fr;gap:8px;padding:28px 0 17px}
+ #hubMount .rps-hero-deck{height:270px}
+ #hubMount .rps-deck-card{width:150px;height:204px}
+ #hubMount .rps-deck-card strong{font-size:72px}
+ #hubMount .rps-hero-copy h1{font-size:clamp(55px,10vw,79px)}
+ #hubMount .rps-lobby-footer{gap:7px}
+}
+@media(max-width:510px){
+ #hubMount .rps-lobby-inner{padding:17px 16px 25px}
+ #hubMount .rps-lobby-top>span:last-child{display:none}
+ #hubMount .rps-lobby-actions{gap:8px}
+ #hubMount .rps-lobby-footer>div{flex-direction:column;align-items:start;gap:5px}
+ #hubMount .rps-lobby-footer span{font-size:9px}
+ #hubMount .rps-rewrite .rps-match-top{font-size:9px}
+ #hubMount .rps-match-top strong{font-size:13px}
+ #hubMount .rps-duel-hand{min-height:151px;padding:12px 7px}
+ #hubMount .rps-duel-symbol{height:85px;font-size:54px}
+ #hubMount .rps-duel-stage{gap:6px}
+ #hubMount .rps-duel-versus{font-size:13px}
+ #hubMount .rps-hand-choice{min-height:116px;padding:12px 4px}
+ #hubMount .rps-rewrite .rps-select-grid{gap:6px}
+ #hubMount .rps-hand-emoji{font-size:36px}
+ #hubMount .rps-hand-choice strong{font-size:11px}
+ #hubMount .rps-hand-choice em{font-size:8px}
+ #hubMount .rps-arena-footer{display:block;line-height:1.7}
+}
+@media(prefers-reduced-motion:reduce){
+ #hubMount .rps-rewrite *,#hubMount .rps-rewrite *::before,#hubMount .rps-rewrite *::after{
+  animation:none!important;transition:none!important}
+}
