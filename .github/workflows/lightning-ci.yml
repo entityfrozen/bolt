@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - bolt-hosted-v5
-      - feature/compact-games-chess-ghost-pilot-2026-11-06
   workflow_dispatch:
 
 permissions:
