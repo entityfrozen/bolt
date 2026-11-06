@@ -554,7 +554,7 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir,getDispla
  }
  const playing=id=>[...chessGames.values()].some(g=>!g.over&&g.ids.includes(id))||
   [...rpsGames.values()].some(g=>!g.over&&g.ids.includes(id))||
-  [...tournaments.values()].some(t=>!t.done&&t.ids.includes(id));
+  [...tournaments.values()].some(t=>!t.done&&((t.status==="waiting"&&t.ids.includes(id))||t.winners.includes(id)));
  const invitePayload=invite=>({
   type:"gameInvite",id:invite.id,game:invite.game,createdAt:invite.createdAt,
   expiresAt:invite.expiresAt,from:{
