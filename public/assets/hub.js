@@ -1,6 +1,7 @@
 import {installArenaPolish} from "./arena-v3.js?v=12";
 import {installWorldPort} from "./openfront-port.js?v=7";
-import {installSocial} from "./social-v4.js?v=8";
+import {installSocial} from "./social-v4.js?v=9";
+import {installGameInvites} from "./game-invites.js?v=1";
 import {installChatPolish} from "./chat-polish.js?v=3";
 import {installArcade} from "./arcade.js?v=4";
 import {installChessVisuals} from "./chess-visuals.js?v=1";
@@ -408,6 +409,7 @@ installCommunityUI(Hub);
 installSplitChat(Hub);
 installUpdateLog(Hub);
 installChatExperience(Hub);
+installGameInvites(Hub);
 function ensureHubStyles(){
  if(!document.getElementById("lightningHubCss")){
   const css=document.createElement("link");css.id="lightningHubCss";css.rel="stylesheet";css.href="/assets/hub.css?v=3";document.head.append(css);
@@ -429,6 +431,7 @@ function ensureHubStyles(){
      const apps=document.createElement("link");apps.id="lightningAppsCss";apps.rel="stylesheet";apps.href="/assets/apps-v5.css?v=2";document.head.append(apps);
      const logStyle=document.createElement("link");logStyle.id="lightningUpdateLogCss";logStyle.rel="stylesheet";logStyle.href="/assets/update-log.css?v=1";document.head.append(logStyle);
      const chat=document.createElement("link");chat.id="lightningChatExperienceCss";chat.rel="stylesheet";chat.href="/assets/chat-experience.css?v=1";document.head.append(chat);
+     const invites=document.createElement("link");invites.id="lightningGameInvitesCss";invites.rel="stylesheet";invites.href="/assets/game-invites.css?v=1";document.head.append(invites);
  }
 }
 export function openHub(view="chat"){
