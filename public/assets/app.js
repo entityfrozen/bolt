@@ -1181,7 +1181,7 @@ async function pollDirectMessages(){
    const prior=lastDmIds.get(peer);
    if(dmPollStarted&&prior!==last.id&&last.from!==me?.id){
     const sender=thread.user.displayName||thread.user.username||"Member";
-    if(!document.hidden&&!document.querySelector("#lightningAccountSpace")?.open){
+    if(!window.LightningNotifications&&!document.hidden&&!document.querySelector("#lightningAccountSpace")?.open){
      toast("New DM from "+sender);
     }
    }
