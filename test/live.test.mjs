@@ -396,6 +396,7 @@ test("RPS runs a private first-to-three series with scores and automatic next ro
  await env.until(()=>env.messages.get(bob).some(m=>m.type==="rpsStart"&&m.id===start.id));
  assert.equal(start.winsTo,3);
  assert.equal(start.phase,"choosing");
+ await delay(170);
  const rounds=[["rock","scissors"],["paper","rock"],["scissors","paper"]];
  for(let i=0;i<rounds.length;i++){
   const round=i+1;
@@ -492,7 +493,7 @@ test("RPS rejects forged moves and bot spam during an active match",{timeout:120
  b.send(JSON.stringify({type:"queue",game:"rps"}));
  const start=await env.until(()=>env.messages.get(a).find(m=>m.type==="rpsStart"));
  outsider.send(JSON.stringify({type:"rpsChoice",id:start.id,choice:"paper"}));
- await env.until(()=>env.messages.get(outsider).some(m=>m.type==="error"&&/not available/i.test(m.message)));
+ await env.until(()=>env.messages.get(outsider).some(m=>m.type==="error"&&/no longer available/i.test(m.message)));
  await delay(170);
  a.send(JSON.stringify({type:"rpsBot"}));
  await env.until(()=>env.messages.get(a).some(m=>m.type==="error"&&/current match/i.test(m.message)));
