@@ -57,6 +57,6 @@ test("Rebuilt RPS arena has server scoring, visible progress and usable rematch 
  assert.match(server,/function rpsRematch/);
  assert.match(hub,/rpsRoundStart/);
  assert.match(hub,/rps-rewrite\.css/);
- assert.match(source,/app\.js\?v=70/);
+ assert.match(source,/app\.js\?v=71/);
  assert.doesNotThrow(()=>new Function(screen.replace("export function installRpsVisuals","function installRpsVisuals")));
 });
