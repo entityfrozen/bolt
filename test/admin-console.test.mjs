@@ -77,7 +77,7 @@ test("Legacy admin sidebar and single-login restriction are absent",()=>{
  const html=read("views/app.html"),css=read("public/assets/admin-console.css");
  const module=read("public/assets/admin-console.js");
  assert.match(app,/openPanel\(name\)/);
- assert.match(app,/import\("\/assets\/admin-console\.js\?v=2"\)/);
+ assert.match(app,/import\("\/assets\/admin-console\.js\?v=3"\)/);
  assert.doesNotMatch(app,/function renderAdminPanel\(/);
  assert.doesNotMatch(app,/function renderAdminUsers\(/);
  assert.match(html,/admin-console\.css\?v=2/);
