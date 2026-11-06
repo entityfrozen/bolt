@@ -215,7 +215,7 @@
      window.LightningNotificationDestination={
       serverId:item.serverId||"lightning-main",channel:item.channel||"general"
      };
-     const hub=await import("/assets/hub.js?v=47");
+     const hub=await import("/assets/hub.js?v=48");
      hub.openHub("room");
      document.dispatchEvent(new CustomEvent("lightning:notification-channel"));
     }catch{}
