@@ -42,6 +42,8 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir,getDispla
  // An isolated game engine per HTTP server: tests and previews must never
  // receive WebSocket state from other Lightning instances in the process.
  const clients=new Map(),queues={chess:[],rps:[]},chessGames=new Map(),rpsGames=new Map(),tournaments=new Map();
+ const invitations=new Map(),inviteRate=new Map();
+ const INVITE_TTL=90000;
  const usersOnline=()=>[...new Set([...clients.values()].map(u=>u.id))];
  const world={cells:makeMap(),players:{},attacks:[],tick:0,winner:null,phase:"waiting",matchId:null,start:0};
  let worldQueue=[],worldQueueTimer=null;
@@ -388,18 +390,91 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir,getDispla
    else if(t&&!winner)newRPS(g.ids,g.tournament);
   }else if(!winner){newRPS(g.ids)}
  }
- function queue(u,kind,other=null){
+
+ const playing=id=>[...chessGames.values()].some(g=>!g.over&&g.ids.includes(id))||
+  [...rpsGames.values()].some(g=>g.ids.includes(id));
+ const invitePayload=invite=>({
+  type:"gameInvite",id:invite.id,game:invite.game,createdAt:invite.createdAt,
+  expiresAt:invite.expiresAt,from:{
+   id:invite.from,name:invite.fromName,username:invite.fromUsername
+  }
+ });
+ function endInvite(invite,status){
+  if(!invitations.has(invite.id))return;
+  invitations.delete(invite.id);
+  const info={type:"gameInviteResult",id:invite.id,game:invite.game,status,
+   from:invite.from,to:invite.to,fromName:invite.fromName,toName:invite.toName};
+  sendUser(invite.from,info);sendUser(invite.to,info);
+ }
+ function sendInvite(u,data){
+  const game=trimText(data.game,10),target=trimText(data.target,80);
+  if(!["chess","rps"].includes(game))
+   return safeSend(u.ws,{type:"error",message:"Choose Chess or Rock Paper Scissors."});
+  if(!target||target===u.id)
+   return safeSend(u.ws,{type:"error",message:"Choose another online player."});
+  const receiver=clientOf(target)[0]?.[1];
+  if(!receiver)return safeSend(u.ws,{type:"error",message:"That player is offline. Choose someone online."});
+  if(playing(u.id)||playing(target))
+   return safeSend(u.ws,{type:"error",message:"One of you is already in a match."});
+  const now=Date.now(),recent=(inviteRate.get(u.id)||[]).filter(at=>now-at<60000);
+  if(recent.length>=5)return safeSend(u.ws,{type:"error",message:"Too many invites. Try again shortly."});
+  if([...invitations.values()].some(x=>x.from===u.id&&x.to===target&&x.game===game))
+   return safeSend(u.ws,{type:"error",message:"You already invited this player."});
+  if([...invitations.values()].filter(x=>x.to===target).length>=4)
+   return safeSend(u.ws,{type:"error",message:"This player has too many pending invites."});
+  inviteRate.set(u.id,[...recent,now]);
+  const invite={id:uid(),game,from:u.id,fromName:u.name,fromUsername:u.username,
+   to:target,toName:receiver.name,createdAt:now,expiresAt:now+INVITE_TTL};
+  invitations.set(invite.id,invite);
+  sendUser(target,invitePayload(invite));
+  sendUser(u.id,{type:"gameInviteSent",id:invite.id,game,to:target,
+   name:receiver.name,expiresAt:invite.expiresAt});
+ }
+ function respondInvite(u,data){
+  const invite=invitations.get(trimText(data.id,36));
+  if(!invite)return safeSend(u.ws,{type:"error",message:"That invitation has expired or was already answered."});
+  const action=data.action;
+  if(action==="cancel"){
+   if(invite.from!==u.id)return safeSend(u.ws,{type:"error",message:"You cannot cancel this invitation."});
+   endInvite(invite,"cancelled");return;
+  }
+  if(invite.to!==u.id||!["accept","decline"].includes(action))
+   return safeSend(u.ws,{type:"error",message:"You cannot respond to this invitation."});
+  if(invite.expiresAt<=Date.now()){endInvite(invite,"expired");return;}
+  if(action==="decline"){endInvite(invite,"declined");return;}
+  if(!clientOf(invite.from).length||!clientOf(invite.to).length){
+   endInvite(invite,"unavailable");return;
+  }
+  if(playing(invite.from)||playing(invite.to)){
+   endInvite(invite,"busy");return;
+  }
+  // Consent has been checked server-side. Only now can the game start.
+  for(const kind of ["chess","rps"])
+   queues[kind]=queues[kind].filter(id=>id!==invite.from&&id!==invite.to);
+  endInvite(invite,"accepted");
+  for(const other of [...invitations.values()]){
+   if([invite.from,invite.to].some(id=>other.from===id||other.to===id))endInvite(other,"busy");
+  }
+  if(invite.game==="chess")newChess([invite.from,invite.to]);
+  else newRPS([invite.from,invite.to]);
+  presence();
+ }
+ const inviteClock=setInterval(()=>{
+  const now=Date.now();
+  for(const invite of invitations.values())if(invite.expiresAt<=now)endInvite(invite,"expired");
+  for(const [id,times] of inviteRate){
+   const recent=times.filter(at=>now-at<60000);
+   if(recent.length)inviteRate.set(id,recent);
+   else inviteRate.delete(id);
+  }
+ },1000);
+ inviteClock.unref();
+
+ function queue(u,kind){
   if(!["chess","rps"].includes(kind))return;
-  const existing=kind==="chess"?[...chessGames.values()].some(g=>!g.over&&g.ids.includes(u.id)):[...rpsGames.values()].some(g=>g.ids.includes(u.id));
-  if(existing)return safeSend(u.ws,{type:"error",message:"Finish your current game first."});
+  if(playing(u.id))return safeSend(u.ws,{type:"error",message:"Finish your current game first."});
   for(const k of ["chess","rps"])queues[k]=queues[k].filter(id=>id!==u.id);
   const line=queues[kind];
-  if(other){
-   const id=trimText(other,36),partner=clientOf(id)[0];
-   if(!partner||id===u.id)return safeSend(u.ws,{type:"error",message:"That player isn't online."});
-   if(kind==="chess")newChess([u.id,id]);else newRPS([u.id,id]);
-   return;
-  }
   let opponent=line.shift();
   while(opponent&&!clientOf(opponent).length)opponent=line.shift();
   if(opponent&&opponent!==u.id){kind==="chess"?newChess([opponent,u.id]):newRPS([opponent,u.id])}
@@ -430,6 +505,9 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir,getDispla
   clients.set(ws,u);
   safeSend(ws,{type:"hello",id,name:u.name,username:u.username,role:u.role,channels:CHANNELS,history,online:usersOnline().map(id=>({id,name:clientOf(id)[0]?.[1]?.name||id,username:clientOf(id)[0]?.[1]?.username||""})),summary:summary()});
   safeSend(ws,{type:"v2State",...communities.snapshot(u)});
+  for(const invite of invitations.values()){
+   if(invite.to===u.id&&invite.expiresAt>Date.now())safeSend(ws,invitePayload(invite));
+  }
   presence();
   ws.on("message",raw=>{
    const current=sessionFromHeaders(req.headers);
@@ -491,7 +569,8 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir,getDispla
    if(data.type==="worldPractice")return worldQueueJoin(u,true);
    if(data.type==="worldLeave")return worldCancel(u);
    if(data.type==="queue")return queue(u,data.game);
-   if(data.type==="duel")return queue(u,data.game,data.target);
+   if(data.type==="gameInvite"||data.type==="duel")return sendInvite(u,data);
+   if(data.type==="gameInviteRespond")return respondInvite(u,data);
    if(data.type==="chessMove")return chessMove(u,data);
    if(data.type==="rpsChoice")return rpsChoice(u,data);
    if(data.type==="tournamentJoin")return tournamentJoin(u);
