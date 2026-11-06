@@ -3,6 +3,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 import {WebSocketServer, WebSocket} from "ws";
 import {Chess} from "chess.js";
+import {CHESS_LEVELS,chooseChessMove} from "./chess-ai.js";
 import {createCommunityStore} from "./community-v2.js";
 import {hasPermission} from "./staff-roles.js";
 
@@ -296,58 +297,121 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir,getDispla
   }else return;
   checkWorldWin();sendWorld();
  }
- function chessLegal(engine){return engine.moves({verbose:true}).map(m=>({from:m.from,to:m.to,promotion:m.promotion||""}))}
- function newChess(ids){
-  const id=uid(),game={id,ids,engine:new Chess(),created:Date.now(),over:false,bot:ids[1]==="npc:chess"};
-  chessGames.set(id,game);
-  for(let i=0;i<2;i++)if(i===0||!game.bot)
-   sendUser(ids[i],{type:"chessStart",id,color:i===0?"w":"b",players:ids.map(z=>z==="npc:chess"?"Lightning Bot":clientOf(z)[0]?.[1]?.name||z),fen:game.engine.fen(),turn:"w",legal:chessLegal(game.engine)});
-  presence();return game;
+ function chessLegal(engine){
+  return engine.moves({verbose:true}).map(move=>({
+   from:move.from,to:move.to,promotion:move.promotion||""
+  }));
  }
- function publishChess(game,move,by){
-  game.over=game.engine.isGameOver();
-  const snapshot={type:"chessState",id:game.id,fen:game.engine.fen(),last:move.san,turn:game.engine.turn(),over:game.over,
+ const chessPlayers=game=>game.ids.map(id=>id==="npc:chess"?"Lightning Bot":
+  clientOf(id)[0]?.[1]?.name||id);
+ function chessSnapshot(game,userId,type="chessState"){
+  const turn=game.engine.turn();
+  return {
+   type,id:game.id,color:game.ids.indexOf(userId)===0?"w":"b",
+   players:chessPlayers(game),fen:game.engine.fen(),turn,
+   over:game.over,bot:game.bot,difficulty:game.difficulty,
+   autoplay:game.autoPlayers.has(userId),autoAllowed:true,
    legal:game.over?[]:chessLegal(game.engine),
-   result:game.engine.isCheckmate()?("Checkmate · "+by+" wins"):game.engine.isDraw()?"Draw":""};
-  for(const id of game.ids)if(id!=="npc:chess")sendUser(id,snapshot);
-  if(game.over){const timer=setTimeout(()=>chessGames.delete(game.id),60000);timer.unref()}
+   last:game.engine.history().at(-1)||"",
+   history:game.engine.history(),
+   result:game.result||""
+  };
+ }
+ function sendChessState(game,type="chessState"){
+  for(const id of game.ids)if(id!=="npc:chess")
+   sendUser(id,chessSnapshot(game,id,type));
+ }
+ function cleanChess(game){
+  clearTimeout(game.pendingTimer);
+  const timer=setTimeout(()=>{
+   if(chessGames.get(game.id)===game)chessGames.delete(game.id);
+   presence();
+  },60000);
+  timer.unref?.();
+ }
+ function newChess(ids,difficulty="normal"){
+  // No duplicate live games or stale matchmaking entries.
+  for(const kind of ["chess","rps"])
+   queues[kind]=queues[kind].filter(id=>!ids.includes(id));
+  const game={
+   id:uid(),ids,engine:new Chess(),created:Date.now(),over:false,bot:ids.includes("npc:chess"),
+   difficulty:CHESS_LEVELS.includes(difficulty)?difficulty:"normal",
+   autoPlayers:new Set(),pendingTimer:null,result:""
+  };
+  chessGames.set(game.id,game);
+  sendChessState(game,"chessStart");
+  presence();
+  return game;
+ }
+ function chessMoveNow(game,move,by){
+  game.over=game.engine.isGameOver();
+  game.result=game.engine.isCheckmate()?"Checkmate · "+by+" wins":
+   game.engine.isDraw()?"Draw":"";
+  sendChessState(game);
+  if(game.over)cleanChess(game);
+  else scheduleChessAI(game);
+ }
+ function scheduleChessAI(game){
+  if(game.over||game.pendingTimer)return;
+  const turn=game.engine.turn(),seat=turn==="w"?0:1;
+  const player=game.ids[seat];
+  if(player!=="npc:chess"&&!game.autoPlayers.has(player))return;
+  // A timer avoids blocking the live socket during the user's own move.
+  const position=game.engine.fen();
+  game.pendingTimer=setTimeout(()=>{
+   game.pendingTimer=null;
+   if(chessGames.get(game.id)!==game||game.over||game.engine.fen()!==position)return;
+   if(player!=="npc:chess"&&!game.autoPlayers.has(player))return;
+   const move=chooseChessMove(game.engine,player==="npc:chess"?game.difficulty:"expert");
+   if(!move)return;
+   try{
+    const applied=game.engine.move({from:move.from,to:move.to,promotion:move.promotion||"q"});
+    if(applied)chessMoveNow(game,applied,player==="npc:chess"?"Lightning Bot":
+     clientOf(player)[0]?.[1]?.name||"Ghost Pilot");
+   }catch(error){console.warn("Chess AI move rejected:",error?.message||error);}
+  },player==="npc:chess"?570:430);
+  game.pendingTimer.unref?.();
  }
  function chessMove(u,data){
-  const game=chessGames.get(data.id);
-  if(!game||game.over||!game.ids.includes(u.id))return safeSend(u.ws,{type:"error",message:"Chess match unavailable. Refresh or start a new game."});
-  const color=game.ids[0]===u.id?"w":"b";
-  if(game.engine.turn()!==color)return safeSend(u.ws,{type:"error",message:"It's not your turn."});
+  const game=chessGames.get(String(data.id||""));
+  if(!game||game.over||!game.ids.includes(u.id))
+   return safeSend(u.ws,{type:"error",message:"Chess match unavailable. Refresh or start a new game."});
+  const turn=game.ids[0]===u.id?"w":"b";
+  if(game.engine.turn()!==turn)
+   return safeSend(u.ws,{type:"error",message:"It's not your turn."});
+  if(game.autoPlayers.has(u.id))
+   return safeSend(u.ws,{type:"error",message:"Disable Ghost Pilot before playing a move yourself."});
+  const from=String(data.from||""),to=String(data.to||"");
+  if(!/^[a-h][1-8]$/.test(from)||!/^[a-h][1-8]$/.test(to))
+   return safeSend(u.ws,{type:"error",message:"Choose a legal square."});
   let move=null;
   try{
-   const piece=game.engine.get(data.from);
-   const promotion=piece?.type==="p"&&["1","8"].includes(String(data.to||"")[1]);
-   move=game.engine.move(promotion?{from:data.from,to:data.to,promotion:data.promotion||"q"}:{from:data.from,to:data.to});
+   const piece=game.engine.get(from),promotion=piece?.type==="p"&&["1","8"].includes(to[1]);
+   move=game.engine.move(promotion?{from,to,promotion:data.promotion||"q"}:{from,to});
   }catch{}
   if(!move)return safeSend(u.ws,{type:"error",message:"Illegal move. Select a highlighted square."});
-  publishChess(game,move,u.name);
-  if(game.bot&&!game.over){
-   const timer=setTimeout(()=>{
-    if(game.over||game.engine.turn()!=="b")return;
-    const moves=game.engine.moves({verbose:true});
-    // Captures, checks and promotions are favored over quiet moves.
-    const score=m=>(m.captured?8:0)+(m.san.includes("+")?3:0)+(m.san.includes("#")?100:0)+(m.promotion?14:0)+Math.random()*5;
-    moves.sort((a,b)=>score(b)-score(a));
-    const reply=game.engine.move(moves[0]);
-    publishChess(game,reply,"Lightning Bot");
-   },700);
-   timer.unref();
-  }
+  chessMoveNow(game,move,u.name);
+ }
+ function chessAutoplay(u,data){
+  const game=chessGames.get(String(data.id||""));
+  if(!game||game.over||!game.ids.includes(u.id))
+   return safeSend(u.ws,{type:"error",message:"That chess match is no longer active."});
+  if(data.enabled===true)game.autoPlayers.add(u.id);
+  else if(data.enabled===false)game.autoPlayers.delete(u.id);
+  else return safeSend(u.ws,{type:"error",message:"Invalid Ghost Pilot setting."});
+  sendUser(u.id,{type:"chessAutoStatus",id:game.id,enabled:game.autoPlayers.has(u.id)});
+  if(game.autoPlayers.has(u.id))scheduleChessAI(game);
  }
  function chessResign(u,data){
   const game=chessGames.get(String(data.id||""));
-  if(!game||game.over||!game.ids.includes(u.id))return safeSend(u.ws,{type:"error",message:"Chess match is no longer active."});
+  if(!game||game.over||!game.ids.includes(u.id))
+   return safeSend(u.ws,{type:"error",message:"Chess match is no longer active."});
   game.over=true;
-  const opponent=game.ids.find(id=>id!==u.id);
-  const winner=opponent==="npc:chess"?"Lightning Bot":(clientOf(opponent)[0]?.[1]?.name||"Opponent");
-  const result=u.name+" resigned · "+winner+" wins";
-  const state={type:"chessState",id:game.id,fen:game.engine.fen(),last:game.engine.history().at(-1)||"",turn:game.engine.turn(),over:true,legal:[],result};
-  for(const id of game.ids)if(id!=="npc:chess")sendUser(id,state);
-  const timer=setTimeout(()=>chessGames.delete(game.id),60000);timer.unref();
+  const other=game.ids.find(id=>id!==u.id);
+  const victor=other==="npc:chess"?"Lightning Bot":clientOf(other)[0]?.[1]?.name||"Opponent";
+  game.result=u.name+" resigned · "+victor+" wins";
+  sendChessState(game);
+  cleanChess(game);
  }
  function chessCancelQueue(u){
   const before=queues.chess.length;
@@ -356,16 +420,15 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir,getDispla
   presence();
  }
  function chessSync(u,data){
-  const game=(data.id?chessGames.get(String(data.id)):null)||[...chessGames.values()].find(g=>g.ids.includes(u.id)&&!g.over);
+  const game=(data.id?chessGames.get(String(data.id)):null)||
+   [...chessGames.values()].find(item=>item.ids.includes(u.id)&&!item.over);
   if(!game||!game.ids.includes(u.id)){
    return safeSend(u.ws,{type:"error",message:"That chess match is no longer active. Start a new game."});
   }
-  const index=game.ids.indexOf(u.id),last=game.engine.history().at(-1)||"";
-  safeSend(u.ws,{type:"chessStart",id:game.id,color:index===0?"w":"b",
-   players:game.ids.map(id=>id==="npc:chess"?"Lightning Bot":clientOf(id)[0]?.[1]?.name||id),
-   fen:game.engine.fen(),turn:game.engine.turn(),legal:game.over?[]:chessLegal(game.engine),
-   over:game.over,result:game.engine.isCheckmate()?"Checkmate":game.engine.isDraw()?"Draw":"",last});
+  sendUser(u.id,chessSnapshot(game,u.id,"chessStart"));
+  if(!game.over)scheduleChessAI(game);
  }
+
  // Best-of-five matches, first to three wins. A tournament bracket uses one
  // decisive round per pairing so tournaments don't take twenty minutes.
  const RPS_MOVES=["rock","paper","scissors"];
@@ -754,6 +817,7 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir,getDispla
    if(data.type==="gameInvite"||data.type==="duel")return sendInvite(u,data);
    if(data.type==="gameInviteRespond")return respondInvite(u,data);
    if(data.type==="chessMove")return chessMove(u,data);
+   if(data.type==="chessAutoplay")return chessAutoplay(u,data);
    if(data.type==="rpsChoice")return rpsChoice(u,data);
    if(data.type==="rpsSync")return rpsSync(u,data);
    if(data.type==="rpsRematch")return rpsRematch(u,data);
@@ -764,7 +828,12 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir,getDispla
    if(data.type==="tournamentLeave")return tournamentLeave(u);
    if(data.type==="worldQueue"||data.type==="worldJoin")return worldQueueJoin(u);
    if(data.type==="worldCancel")return worldCancel(u);
-   if(data.type==="chessBot")return newChess([u.id,"npc:chess"]);
+   if(data.type==="chessBot"){
+    if(playing(u.id))return safeSend(u.ws,{type:"error",message:"Finish your current game first."});
+    if(data.difficulty!==undefined&&!CHESS_LEVELS.includes(data.difficulty))
+     return safeSend(u.ws,{type:"error",message:"Choose Easy, Normal, Hard, or Expert."});
+    return newChess([u.id,"npc:chess"],data.difficulty||"normal");
+   }
     if(data.type==="rpsBot"){
     if(playing(u.id))return safeSend(u.ws,{type:"error",message:"Finish your current match first."});
     return newRPS([u.id,"npc:rps"]);
