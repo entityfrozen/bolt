@@ -5,7 +5,7 @@ import {installGameInvites} from "./game-invites.js?v=1";
 import {installChatPolish} from "./chat-polish.js?v=3";
 import {installArcade} from "./arcade.js?v=4";
 import {installChessVisuals} from "./chess-visuals.js?v=1";
-import {installRpsVisuals} from "./rps-visuals.js?v=2";
+import {installRpsVisuals} from "./rps-visuals.js?v=3";
 import {installV2} from "./v2.js?v=11";
 import {installWorkspaceV3} from "./workspace-v3.js?v=9";
 import {installApps} from "./apps-v5.js?v=3";
@@ -62,9 +62,49 @@ class Hub{
   }else if(m.type==="queued")this.flash("Queued for "+m.game+". Waiting for an opponent.");
   else if(m.type==="chessStart"){this.chess={...m,turn:m.turn||"w",over:!!m.over};this.selectedSquare=null;this.view="chess";this.render()}
   else if(m.type==="chessState"){if(this.chess?.id===m.id){Object.assign(this.chess,m);this.selectedSquare=null;if(this.view==="chess")this.chessScreen();if(m.over)this.flash(m.result||"Game over")}}
-  else if(m.type==="rpsStart"){this.rps={...m,waiting:false,result:null};this.view="rps";this.render()}
-  else if(m.type==="rpsWaiting"){if(this.rps?.id===m.id){this.rps.waiting=true;if(this.view==="rps")this.rpsScreen()}}
-  else if(m.type==="rpsResult"){if(this.rps?.id===m.id){this.rps.result=m;if(this.view==="rps")this.rpsScreen()}}
+  else if(m.type==="rpsStart"){
+   const previous=this.rps?.id===m.id?this.rps:null;
+   this.rps={...m,myChoice:m.waiting?previous?.myChoice||null:null};
+   this.rpsQueueing=false;this.view="rps";this.render();
+  }else if(m.type==="rpsRoundStart"){
+   if(this.rps?.id===m.id){
+    this.rps={...m,myChoice:null,result:null,waiting:!!m.waiting};
+    if(this.view==="rps")this.rpsScreen();
+   }
+  }else if(m.type==="rpsWaiting"){
+   if(this.rps?.id===m.id){this.rps.waiting=true;if(this.view==="rps")this.rpsScreen();}
+  }else if(m.type==="rpsOpponentReady"){
+   if(this.rps?.id===m.id){this.rps.opponentReady=true;if(this.view==="rps")this.rpsScreen();}
+  }else if(m.type==="rpsResult"){
+   if(this.rps?.id===m.id){
+    Object.assign(this.rps,m,{result:m,phase:m.over?"finished":"reveal",waiting:false,opponentReady:false});
+    if(this.view==="rps")this.rpsScreen();
+   }
+  }else if(m.type==="rpsRematchOffer"){
+   if(this.rps?.id===m.id){
+    this.rps.rematchOffered=true;
+    document.dispatchEvent(new CustomEvent("lightning:toast",{detail:{
+     key:"rps-rematch:"+m.id,kind:"system",title:"Rematch requested",
+     body:(m.fromName||"Your opponent")+" wants another match.",
+     onOpen:()=>this.open("rps"),openLabel:"View match"
+    }}));
+    if(this.view==="rps")this.rpsScreen();
+   }
+  }else if(m.type==="rpsRematchWaiting"){
+   if(this.rps?.id===m.id){this.rps.rematchPending=true;if(this.view==="rps")this.rpsScreen();}
+  }else if(m.type==="rpsRematchDeclined"){
+   if(this.rps?.id===m.id){
+    this.rps.rematchPending=false;this.rps.rematchOffered=false;
+    if(this.view==="rps")this.rpsScreen();
+    this.flash("Rematch declined.");
+   }
+  }else if(m.type==="rpsQueueCancelled"){
+   this.rpsQueueing=false;if(this.view==="rps"&&!this.rps)this.rpsScreen();
+  }else if(m.type==="rpsNotFound"){
+   this.rps=null;this.rpsQueueing=false;
+   if(this.view==="rps")this.rpsScreen();
+   this.flash(m.message||"This match is no longer available.");
+  }
   else if(m.type==="tournamentJoined")this.flash("Tournament: "+m.players+"/4 players joined");
   else if(m.type==="tournamentStarted")this.flash("Tournament has started!");
   else if(m.type==="tournamentWinner")this.flash("Tournament won by "+m.winner);
@@ -360,11 +400,24 @@ class Hub{
   }
   if(action==="back")return this.show("games");
   if(action==="chessView"){if(!this.chess?.over)this.chess=this.chess||null;else this.chess=null;return this.show("chess")}
-  if(action==="rpsView"){if(!this.rps?.result)this.rps=this.rps||null;else this.rps=null;return this.show("rps")}
+  if(action==="rpsView"){if(this.rps?.over)this.rps=null;return this.show("rps")}
   if(action==="worldView"){this.worldActive=false;this.worldQueueing=false;this.world=null;this.camera={zoom:1,x:0,y:0};return this.show("world")};
   if(action==="chessBot"){this.chess=null;return this.send({type:"chessBot"})}
-  if(action==="rpsBot"){this.rps=null;return this.send({type:"rpsBot"})}
-  if(action==="chessQueue"||action==="rpsQueue")return this.send({type:"queue",game:action==="chessQueue"?"chess":"rps"});
+  if(action==="rpsBot"){
+   if(this.rps&&!this.rps.over)return this.flash("Finish your current match first.");
+   this.rps=null;this.rpsQueueing=false;return this.send({type:"rpsBot"});
+  }
+  if(action==="chessQueue")return this.send({type:"queue",game:"chess"});
+  if(action==="rpsQueue"){
+   if(this.rps&&!this.rps.over)return this.flash("Finish your current match first.");
+   this.rpsQueueing=true;this.rpsScreen();
+   if(!this.send({type:"queue",game:"rps"})){this.rpsQueueing=false;this.rpsScreen();}
+   return;
+  }
+  if(action==="rpsCancelQueue"){
+   if(this.send({type:"rpsCancelQueue"})){this.rpsQueueing=false;this.rpsScreen();}
+   return;
+  }
   if(action==="tournament")return this.send({type:"tournamentJoin"});
   if(action==="chessDuel"||action==="rpsDuel"){const target=this.$("#hubDuelId")?.value.trim();if(!target)return this.flash("Enter an opponent user ID.");return this.send({type:"duel",game:action==="chessDuel"?"chess":"rps",target})}
   if(action==="square"){
@@ -381,7 +434,29 @@ class Hub{
    if(legal.some(m=>m.from===sq)){this.selectedSquare=sq;return this.chessScreen()}
    this.flash("Select your piece, then a highlighted square.");
   }
-  if(action==="rpsPick")return this.send({type:"rpsChoice",id:this.rps?.id,choice:button.dataset.choice});
+  if(action==="rpsPick"){
+   const game=this.rps,pick=button?.dataset?.choice;
+   if(!game||game.phase!=="choosing"||game.waiting||game.over||!["rock","paper","scissors"].includes(pick))return;
+   if(this.send({type:"rpsChoice",id:game.id,choice:pick})){
+    game.myChoice=pick;game.waiting=true;this.rpsScreen();
+   }
+   return;
+  }
+  if(action==="rpsRematch"){
+   if(this.rps?.over&&!this.rps.rematchPending)this.send({type:"rpsRematch",id:this.rps.id});
+   return;
+  }
+  if(action==="rpsRematchDecline"){
+   if(this.rps?.over)this.send({type:"rpsRematchDecline",id:this.rps.id});
+   return;
+  }
+  if(action==="rpsExit"){
+   if(this.rps&&!this.rps.over){
+    if(!window.confirm("Leave this match? Your opponent will win."))return;
+    this.send({type:"rpsLeave",id:this.rps.id});
+   }
+   this.rps=null;this.rpsQueueing=false;this.show("games");return;
+  }
   if(action==="worldQueue"){this.worldQueueing=true;this.worldScreen();if(!this.send({type:"worldQueue"})){this.worldQueueing=false;this.worldScreen()}return}
   if(action==="worldCancel"){this.worldQueueing=false;this.worldScreen();return this.send({type:"worldCancel"})}
   if(action==="zoomIn")return this.zoomMap(1.45);
@@ -432,6 +507,7 @@ function ensureHubStyles(){
      const logStyle=document.createElement("link");logStyle.id="lightningUpdateLogCss";logStyle.rel="stylesheet";logStyle.href="/assets/update-log.css?v=1";document.head.append(logStyle);
      const chat=document.createElement("link");chat.id="lightningChatExperienceCss";chat.rel="stylesheet";chat.href="/assets/chat-experience.css?v=1";document.head.append(chat);
      const invites=document.createElement("link");invites.id="lightningGameInvitesCss";invites.rel="stylesheet";invites.href="/assets/game-invites.css?v=1";document.head.append(invites);
+     const rps=document.createElement("link");rps.id="lightningRpsRebuildCss";rps.rel="stylesheet";rps.href="/assets/rps-rewrite.css?v=1";document.head.append(rps);
  }
 }
 export function openHub(view="chat"){
