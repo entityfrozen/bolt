@@ -1,0 +1,228 @@
+/* Compact game surfaces. Keep match controls above the fold.
+   Loaded after the original Arcade themes to avoid resizing the browser shell. */
+#hubMount .chess-compact-lobby{
+ display:grid;grid-template-columns:minmax(0,1.3fr) minmax(140px,.6fr);
+ min-height:0;height:100%;overflow-y:auto;
+ background:radial-gradient(circle at 85% 30%,#597b5534,transparent 40%),#121b17;
+ color:#f6ead7;
+}
+#hubMount .chess-compact-lobby .new-chess-copy{
+ padding:clamp(16px,3vw,29px);justify-content:flex-start;min-width:0;
+}
+#hubMount .chess-compact-lobby .chess-eyebrow{font:750 9px ui-monospace,monospace;letter-spacing:.15em}
+#hubMount .chess-compact-lobby h1{
+ font:700 clamp(30px,4vw,52px)/1.08 Georgia,serif;letter-spacing:-.055em;
+ color:#f3e6d2;margin:10px 0 7px;
+}
+#hubMount .chess-compact-lobby h1 em{color:#b9d7a7}
+#hubMount .chess-compact-lobby p{font-size:11px;line-height:1.5;margin:0 0 12px;max-width:360px}
+#hubMount .chess-compact-matchmaking{
+ width:100%;max-width:430px;padding:11px;border-radius:10px;
+ background:#1a2921;border:1px solid #405949;
+}
+#hubMount .chess-compact-actions{display:flex;flex-wrap:wrap;gap:8px}
+#hubMount .chess-v2-btn{
+ display:inline-flex;align-items:center;justify-content:center;
+ min-height:32px;padding:7px 11px;border-radius:8px;border:1px solid #58705f;
+ background:#2a4030;color:#e6f1df;font:700 11px "Instrument Sans",system-ui;
+ cursor:pointer;white-space:nowrap;transition:background .15s,border-color .15s;
+}
+#hubMount .chess-v2-btn:hover:not(:disabled){background:#3e5a45;border-color:#a3c59d}
+#hubMount .chess-v2-btn.primary{background:#b8d7aa;border-color:#d3e9c8;color:#152419}
+#hubMount .chess-v2-btn.primary:hover:not(:disabled){background:#d2f1bf}
+#hubMount .chess-v2-btn:disabled{opacity:.55;cursor:wait}
+#hubMount .chess-compact-bot-row{
+ display:flex;flex-wrap:wrap;align-items:center;gap:8px;
+ border-top:1px solid #ffffff1d;margin-top:10px;padding-top:10px;
+}
+#hubMount .chess-compact-bot-row label{font:750 9px ui-monospace,monospace;letter-spacing:.08em;color:#a5b7a6}
+#hubMount .chess-compact-bot-row select{
+ min-height:32px;padding:4px 9px;border:1px solid #698471;border-radius:8px;
+ background:#16241c;color:#f5f7ef;font:700 11px "Instrument Sans",system-ui;
+}
+#hubMount .chess-compact-lobby .chess-invite{margin-top:13px;padding-top:13px;max-width:430px}
+#hubMount .chess-compact-lobby .chess-invite label{margin-bottom:7px;font-size:9px}
+#hubMount .chess-compact-lobby .chess-invite input{min-height:32px;font-size:11px}
+#hubMount .chess-compact-lobby .chess-link-back{margin-top:11px;font-size:11px}
+#hubMount .chess-compact-lobby .new-chess-art{
+ min-height:0;height:auto;align-items:center;justify-content:center;
+ background:radial-gradient(circle at 50% 50%,#5877642f,transparent 55%),#1a2820;
+ border-left:1px solid #3d5547;overflow:hidden;
+}
+#hubMount .chess-compact-emblem{font:180px/.8 Georgia,serif;color:#c6ddbd;
+ text-shadow:8px 16px 2px #0b120c9c;transform:rotate(-10deg)}
+#hubMount .chess-compact-lobby .new-chess-art>span{
+ margin-top:12px;color:#a4bba7;font:750 9px ui-monospace,monospace;letter-spacing:.16em
+}
+#hubMount .chess-compact-match{
+ --compact-board:min(390px,calc(100dvh - 206px),calc(100vw - 540px));
+ display:grid;grid-template-columns:minmax(0,auto) minmax(190px,250px);
+ gap:clamp(10px,1.9vw,21px);justify-content:center;align-content:start;align-items:start;
+ height:100%;min-height:0;width:100%;overflow-y:auto;overscroll-behavior:contain;
+ padding:clamp(8px,1.3vw,16px);background:#111b16;
+ scrollbar-width:thin;scrollbar-color:#47664f transparent;
+}
+#hubMount .chess-compact-match .new-chess-board-panel{
+ width:calc(var(--compact-board) + 18px);max-width:100%;min-width:0;
+ padding:8px!important;border-radius:12px!important;
+ background:#1b2a20!important;border:1px solid #48624d!important;
+ box-shadow:0 9px 35px #0004!important;
+}
+#hubMount .chess-compact-match .hub-chess-board{display:block}
+#hubMount .chess-compact-match .hub-chess{
+ width:var(--compact-board)!important;max-width:100%;aspect-ratio:1;
+ border:3px solid #405b42;border-radius:5px;box-shadow:0 3px 17px #0006;
+}
+#hubMount .chess-compact-match .hub-square{font-size:clamp(17px,3vw,42px)}
+#hubMount .chess-compact-match .chess-piece{line-height:1}
+#hubMount .chess-compact-match .chess-v2-player{
+ display:flex;align-items:center;gap:8px;padding:4px 3px 7px;min-width:0;min-height:33px;
+}
+#hubMount .chess-compact-match .chess-v2-player:last-child{padding:7px 3px 2px}
+#hubMount .chess-compact-match .chess-v2-identity{
+ display:grid;place-items:center;width:24px;height:24px;flex:none;
+ border-radius:6px;background:#142019;color:#d5c8a3;font-size:20px;
+}
+#hubMount .chess-compact-match .chess-v2-identity.me{background:#e8e0c7;color:#24402e}
+#hubMount .chess-compact-match .chess-v2-player>span:nth-child(2){
+ display:grid;gap:1px;min-width:0;flex:1;
+}
+#hubMount .chess-compact-match .chess-v2-player small{
+ font:700 8px ui-monospace,monospace;letter-spacing:.05em;color:#8fa797
+}
+#hubMount .chess-compact-match .chess-v2-player strong{
+ font-size:11px;color:#e6ebde;white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
+#hubMount .chess-compact-match .chess-v2-player em{
+ font:750 8px ui-monospace,monospace;font-style:normal;color:#b7dfa7;white-space:nowrap
+}
+#hubMount .chess-compact-match .chess-v2-side{
+ min-width:0;width:250px;max-width:100%;padding:13px!important;
+ border:1px solid #49634b!important;border-radius:11px!important;
+ background:#1e3024!important;box-shadow:none!important;
+}
+#hubMount .chess-v2-side-head{display:flex;justify-content:space-between;
+ align-items:center;color:#a8bea7;font:750 9px ui-monospace,monospace;letter-spacing:.09em}
+#hubMount .chess-v2-secret{
+ border:1px solid #57715a;border-radius:6px;background:#213b28;
+ color:#a7c89a;width:23px;height:23px;cursor:pointer;font-size:12px
+}
+#hubMount .chess-v2-secret:hover{background:#375840}
+#hubMount .chess-v2-overview{display:flex;align-items:center;justify-content:space-between;gap:9px;margin:8px 0}
+#hubMount .chess-v2-overview h2{margin:0;color:#f5edda;font:700 25px Georgia,serif;letter-spacing:-.045em}
+#hubMount .chess-v2-overview>span{font:700 8px ui-monospace,monospace;letter-spacing:.04em;
+ padding:6px;border:1px solid #688a68;border-radius:5px;background:#2b472e;
+ color:#c9e8ba;text-align:center}
+#hubMount .chess-v2-hint{border:1px solid #537457;background:#2a4532;
+ color:#e2f0dc!important;padding:10px;margin:5px 0 10px!important;
+ font-size:11px!important;line-height:1.45!important;border-radius:7px;min-height:35px}
+#hubMount .chess-v2-info{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+#hubMount .chess-v2-info>div{background:#17261b;border:1px solid #3e5d42;border-radius:7px;padding:8px;min-width:0}
+#hubMount .chess-v2-info small,#hubMount .chess-v2-moves>small{display:block;color:#a3b6a0;
+ font:700 8px ui-monospace,monospace;letter-spacing:.08em}
+#hubMount .chess-v2-info b{display:block;color:#e9ebdb;font-size:13px;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#hubMount .chess-v2-moves{margin:10px 0 8px}
+#hubMount .chess-v2-moves>div{display:flex;gap:5px;flex-wrap:wrap;margin:6px 0 0;
+ padding:7px;min-height:31px;border-radius:7px;border:1px solid #3b5842;background:#15261c}
+#hubMount .chess-v2-move{color:#e1e6d3;font:750 10px ui-monospace,monospace}
+#hubMount .chess-v2-move small{font:700 9px ui-monospace,monospace;color:#839d87;margin-right:3px}
+#hubMount .chess-v2-empty{color:#849789;font-size:10px}
+#hubMount .chess-v2-controls{display:flex;gap:6px;flex-wrap:wrap}
+#hubMount .chess-v2-controls .chess-v2-btn{flex:1;padding-inline:7px;font-size:10px}
+#hubMount .chess-v2-controls .chess-resign{color:#f1b5ad;border-color:#a16063}
+#hubMount .chess-v2-help{display:block;margin-top:9px;color:#92a792;font-size:9px}
+#hubMount .chess-v2-ghost-panel{margin-top:9px;padding:9px;border:1px solid #867baf;
+ border-radius:8px;background:#333048;display:flex;gap:8px;align-items:center}
+#hubMount .chess-v2-ghost-panel>div{flex:1;display:grid;gap:3px}
+#hubMount .chess-v2-ghost-panel strong{font-size:11px;color:#f2ddff}
+#hubMount .chess-v2-ghost-panel span{font-size:9px;color:#c4b9db;line-height:1.3}
+#hubMount .chess-v2-ghost-panel .chess-v2-btn{
+ border-color:#9582bc;background:#44395d;color:#f4e3ff;min-width:61px}
+#hubMount .chess-v2-ghost-panel .chess-v2-btn.ghost-on{background:#9a7cce;color:#20142c}
+/* RPS reuses the stable scroll container across state changes. Keep it
+   compact enough that selecting a hand doesn't push the next control away. */
+#hubMount .rps-rewrite .rps-lobby-inner{max-width:920px;padding:14px 22px 17px}
+#hubMount .rps-rewrite .rps-lobby-top{padding-bottom:9px}
+#hubMount .rps-rewrite .rps-lobby-hero{
+ grid-template-columns:minmax(0,1fr) minmax(150px,.55fr);gap:12px;
+ min-height:0;padding:15px 0 10px
+}
+#hubMount .rps-rewrite .rps-hero-copy h1{
+ font-size:clamp(37px,5vw,65px);line-height:.93;margin:8px 0 10px;
+}
+#hubMount .rps-rewrite .rps-hero-copy .rps-label{margin-bottom:7px}
+#hubMount .rps-rewrite .rps-hero-copy>p{font-size:11px;max-width:355px;line-height:1.45}
+#hubMount .rps-rewrite .rps-lobby-actions{gap:6px;margin:12px 0 0}
+#hubMount .rps-rewrite .rps-btn{min-height:31px;padding:7px 10px;font-size:10px}
+#hubMount .rps-rewrite .rps-hero-deck{height:183px}
+#hubMount .rps-rewrite .rps-deck-card{width:102px;height:147px;padding:10px;border-radius:10px}
+#hubMount .rps-rewrite .rps-deck-card strong{font-size:50px}
+#hubMount .rps-rewrite .rps-deck-card small,#hubMount .rps-rewrite .rps-deck-card span{font-size:8px}
+#hubMount .rps-rewrite .rps-lobby-footer{padding:9px 0}
+#hubMount .rps-rewrite .rps-lobby-footer b{font-size:24px}
+#hubMount .rps-rewrite .rps-lobby-footer span{font-size:8px;line-height:1.3}
+#hubMount .rps-rewrite .rps-invite-box{margin:9px 0 0;padding:9px;max-width:380px}
+#hubMount .rps-rewrite .rps-invite-box input{min-height:30px}
+#hubMount .rps-rewrite .rps-back-link{margin-top:7px}
+#hubMount .rps-rewrite .rps-arena-inner{max-width:800px;padding:10px 16px 15px}
+#hubMount .rps-rewrite .rps-match-top{padding:0 0 7px;font-size:9px}
+#hubMount .rps-rewrite .rps-scoreboard{padding:9px 0 0}
+#hubMount .rps-rewrite .rps-score-total{font-size:29px}
+#hubMount .rps-rewrite .rps-score-person strong{font-size:12px}
+#hubMount .rps-rewrite .rps-round-heading{margin:7px auto 0}
+#hubMount .rps-rewrite .rps-round-heading h1{font-size:clamp(25px,4vw,39px);margin:5px 0 4px}
+#hubMount .rps-rewrite .rps-round-heading p{font-size:10px;line-height:1.35}
+#hubMount .rps-rewrite .rps-duel-stage{max-width:540px;margin:9px auto 4px;gap:14px}
+#hubMount .rps-rewrite .rps-duel-hand{min-height:105px;padding:8px 9px;gap:2px}
+#hubMount .rps-rewrite .rps-duel-symbol{height:62px;font-size:48px}
+#hubMount .rps-rewrite .rps-duel-hand small{font-size:8px}
+#hubMount .rps-rewrite .rps-duel-hand strong{font-size:10px}
+#hubMount .rps-rewrite .rps-duel-versus{font-size:11px}
+#hubMount .rps-rewrite .rps-select-wrap>span{margin:4px 0 7px;font-size:9px}
+#hubMount .rps-rewrite .rps-select-grid{gap:7px}
+#hubMount .rps-rewrite .rps-hand-choice{min-height:79px;padding:9px 5px;gap:0}
+#hubMount .rps-rewrite .rps-hand-emoji{font-size:33px;line-height:1.1}
+#hubMount .rps-rewrite .rps-hand-choice strong{font-size:10px}
+#hubMount .rps-rewrite .rps-hand-choice em{font-size:7px}
+#hubMount .rps-rewrite .rps-select-wrap>p{margin:6px 0}
+#hubMount .rps-rewrite .rps-round-actions{min-height:115px;max-width:540px}
+#hubMount .rps-rewrite .rps-next-round{padding:25px 0 0}
+#hubMount .rps-rewrite .rps-play-again{padding:16px 0}
+#hubMount .rps-rewrite .rps-arena-footer{margin-top:8px;padding-top:7px}
+#hubMount .rps-rewrite .gi-roster{padding:10px;margin:9px 0;max-width:700px}
+#hubMount .rps-rewrite .gi-roster-list{max-height:118px}
+#hubMount .chess-compact-lobby .gi-roster{padding:10px;margin:12px 0;max-width:460px}
+#hubMount .chess-compact-lobby .gi-roster-list{max-height:132px}
+@media(max-width:850px){
+ #hubMount .chess-compact-match{
+  --compact-board:min(375px,calc(100vw - 300px),calc(100dvh - 194px));
+  grid-template-columns:minmax(0,auto) minmax(168px,210px);
+  gap:9px;padding:9px
+ }
+ #hubMount .chess-compact-match .chess-v2-side{width:210px;padding:10px!important}
+ #hubMount .chess-compact-lobby .new-chess-art{display:none}
+ #hubMount .chess-compact-lobby{grid-template-columns:1fr}
+ #hubMount .rps-rewrite .rps-lobby-hero{grid-template-columns:minmax(0,1fr) 150px}
+}
+@media(max-width:665px){
+ #hubMount .chess-compact-match{
+  --compact-board:min(340px,calc(100vw - 40px),calc(100dvh - 162px));
+  display:flex;flex-direction:column;align-items:center;gap:9px;
+ }
+ #hubMount .chess-compact-match .new-chess-board-panel{width:calc(var(--compact-board) + 18px)}
+ #hubMount .chess-compact-match .chess-v2-side{width:calc(var(--compact-board) + 18px)}
+ #hubMount .chess-v2-side .chess-v2-info,.hub-chess-layout .chess-v2-info{gap:5px}
+ #hubMount .rps-rewrite .rps-lobby-hero{grid-template-columns:1fr;padding:9px 0}
+ #hubMount .rps-rewrite .rps-hero-deck{display:none}
+ #hubMount .rps-rewrite .rps-lobby-inner{padding:12px}
+ #hubMount .rps-rewrite .rps-lobby-footer{gap:4px}
+ #hubMount .rps-rewrite .rps-lobby-footer>div{flex-direction:column;gap:3px}
+ #hubMount .rps-rewrite .rps-lobby-footer span{font-size:7px}
+ #hubMount .rps-rewrite .rps-duel-stage{gap:6px}
+ #hubMount .rps-rewrite .rps-duel-symbol{height:57px;font-size:42px}
+ #hubMount .rps-rewrite .rps-duel-hand{min-height:100px;padding:7px 3px}
+ #hubMount .rps-rewrite .rps-arena-inner{padding:9px 12px}
+}
+@media(prefers-reduced-motion:reduce){
+ #hubMount .rps-rewrite *,#hubMount .chess-compact-match *{animation:none!important;transition:none!important}
+}
