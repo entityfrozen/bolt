@@ -658,11 +658,11 @@ export function attachLightningLive({server,sessionFromHeaders,dataDir,getDispla
  wss.on("connection",(ws,auth,req)=>{
   const id=auth.identity.id,u={ws,id,name:getDisplayName(id,nameOf(auth.identity)),username:nameOf(auth.identity),role:auth.identity.role,last:0,world:false};
   clients.set(ws,u);
-  // Returning players recover only their own committed state, not their opponent's move.
-  for(const g of rpsGames.values())if(!g.over&&g.ids.includes(u.id))
-   safeSend(ws,{type:"rpsStart",...rpsView(g,u.id)});
   safeSend(ws,{type:"hello",id,name:u.name,username:u.username,role:u.role,channels:CHANNELS,history,online:usersOnline().map(id=>({id,name:clientOf(id)[0]?.[1]?.name||id,username:clientOf(id)[0]?.[1]?.username||""})),summary:summary()});
   safeSend(ws,{type:"v2State",...communities.snapshot(u)});
+  // Restore active RPS matches after hello so the client knows its account ID.
+  for(const g of rpsGames.values())if(!g.over&&g.ids.includes(u.id))
+   safeSend(ws,{type:"rpsStart",...rpsView(g,u.id)});
   for(const invite of invitations.values()){
    if(invite.to===u.id&&invite.expiresAt>Date.now())safeSend(ws,invitePayload(invite));
   }
