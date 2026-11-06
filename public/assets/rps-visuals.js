@@ -1,46 +1,106 @@
-// Presentation only: scores, choices and wins all come from the multiplayer server.
-const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const symbols={rock:"✊",paper:"✋",scissors:"✌️"};
-const cap=value=>value?value[0].toUpperCase()+value.slice(1):"Hidden";
+// RPS Arena. The server decides every throw, score and match result.
+const escRps=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const RPS_MOVES={
+ rock:{name:"Rock",icon:"✊",beats:"Scissors"},
+ paper:{name:"Paper",icon:"✋",beats:"Rock"},
+ scissors:{name:"Scissors",icon:"✌️",beats:"Paper"}
+};
+const rpsIcon=choice=>RPS_MOVES[choice]?.icon||"?";
+const rpsLabel=choice=>RPS_MOVES[choice]?.name||"Hidden";
+const scorePips=(count,goal)=>Array.from({length:goal},(_,i)=>'<i class="'+(i<count?"filled":"")+'"></i>').join("");
 export function installRpsVisuals(Hub){
-  Hub.prototype.rpsScreen=function(){
-    this.header("Rock Paper Scissors","Quick duels");
-    const host=this.$("#hubContent"),g=this.rps;
-    if(!g){
-      host.innerHTML=
-        '<section class="rps-fresh rps-fresh-lobby">'+
-          '<div class="rps-kicker"><i></i> ROCK PAPER SCISSORS</div>'+
-          '<div class="rps-hero-icons" aria-hidden="true"><span>✊</span><span>✋</span><span>✌️</span></div>'+
-          '<h1>Rock Paper Scissors</h1>'+
-          '<p>Play another member, try the bot, or join a tournament.</p>'+
-          '<div class="rps-lobby-actions"><button class="hub-btn primary" data-act="rpsQueue">Find an opponent ↗</button>'+
-          '<button class="hub-btn" data-act="rpsBot">Play against bot</button>'+
-          '<button class="hub-btn" data-act="tournament">4-player tournament</button></div>'+
-          '<div class="rps-invite-box"><label for="hubDuelId">HAVE A PLAYER ID?</label><div><input id="hubDuelId" placeholder="Enter player ID" autocomplete="off"><button class="hub-btn" data-act="rpsDuel">Challenge</button></div></div>'+
-          '<button class="rps-back-link" data-act="back">← Arcade</button></section>';
-      return;
-    }
-    const result=g.result,mine=result?.choices?.[this.id];
-    const other=result?Object.entries(result.choices||{}).find(([id])=>id!==this.id)?.[1]:null;
-    const opp=g.players?.[g.ids?.indexOf(this.id)===1?0:1]||"Opponent";
-    const state=result?(result.tie?"DRAW":result.winner===this.id?"VICTORY":"DEFEAT"):g.waiting?"LOCKED IN":"YOUR MOVE";
-    const subtitle=result?(result.tie?"Same move. Try another round.":result.winner===this.id?"You read the opponent perfectly.":"You can turn it around next round."):g.waiting?"Your choice is locked. Waiting for the reveal.":"Your move stays secret until your opponent chooses.";
-    const theme=result?(result.tie?"draw":result.winner===this.id?"win":"loss"):"playing";
-    const picks=["rock","paper","scissors"].map((v,i)=>
-      '<button class="rps-select rps-'+v+'" type="button" data-act="rpsPick" data-choice="'+v+'" '+(g.waiting?"disabled":"")+' aria-label="Choose '+cap(v)+'">'+
-        '<small>0'+(i+1)+'</small><span>'+symbols[v]+'</span><strong>'+cap(v)+'</strong><em>'+(g.waiting?"LOCKED":"SELECT ↗")+'</em></button>'
-    ).join("");
-    host.innerHTML=
-      '<section class="rps-fresh rps-fresh-match '+theme+'">'+
-        '<div class="rps-match-top"><span>ROUND · '+esc(g.id?.slice(0,7).toUpperCase()||"LIVE")+'</span><span>'+(result?"RESULT":"LIVE MATCH")+'</span></div>'+
-        '<h1>'+esc(state)+'</h1><p class="rps-match-desc">'+esc(subtitle)+'</p>'+
-        '<div class="rps-fighters"><div class="rps-fighter-card"><small>YOU</small>'+
-          '<div class="rps-fighter-symbol">'+(mine?symbols[mine]:g.waiting?"✓":"?")+'</div><strong>'+esc(mine?cap(mine):g.waiting?"Locked":"Waiting")+'</strong></div>'+
-          '<span class="rps-vs">VS</span>'+
-          '<div class="rps-fighter-card opponent"><small>'+esc(opp)+'</small>'+
-            '<div class="rps-fighter-symbol">'+(other?symbols[other]:"?")+'</div><strong>'+esc(other?cap(other):"Hidden")+'</strong></div></div>'+
-        (result?'<div class="rps-rematch"><button class="hub-btn primary" data-act="'+(g.bot?"rpsBot":"rpsQueue")+'">Play another round ↗</button></div>':
-          '<div class="rps-select-wrap"><span>'+(g.waiting?"WAITING FOR OPPONENT":"MAKE YOUR PICK")+'</span><div class="rps-select-grid">'+picks+'</div></div>')+
-        '<button class="rps-back-link" data-act="back">← Arcade</button></section>';
-  };
+ Hub.prototype.rpsScreen=function(){
+  this.header("Rock Paper Scissors","First to three wins");
+  const host=this.$("#hubContent"),g=this.rps;
+  if(!g){
+   host.innerHTML=
+    '<section class="rps-fresh rps-rewrite rps-fresh-lobby"><div class="rps-lobby-inner">'+
+    '<div class="rps-lobby-top"><span class="rps-tag">THE ARCADE</span><span>ROCK / PAPER / SCISSORS</span></div>'+
+    '<div class="rps-lobby-hero"><div class="rps-hero-copy">'+
+    '<div class="rps-label">A FAST GAME OF MIND GAMES</div>'+
+    '<h1>Rock.<br><em>Paper.</em><br>Scissors<span>.</span></h1>'+
+    '<p>Read your opponent. Lock your move. Win three rounds before they do.</p>'+
+    '<div class="rps-lobby-actions">'+
+    (this.rpsQueueing?
+      '<button type="button" class="rps-btn rps-btn-primary" disabled>Finding an opponent…</button>'+
+      '<button type="button" class="rps-btn rps-btn-secondary" data-act="rpsCancelQueue">Cancel search</button>':
+      '<button type="button" class="rps-btn rps-btn-primary" data-act="rpsQueue">Find a player ↗</button>')+
+    '<button type="button" class="rps-btn rps-btn-secondary" data-act="rpsBot">Play the bot</button>'+
+    '<button type="button" class="rps-btn rps-btn-quiet" data-act="tournament">4-player tournament ↗</button>'+
+    '</div></div><div class="rps-hero-deck" aria-hidden="true">'+
+    '<div class="rps-deck-card rps-deck-rock"><small>01</small><strong>✊</strong><span>ROCK</span></div>'+
+    '<div class="rps-deck-card rps-deck-paper"><small>02</small><strong>✋</strong><span>PAPER</span></div>'+
+    '<div class="rps-deck-card rps-deck-scissors"><small>03</small><strong>✌️</strong><span>SCISSORS</span></div>'+
+    '</div></div><div class="rps-lobby-footer"><div><b>3</b><span>WINS TO TAKE<br>THE MATCH</span></div>'+
+    '<div><b>45<small>s</small></b><span>TO PICK YOUR<br>MOVE</span></div>'+
+    '<div><b>∞</b><span>ANOTHER MATCH?<br>REMATCH.</span></div></div>'+
+    '<div class="rps-invite-box"><label for="hubDuelId">Invite someone by player ID</label>'+
+    '<div><input id="hubDuelId" placeholder="Paste a player ID" autocomplete="off">'+
+    '<button type="button" class="rps-btn rps-btn-secondary" data-act="rpsDuel">Invite</button></div></div>'+
+    '<button type="button" class="rps-back-link" data-act="back">← Back to Arcade</button>'+
+    '</div></section>';return;
+  }
+  const ids=Array.isArray(g.ids)?g.ids:[];
+  const seat=ids.indexOf(this.id),me=ids[seat]||this.id,other=ids[seat===0?1:0]||"opponent";
+  const ownName=g.players?.[seat]||this.name||"You";
+  const oppName=g.players?.[seat===0?1:0]||"Opponent";
+  const score=g.score||{},goal=Math.max(1,Math.min(3,Number(g.winsTo)||3));
+  const ours=Math.max(0,Number(score[me])||0),theirs=Math.max(0,Number(score[other])||0);
+  const result=g.result||null,over=!!g.over;
+  const revealed=!!result&&(g.phase==="reveal"||over||g.phase==="finished");
+  const mine=revealed?result.choices?.[me]:g.myChoice;
+  const rival=revealed?result.choices?.[other]:null;
+  const winner=revealed?result.winner:null;
+  const winRound=winner===me,loseRound=winner===other,tie=!!result?.tie&&revealed;
+  const victory=over&&winner===me,defeat=over&&winner===other;
+  const phase=over?"finished":revealed?"reveal":g.waiting?"waiting":"choosing";
+  const title=over?victory?"Match won":defeat?"Match lost":"Match ended":
+   revealed?tie?"It's a tie":winRound?"You take the round":"They take the round":
+   g.waiting?"Move locked":g.opponentReady?"They're ready":"Make your move";
+  const help=over?result?.reason==="timeout"?"The round ran out of time.":"First to "+goal+" takes the match.":
+   revealed?"Next round starts in a moment.":g.waiting?"Waiting for "+oppName+" to pick.":
+   g.opponentReady?oppName+" has picked. Your turn.":"Rock beats scissors. Scissors beats paper. Paper beats rock.";
+  const state=over?"MATCH COMPLETE":revealed?"ROUND COMPLETE":g.waiting?"MOVE SUBMITTED":"YOUR TURN";
+  const choiceButtons=Object.entries(RPS_MOVES).map(([id,entry],index)=>
+   '<button class="rps-hand-choice rps-hand-'+id+'" type="button" data-act="rpsPick" data-choice="'+id+'"'+
+   (phase!=="choosing"?" disabled":"")+' aria-label="Choose '+entry.name+'">'+
+   '<small>0'+(index+1)+'</small><span class="rps-hand-emoji">'+entry.icon+'</span>'+
+   '<strong>'+entry.name+'</strong><em>BEATS '+entry.beats.toUpperCase()+'</em></button>').join("");
+  const rematch=over&&!g.tournament?
+   '<div class="rps-play-again">'+
+   (g.rematchOffered?'<p>'+escRps(oppName)+' wants a rematch.</p>':"")+
+   (g.rematchPending?'<p>Waiting for '+escRps(oppName)+' to accept.</p>':"")+
+   '<button class="rps-btn rps-btn-primary" type="button" data-act="rpsRematch"'+(g.rematchPending?" disabled":"")+'>'+
+   (g.bot?"Play again":g.rematchOffered?"Accept rematch":"Request rematch")+' ↗</button>'+
+   (g.rematchOffered?'<button class="rps-btn rps-btn-secondary" type="button" data-act="rpsRematchDecline">Decline</button>':"")+
+   '<button class="rps-btn rps-btn-quiet" type="button" data-act="rpsExit">Back to Arcade</button></div>':
+   over?'<div class="rps-play-again"><button class="rps-btn rps-btn-primary" type="button" data-act="rpsExit">Back to Arcade ↗</button></div>':
+   revealed?'<div class="rps-next-round"><i></i> Next round is loading</div>':
+   g.waiting?'<div class="rps-next-round"><i></i> Waiting for '+escRps(oppName)+'…</div>':
+   '<div class="rps-select-wrap"><span>CHOOSE YOUR MOVE</span><div class="rps-select-grid">'+choiceButtons+'</div>'+
+   '<p>Press <kbd>1</kbd>, <kbd>2</kbd> or <kbd>3</kbd> to pick.</p></div>';
+  const tone=over?victory?"win":defeat?"loss":"draw":revealed?tie?"draw":winRound?"win":"loss":"playing";
+  host.innerHTML=
+   '<section class="rps-fresh rps-rewrite rps-fresh-match rps-phase-'+phase+' '+tone+'"><div class="rps-arena-inner">'+
+   '<header class="rps-match-top"><strong>RPS <i>·</i> ARENA</strong><span>ROUND '+Math.max(1,Number(g.round)||1)+
+   ' <i>/</i> FIRST TO '+goal+'</span><button type="button" class="rps-exit" data-act="rpsExit" aria-label="Leave match">×</button></header>'+
+   '<div class="rps-scoreboard"><div class="rps-score-person"><span>YOU</span><strong>'+escRps(ownName)+'</strong>'+
+   '<div class="rps-pips" aria-label="'+ours+' wins">'+scorePips(ours,goal)+'</div></div>'+
+   '<div class="rps-score-total" aria-label="Score '+ours+' to '+theirs+'">'+ours+'<span>:</span>'+theirs+'</div>'+
+   '<div class="rps-score-person opponent"><span>OPPONENT</span><strong>'+escRps(oppName)+'</strong>'+
+   '<div class="rps-pips" aria-label="'+theirs+' wins">'+scorePips(theirs,goal)+'</div></div></div>'+
+   '<div class="rps-round-heading"><span class="rps-kicker">'+state+'</span><h1>'+escRps(title)+'</h1>'+
+   '<p>'+escRps(help)+'</p></div>'+
+   '<div class="rps-duel-stage" aria-label="Your move versus opponent move">'+
+   '<div class="rps-duel-hand us"><small>YOUR HAND</small><div class="rps-duel-symbol">'+
+   (mine?rpsIcon(mine):g.waiting?"✓":"✊")+'</div><strong>'+escRps(mine?rpsLabel(mine):g.waiting?"Locked":"Not picked")+'</strong></div>'+
+   '<div class="rps-duel-versus">VS</div>'+
+   '<div class="rps-duel-hand them"><small>'+escRps(oppName.toUpperCase())+'</small>'+
+   '<div class="rps-duel-symbol">'+(rival?rpsIcon(rival):g.opponentReady?"✓":"?")+'</div>'+
+   '<strong>'+escRps(rival?rpsLabel(rival):g.opponentReady?"Ready":"Hidden")+'</strong></div></div>'+
+   '<div class="rps-round-actions">'+rematch+'</div>'+
+   '<footer class="rps-arena-footer"><span>'+escRps(g.tournament?"Tournament match":"Best of five")+'</span>'+
+   '<span>Hands stay hidden until both players pick.</span></footer>'+
+   '</div></section>';
+ };
 }
