@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - bolt-hosted-v5
-      - feature/actionable-game-invites-toasts-2026-11-05
   workflow_dispatch:
 
 permissions:
