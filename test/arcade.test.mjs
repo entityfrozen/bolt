@@ -36,3 +36,27 @@ test("Chess and RPS have complete server-backed interaction controls",()=>{
   for(const action of ["chessQueue","chessCancelQueue","chessBot","chessDuel","chessRefresh","chessResign","square"])assert.ok(chess.includes(action),action);
   for(const action of ["rpsQueue","rpsBot","rpsDuel","tournament","rpsPick"])assert.ok(rps.includes(action),action);
 });
+
+
+test("Rebuilt RPS arena has server scoring, visible progress and usable rematch controls",()=>{
+ const screen=fs.readFileSync(new URL("../public/assets/rps-visuals.js",import.meta.url),"utf8");
+ const style=fs.readFileSync(new URL("../public/assets/rps-rewrite.css",import.meta.url),"utf8");
+ const server=fs.readFileSync(new URL("../live.js",import.meta.url),"utf8");
+ const hub=fs.readFileSync(new URL("../public/assets/hub.js",import.meta.url),"utf8");
+ const source=fs.readFileSync(new URL("../views/app.html",import.meta.url),"utf8");
+ for(const piece of ["rps-scoreboard","rps-duel-stage","rps-hand-choice",
+  "rpsQueue","rpsCancelQueue","rpsRematch","rpsRematchDecline","rpsExit","rpsPick"])
+  assert.ok(screen.includes(piece),piece+" is missing from the arena");
+ assert.match(screen,/event\.key/);
+ assert.match(style,/prefers-reduced-motion:reduce/);
+ assert.match(style,/\.rps-rewrite\.win/);
+ assert.match(server,/RPS_TARGET=3/);
+ assert.match(server,/RPS_REVEAL_MS=2500/);
+ assert.match(server,/crypto\.randomInt/);
+ assert.match(server,/function rpsSync/);
+ assert.match(server,/function rpsRematch/);
+ assert.match(hub,/rpsRoundStart/);
+ assert.match(hub,/rps-rewrite\.css/);
+ assert.match(source,/app\.js\?v=70/);
+ assert.doesNotThrow(()=>new Function(screen.replace("export function installRpsVisuals","function installRpsVisuals")));
+});
