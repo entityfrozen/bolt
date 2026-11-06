@@ -195,7 +195,7 @@
 #hubMount .chess-compact-lobby .gi-roster-list{max-height:132px}
 @media(max-width:850px){
  #hubMount .chess-compact-match{
-  --compact-board:min(375px,calc(100vw - 300px),calc(100dvh - 194px));
+  --compact-board:min(350px,calc(100vw - 505px),calc(100dvh - 194px));
   grid-template-columns:minmax(0,auto) minmax(168px,210px);
   gap:9px;padding:9px
  }
@@ -204,7 +204,7 @@
  #hubMount .chess-compact-lobby{grid-template-columns:1fr}
  #hubMount .rps-rewrite .rps-lobby-hero{grid-template-columns:minmax(0,1fr) 150px}
 }
-@media(max-width:665px){
+@media(max-width:730px){
  #hubMount .chess-compact-match{
   --compact-board:min(340px,calc(100vw - 40px),calc(100dvh - 162px));
   display:flex;flex-direction:column;align-items:center;gap:9px;
