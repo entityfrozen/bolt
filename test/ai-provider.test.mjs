@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {activeRoleplay,completeAi} from "../ai-provider.js";
+import {activeRoleplay,completeAi,TEXT_MODEL,VISION_MODEL,VISION_BACKUP,usableModel,collapseHistory} from "../ai-provider.js";
 
 function answer(text){
  const packet=JSON.stringify({choices:[{delta:{content:text}}]});
@@ -72,6 +72,46 @@ test("The default fallback is a live NVIDIA endpoint, not a retired model",async
   messages:[{role:"user",content:"Hey"}],fetcher,budgets:[100,100]
  });
  assert.equal(result.reply,"Recovered.");
- assert.equal(seen[1],"meta/llama-3.2-11b-vision-instruct");
+ assert.equal(seen[1],VISION_MODEL);
  assert.ok(!seen.includes("mistralai/mistral-nemotron"));
+});
+
+test("Retired NVIDIA model names are never chosen as active defaults",()=>{
+ assert.equal(TEXT_MODEL,"nvidia/nemotron-3.5-lightning-30b-a3b");
+ assert.equal(VISION_MODEL,"meta/muse-glimmer-30b");
+ assert.equal(VISION_BACKUP,"nvidia/nemotron-3.5-super-vl-120b-a12b");
+ assert.equal(usableModel("meta/llama-3.2-11b-vision-instruct",TEXT_MODEL),TEXT_MODEL);
+ assert.equal(usableModel("meta/llama-3.2-90b-vision-instruct",VISION_MODEL),VISION_MODEL);
+ assert.equal(usableModel("nvidia/custom-model",TEXT_MODEL),"nvidia/custom-model");
+});
+
+test("Repeated unanswered user turns collapse so the provider gets alternating roles",()=>{
+ const original=[
+  {role:"user",content:"Hi"}, {role:"user",content:"Are you still there?"},
+  {role:"assistant",content:"Yes"},
+  {role:"user",content:"Explain this"}, {role:"user",content:"Please be brief",image:"data:image/png;base64,AAAA"}
+ ];
+ const normalized=collapseHistory(original);
+ assert.deepEqual(normalized.map(x=>x.role),["user","assistant","user"]);
+ assert.equal(normalized[0].content,"Hi\\n\\nAre you still there?");
+ assert.equal(normalized[2].content,"Explain this\\n\\nPlease be brief");
+ assert.equal(normalized[2].image,"data:image/png;base64,AAAA");
+ assert.equal(original[0].content,"Hi");
+});
+
+test("Fast NVIDIA model uses non-reasoning chat settings and bounded tokens",async()=>{
+ let request;
+ const result=await completeAi({
+  apiKey:"fake",model:TEXT_MODEL,backupModel:VISION_MODEL,maxTokens:64,
+  messages:[{role:"user",content:"Respond with OK."}],stream:false,
+  fetcher:async(_url,options)=>{
+   request=JSON.parse(options.body);
+   return new Response(JSON.stringify({choices:[{message:{content:"OK"}}]}),{status:200});
+  }
+ });
+ assert.equal(result.reply,"OK");
+ assert.equal(request.model,TEXT_MODEL);
+ assert.equal(request.max_tokens,64);
+ assert.equal(request.temperature,1);
+ assert.deepEqual(request.chat_template_kwargs,{enable_thinking:false});
 });
