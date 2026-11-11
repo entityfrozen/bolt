@@ -34,6 +34,8 @@ Without this variable, the catalog still functions, but the player clearly repor
 
 - Celestial brand, favicon artwork asset, theme layer, title and PWA manifest
 - A self-contained Movies & TV panel with discover/search, detail sheets, TV episode inputs and an embedded player overlay
+- Persistent shared community chat with online/offline members, role badges, and admin message deletion
+- Searchable Apps launcher with saved favorites and an actual fullscreen toolbar button
 - Authenticated server-side catalog endpoints and configurable playback URL resolution
 - Existing browser, admin settings, login and persistent storage remain in place
 
@@ -41,8 +43,8 @@ Without this variable, the catalog still functions, but the player clearly repor
 
 - Migrate more of the recovered Boba visual components and motion language into the main shell
 - Move movie details into a full-width, accessible view with a proper season picker
-- Build persistent community chat with role labels, online/offline roster, moderation and long-term message storage
-- Add a full Apps directory, configurable split-screen and proper fullscreen behavior
+- Upgrade the chat to WebSocket delivery, richer moderation and accessibility-focused message navigation
+- Add split-screen workspace layouts and per-app fullscreen controls
 - Test Scramjet end-to-end on the actual Railway service before any deployment
 
 Do not switch the Railway service branch or deploy this branch until environment configuration and browser compatibility have been tested.
