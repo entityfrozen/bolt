@@ -18,6 +18,7 @@ const freshState = () => ({
   users: [],
   sessions: [],
   passes: [],
+  chat: [],
   audit: [],
   settings: {
     maintenance: false,
@@ -560,6 +561,149 @@ app.use((req, res, next) => {
   if (!allowed) return next();
   if (routeRequest(req, res)) return;
   next();
+});
+
+
+
+// Shared community chat, stored with the existing user database.
+// Presence is based on recent authenticated polling, never on guessed status.
+const chatThrottle = new Map();
+app.get("/api/celestial/chat", mustBeSignedIn, (req, res) => {
+  const cut = now() - 55000;
+  const online = new Set(state.sessions
+    .filter(session => session.expiresAt > now() && session.lastSeenAt >= cut && session.userId)
+    .map(session => session.userId));
+  res.setHeader("Cache-Control", "no-store");
+  res.json({
+    self: req.auth.identity,
+    members: state.users.map(user => ({
+      id: user.id, username: user.username, role: user.role,
+      online: user.enabled && online.has(user.id), disabled: !user.enabled
+    })).sort((a, b) => Number(b.online) - Number(a.online) || a.username.localeCompare(b.username)),
+    messages: (state.chat || []).slice(-140).map(msg => ({
+      id: msg.id, userId: msg.userId, username: msg.username,
+      role: msg.role, body: msg.body, at: msg.at
+    }))
+  });
+});
+app.post("/api/celestial/chat", mustBeSignedIn, sameOrigin, (req, res) => {
+  const identity = req.auth.identity;
+  const body = String(req.body.body || "").trim();
+  if (body.length < 1 || body.length > 1000) return res.status(400).json({ error: "Messages must be 1–1000 characters." });
+  const key = identity.sessionId;
+  const prior = chatThrottle.get(key) || 0;
+  if (now() - prior < 750) return res.status(429).json({ error: "You're sending messages too quickly." });
+  chatThrottle.set(key, now());
+  if (chatThrottle.size > 1000) chatThrottle.clear();
+  const message = {
+    id: id("msg"), userId: identity.id,
+    username: identity.username, role: identity.role, body, at: now()
+  };
+  state.chat ||= [];
+  state.chat.push(message);
+  state.chat = state.chat.slice(-500);
+  saveState();
+  res.status(201).json({ message });
+});
+app.delete("/api/celestial/chat/:id", mustBeAdmin, sameOrigin, (req, res) => {
+  const before = (state.chat || []).length;
+  state.chat = (state.chat || []).filter(message => message.id !== req.params.id);
+  if (state.chat.length === before) return res.status(404).json({ error: "Message not found." });
+  audit(req.auth.identity, "chat.deleted", req.params.id);
+  saveState();
+  res.json({ ok: true });
+});
+
+// Movie metadata is fetched server-side so the TMDB read token never reaches browsers.
+// Playback is opt-in: set CELESTIAL_EMBED_BASE only for a provider you may embed.
+const movieCache = new Map();
+function movieType(value) { return value === "tv" ? "tv" : "movie"; }
+function movieSummary(item, type) {
+  const date = item.release_date || item.first_air_date || "";
+  return {
+    id: item.id, type,
+    title: item.title || item.name || "Untitled",
+    year: date ? date.slice(0, 4) : "",
+    score: item.vote_average ? Number(item.vote_average).toFixed(1) : "",
+    poster: item.poster_path || "",
+    backdrop: item.backdrop_path || "",
+    overview: item.overview || ""
+  };
+}
+async function tmdb(pathname, query = {}) {
+  const bearer = process.env.TMDB_READ_TOKEN || "";
+  const apiKey = process.env.TMDB_API_KEY || "";
+  if (!bearer && !apiKey) {
+    const error = new Error("Movie catalog isn't configured. Add TMDB_READ_TOKEN or TMDB_API_KEY to the server.");
+    error.status = 503;
+    throw error;
+  }
+  const key = pathname + JSON.stringify(query);
+  const saved = movieCache.get(key);
+  if (saved && saved.until > Date.now()) return saved.data;
+  const url = new URL("https://api.themoviedb.org/3" + pathname);
+  for (const [name, value] of Object.entries(query)) url.searchParams.set(name, String(value));
+  if (!bearer) url.searchParams.set("api_key", apiKey);
+  const response = await fetch(url, {
+    headers: bearer ? { Authorization: "Bearer " + bearer, Accept: "application/json" } : { Accept: "application/json" },
+    signal: AbortSignal.timeout(9000)
+  });
+  if (!response.ok) {
+    const error = new Error("Movie catalog is unavailable (" + response.status + ").");
+    error.status = 502;
+    throw error;
+  }
+  const data = await response.json();
+  if (movieCache.size > 250) movieCache.clear();
+  movieCache.set(key, { data, until: Date.now() + 5 * 60 * 1000 });
+  return data;
+}
+function catalogError(error, res) {
+  res.status(error.status || 502).json({ error: error.message || "Movie catalog unavailable." });
+}
+app.get("/api/celestial/discover", mustBeSignedIn, async (req, res) => {
+  const type = movieType(req.query.type);
+  try {
+    const data = await tmdb("/discover/" + type, { sort_by: "popularity.desc", page: 1, include_adult: false });
+    res.json({ items: (data.results || []).filter(x => x.id).map(x => movieSummary(x, type)) });
+  } catch (error) { catalogError(error, res); }
+});
+app.get("/api/celestial/search", mustBeSignedIn, async (req, res) => {
+  const type = movieType(req.query.type);
+  const q = String(req.query.q || "").trim().slice(0, 90);
+  if (q.length < 2) return res.json({ items: [] });
+  try {
+    const data = await tmdb("/search/" + type, { query: q, page: 1, include_adult: false });
+    res.json({ items: (data.results || []).filter(x => x.id).map(x => movieSummary(x, type)) });
+  } catch (error) { catalogError(error, res); }
+});
+app.get("/api/celestial/title/:type/:id", mustBeSignedIn, async (req, res) => {
+  const type = movieType(req.params.type);
+  if (!/^\d{1,12}$/.test(req.params.id)) return res.status(400).json({ error: "Invalid title." });
+  try {
+    const data = await tmdb("/" + type + "/" + req.params.id);
+    res.json({ ...movieSummary(data, type), seasons: type === "tv" ? (data.seasons || []).map(s => ({
+      number: s.season_number, episodes: s.episode_count, name: s.name
+    })) : [] });
+  } catch (error) { catalogError(error, res); }
+});
+app.get("/api/celestial/play/:type/:id/:season?/:episode?", mustBeSignedIn, (req, res) => {
+  const type = movieType(req.params.type);
+  if (!/^\d{1,12}$/.test(req.params.id)) return res.status(400).json({ error: "Invalid title." });
+  const origin = process.env.CELESTIAL_EMBED_BASE || "";
+  let base;
+  try {
+    base = new URL(origin);
+    if (base.protocol !== "https:" || base.username || base.password || base.search || base.hash) throw Error();
+  } catch { return res.status(503).json({ error: "A licensed streaming source hasn't been configured yet." }); }
+  const season = Number(req.params.season), episode = Number(req.params.episode);
+  if (type === "tv" && (!Number.isInteger(season) || season < 1 || season > 100 ||
+      !Number.isInteger(episode) || episode < 1 || episode > 500)) {
+    return res.status(400).json({ error: "Invalid episode." });
+  }
+  const prefix = base.href.replace(/\/+$/, "");
+  const suffix = type === "tv" ? "/tv/" + req.params.id + "/" + season + "/" + episode : "/movie/" + req.params.id;
+  res.json({ url: prefix + suffix });
 });
 
 app.use("/assets", express.static(path.join(here, "public", "assets"), {

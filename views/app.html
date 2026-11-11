@@ -4,15 +4,19 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b0c0e">
-<title>Bolt</title>
+<title>Celestial</title>
 <link rel="icon" href="/favicon.svg">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Sans:wdth,wght@90..100,400..700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/bolt.css">
+<link rel="stylesheet" href="/assets/celestial.css">
 <script src="/bootstrap-init.js"></script>
 <script src="https://w.soundcloud.com/player/api.js"></script>
+<script defer src="/assets/celestial-movies.js"></script>
+<script defer src="/assets/celestial-chat.js"></script>
+<script defer src="/assets/celestial-apps.js"></script>
 <script defer src="/assets/app.js"></script>
 </head>
 <body class="app-page">
@@ -43,8 +47,8 @@
 <div class="bolt-shell" id="boltShell">
   <header class="tabbar">
     <button class="bolt-brand" id="homeMark" type="button" title="New tab">
-      <svg viewBox="0 0 64 64"><path d="M35 7 15 35h14l-3 22 23-32H35Z"/></svg>
-      <span>Bolt</span>
+      <img src="/assets/celestial-mark.svg" width="25" height="25" alt="">
+      <span>Celestial</span>
     </button>
     <div class="tabs" id="tabs"></div>
     <button class="tab-new" id="newTabBtn" type="button" title="New tab"><svg><use href="#i-plus"/></svg></button>
@@ -66,6 +70,7 @@
       <button class="address-go" type="submit">Go</button>
     </form>
     <button class="tool-button" id="bookmarkBtn" type="button" title="Bookmark"><svg><use href="#i-star"/></svg></button>
+    <button class="tool-button" id="fullscreenBtn" type="button" title="Fullscreen"><svg><use href="#i-external"/></svg></button>
     <button class="tool-button" id="menuBtn" type="button" title="Menu"><svg><use href="#i-menu"/></svg></button>
   </div>
 
@@ -74,6 +79,9 @@
       <button class="rail-button active" data-action="newtab" type="button" title="Home"><svg><use href="#i-home"/></svg></button>
       <button class="rail-button" data-panel="history" type="button" title="History"><svg><use href="#i-clock"/></svg></button>
       <div class="rail-spacer"></div>
+      <button class="rail-button" data-panel="apps" type="button" title="Apps"><svg><use href="#i-play"/></svg></button>
+      <button class="rail-button" data-panel="chat" type="button" title="Community chat"><svg><use href="#i-users"/></svg></button>
+      <button class="rail-button" data-panel="movies" type="button" title="Movies &amp; TV"><svg><use href="#i-star"/></svg></button>
       <button class="rail-button" data-panel="video" type="button" title="Video"><svg><use href="#i-video"/></svg></button>
       <button class="rail-button" data-panel="music" type="button" title="Music"><svg><use href="#i-music"/></svg></button>
       <button class="rail-button" data-panel="settings" type="button" title="Settings"><svg><use href="#i-settings"/></svg></button>
@@ -83,7 +91,7 @@
     <main class="browser-stage" id="browserStage">
       <section class="newtab" id="newtabView">
         <div class="newtab-inner">
-          <div class="newtab-wordmark"><span class="newtab-bolt">↯</span>BOLT</div>
+          <div class="newtab-wordmark"><span class="newtab-bolt">✦</span>Celestial</div>
           <form class="newtab-search" id="newtabForm">
             <svg><use href="#i-search"/></svg>
             <input id="newtabInput" autocomplete="off" spellcheck="false" placeholder="Where to?">
