@@ -1,0 +1,59 @@
+/* Celestial's new layer sits above the existing Bolt layout while it is migrated. */
+:root {
+  --bg:#090d17; --bg-2:#0c111f; --surface:#131a2a; --surface-2:#182237;
+  --surface-3:#20304a; --surface-hover:#23314c; --line:#29344d; --line-strong:#3a4c69;
+  --text:#f2f5ff; --muted:#a2acc1; --dim:#77849c; --accent:#93b6ff; --accent-rgb:147,182,255;
+  --panel-width:450px; --radius:14px;
+}
+.bolt-shell {background:linear-gradient(145deg,#090d17,#10182a 65%,#10142a)}
+.tabbar,.rail {background:rgba(11,16,29,.94)}
+.toolbar,.side-panel {background:rgba(19,26,42,.94)}
+.tool-button,.rail-button,.account-button,.tab-close {border-radius:11px}
+.tab {border-radius:12px 12px 0 0}
+.newtab {background:radial-gradient(circle at 54% 22%,rgba(92,122,213,.17),transparent 42%),radial-gradient(circle at 72% 85%,rgba(137,83,191,.09),transparent 42%),#0b1020}
+.newtab-wordmark {font-weight:700;letter-spacing:-.065em}
+.newtab-bolt {font-size:.75em;color:#9ebcff}
+.bolt-brand {width:158px;gap:10px;font-size:14px}
+.bolt-brand svg {width:25px;height:25px}
+.cel-movies {display:grid;gap:18px}
+.cel-movie-intro {padding:20px 18px;border-radius:20px;border:1px solid rgba(155,182,255,.19);background:radial-gradient(circle at top right,rgba(126,108,231,.22),transparent 65%),linear-gradient(140deg,#1a2740,#10192a)}
+.cel-kicker {font-size:10px;font-weight:750;letter-spacing:.18em;color:#b9c8ff}
+.cel-movie-intro h3 {font-size:25px;line-height:1.05;letter-spacing:-.045em;margin:12px 0 9px}
+.cel-movie-intro p {margin:0;color:#9daac4;font-size:12px;line-height:1.6}
+.cel-movie-filters {display:flex;gap:6px}
+.cel-movie-filters button {padding:9px 15px;background:transparent;border:1px solid #35415a;color:#9aa8c0;border-radius:999px;cursor:pointer;font-size:12px}
+.cel-movie-filters button.selected {background:#d9e5ff;border-color:#d9e5ff;color:#14213a}
+.cel-movie-search {height:40px;border:1px solid #36435c;border-radius:12px;display:flex;align-items:center;gap:10px;padding:0 12px;background:#111a2c}
+.cel-movie-search span {font-size:23px;color:#9aacd0}
+.cel-movie-search input {width:100%;height:100%;border:0;outline:0;background:transparent;color:#f3f5ff;font-size:12px}
+.cel-movie-grid {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px 10px}
+.cel-movie {border:0;background:transparent;display:flex;flex-direction:column;gap:6px;padding:0;text-align:left;cursor:pointer;min-width:0;color:#ebf0ff}
+.cel-movie img,.cel-no-poster {display:grid;place-items:center;width:100%;aspect-ratio:2/3;object-fit:cover;border-radius:12px;background:#202b46;border:1px solid rgba(255,255,255,.1);transition:transform .2s ease,border-color .2s ease}
+.cel-movie:hover img {transform:translateY(-3px);border-color:#9ab7ec}
+.cel-movie-title {font-size:11px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%}
+.cel-movie small {font-size:10px;color:#95a3bb}
+.cel-empty {grid-column:1/-1;color:#a7b4cb;line-height:1.6;font-size:12px}
+.cel-detail {position:absolute;inset:64px 0 0;background:#111a29;z-index:3;overflow:auto}
+.cel-detail[hidden] {display:none}
+.cel-detail-backdrop {width:100%;aspect-ratio:16/9;object-fit:cover;mask-image:linear-gradient(#000 70%,transparent)}
+.cel-detail-info {padding:20px}
+.cel-detail-info h3 {font-size:27px;letter-spacing:-.04em}
+.cel-detail-info p {line-height:1.65;color:#9dadc7}
+.cel-detail-actions {display:flex;gap:8px;margin-top:20px}
+.cel-detail-actions button,.cel-player-controls button {padding:10px 15px;border:1px solid #43546d;border-radius:10px;background:#1c2940;color:#ecf2ff;cursor:pointer}
+.cel-detail-actions .cel-primary {color:#15223a;background:#c4d8ff;border-color:#c4d8ff;font-weight:700}
+.cel-player[hidden] {display:none}
+.cel-player {position:fixed;inset:0;z-index:999;display:grid;place-items:center;padding:3vw}
+.cel-player-dim {position:absolute;inset:0;background:rgba(4,8,16,.89);backdrop-filter:blur(15px)}
+.cel-player-shell {position:relative;width:min(1180px,96vw);border:1px solid #35435d;border-radius:20px;overflow:hidden;background:#0b1020;box-shadow:0 34px 120px #0009}
+.cel-player-header {height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 20px}
+.cel-player-header strong {display:block;font-size:14px}
+.cel-player-header span {display:block;margin-top:3px;color:#93a4c4;font-size:11px}
+.cel-player-header button {border:0;background:transparent;color:#b9c6dd;font-size:20px;cursor:pointer}
+.cel-player-screen {aspect-ratio:16/9;background:#03060d;display:grid;place-items:center}
+.cel-player-screen iframe {width:100%;height:100%;border:0}
+.cel-player-status {color:#a9b5ca;font-size:13px;padding:35px;text-align:center}
+.cel-player-controls {display:flex;align-items:center;gap:8px;padding:10px 16px;color:#a2b2ca;font-size:11px}
+.cel-player-controls input {width:58px;padding:9px;background:#19263a;color:white;border:1px solid #384860;border-radius:9px}
+@media(max-width:700px){:root{--panel-width:min(92vw,450px)}.cel-movie-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.cel-player{padding:8px}.cel-player-shell{width:100%}}
+@media(prefers-reduced-motion:reduce){.cel-movie img{transition:none}}
