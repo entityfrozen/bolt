@@ -440,6 +440,7 @@ function openPanel(name){
   if(name==="video")renderVideoPanel();
   if(name==="movies")window.renderCelestialMoviesPanel?.({ dom });
   if(name==="chat")window.renderCelestialChatPanel?.({ dom });
+  if(name==="apps")window.renderCelestialAppsPanel?.({ dom, navigate, closePanel });
   if(name==="music")renderMusicPanel();
   if(name==="settings")renderSettingsPanel();
   if(name==="admin")renderAdminPanel();
@@ -1128,3 +1129,15 @@ async function start(){
 }
 
 start();
+
+// Use the browser Fullscreen API instead of only stretching a CSS container.
+document.querySelector("#fullscreenBtn")?.addEventListener("click", async () => {
+  try {
+    if (document.fullscreenElement) await document.exitFullscreen();
+    else await document.querySelector("#boltShell").requestFullscreen();
+  } catch { toast("Fullscreen is unavailable in this browser"); }
+});
+document.addEventListener("fullscreenchange", () => {
+  const button = document.querySelector("#fullscreenBtn");
+  if (button) button.title = document.fullscreenElement ? "Exit fullscreen" : "Fullscreen";
+});
