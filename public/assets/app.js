@@ -439,6 +439,7 @@ function openPanel(name){
   if(name==="history")renderHistoryPanel();
   if(name==="video")renderVideoPanel();
   if(name==="movies")window.renderCelestialMoviesPanel?.({ dom });
+  if(name==="chat")window.renderCelestialChatPanel?.({ dom });
   if(name==="music")renderMusicPanel();
   if(name==="settings")renderSettingsPanel();
   if(name==="admin")renderAdminPanel();
