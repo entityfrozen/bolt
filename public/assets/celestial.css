@@ -15,7 +15,7 @@
 .newtab-bolt {font-size:.75em;color:#9ebcff}
 .bolt-brand {width:158px;gap:10px;font-size:14px}
 .bolt-brand svg {width:25px;height:25px}
-.cel-movies {display:grid;gap:18px}
+.cel-movies {position:relative;display:grid;gap:18px}
 .cel-movie-intro {padding:20px 18px;border-radius:20px;border:1px solid rgba(155,182,255,.19);background:radial-gradient(circle at top right,rgba(126,108,231,.22),transparent 65%),linear-gradient(140deg,#1a2740,#10192a)}
 .cel-kicker {font-size:10px;font-weight:750;letter-spacing:.18em;color:#b9c8ff}
 .cel-movie-intro h3 {font-size:25px;line-height:1.05;letter-spacing:-.045em;margin:12px 0 9px}
@@ -33,7 +33,7 @@
 .cel-movie-title {font-size:11px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%}
 .cel-movie small {font-size:10px;color:#95a3bb}
 .cel-empty {grid-column:1/-1;color:#a7b4cb;line-height:1.6;font-size:12px}
-.cel-detail {position:absolute;inset:64px 0 0;background:#111a29;z-index:3;overflow:auto}
+.cel-detail {position:fixed;top:64px;right:0;bottom:0;width:var(--panel-width);background:#111a29;z-index:50;overflow:auto;border-left:1px solid #35435d}
 .cel-detail[hidden] {display:none}
 .cel-detail-backdrop {width:100%;aspect-ratio:16/9;object-fit:cover;mask-image:linear-gradient(#000 70%,transparent)}
 .cel-detail-info {padding:20px}
