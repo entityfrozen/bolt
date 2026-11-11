@@ -18,6 +18,7 @@ const freshState = () => ({
   users: [],
   sessions: [],
   passes: [],
+  chat: [],
   audit: [],
   settings: {
     maintenance: false,
@@ -562,6 +563,56 @@ app.use((req, res, next) => {
   next();
 });
 
+
+
+// Shared community chat, stored with the existing user database.
+// Presence is based on recent authenticated polling, never on guessed status.
+const chatThrottle = new Map();
+app.get("/api/celestial/chat", mustBeSignedIn, (req, res) => {
+  const cut = now() - 55000;
+  const online = new Set(state.sessions
+    .filter(session => session.expiresAt > now() && session.lastSeenAt >= cut && session.userId)
+    .map(session => session.userId));
+  res.setHeader("Cache-Control", "no-store");
+  res.json({
+    self: req.auth.identity,
+    members: state.users.map(user => ({
+      id: user.id, username: user.username, role: user.role,
+      online: user.enabled && online.has(user.id), disabled: !user.enabled
+    })).sort((a, b) => Number(b.online) - Number(a.online) || a.username.localeCompare(b.username)),
+    messages: (state.chat || []).slice(-140).map(msg => ({
+      id: msg.id, userId: msg.userId, username: msg.username,
+      role: msg.role, body: msg.body, at: msg.at
+    }))
+  });
+});
+app.post("/api/celestial/chat", mustBeSignedIn, sameOrigin, (req, res) => {
+  const identity = req.auth.identity;
+  const body = String(req.body.body || "").trim();
+  if (body.length < 1 || body.length > 1000) return res.status(400).json({ error: "Messages must be 1–1000 characters." });
+  const key = identity.sessionId;
+  const prior = chatThrottle.get(key) || 0;
+  if (now() - prior < 750) return res.status(429).json({ error: "You're sending messages too quickly." });
+  chatThrottle.set(key, now());
+  if (chatThrottle.size > 1000) chatThrottle.clear();
+  const message = {
+    id: id("msg"), userId: identity.id,
+    username: identity.username, role: identity.role, body, at: now()
+  };
+  state.chat ||= [];
+  state.chat.push(message);
+  state.chat = state.chat.slice(-500);
+  saveState();
+  res.status(201).json({ message });
+});
+app.delete("/api/celestial/chat/:id", mustBeAdmin, sameOrigin, (req, res) => {
+  const before = (state.chat || []).length;
+  state.chat = (state.chat || []).filter(message => message.id !== req.params.id);
+  if (state.chat.length === before) return res.status(404).json({ error: "Message not found." });
+  audit(req.auth.identity, "chat.deleted", req.params.id);
+  saveState();
+  res.json({ ok: true });
+});
 
 // Movie metadata is fetched server-side so the TMDB read token never reaches browsers.
 // Playback is opt-in: set CELESTIAL_EMBED_BASE only for a provider you may embed.
