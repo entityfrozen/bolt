@@ -134,7 +134,7 @@ async function loadConfig(){
   me=data.user;
   config=data.settings;
   document.body.classList.toggle("admin-mode",me.role==="admin");
-  dom.accountInitial.textContent=(me.username||"B").slice(0,1).toUpperCase();
+  dom.accountInitial.textContent=(me.username||"C").slice(0,1).toUpperCase();
   dom.roleChip.textContent=me.role;
   dom.roleChip.style.display=me.role==="admin"?"inline-flex":"none";
 }
@@ -438,6 +438,7 @@ function openPanel(name){
   $$(".rail-button[data-panel]").forEach(button=>button.classList.toggle("active",button.dataset.panel===name));
   if(name==="history")renderHistoryPanel();
   if(name==="video")renderVideoPanel();
+  if(name==="movies")window.renderCelestialMoviesPanel?.({ dom });
   if(name==="music")renderMusicPanel();
   if(name==="settings")renderSettingsPanel();
   if(name==="admin")renderAdminPanel();
